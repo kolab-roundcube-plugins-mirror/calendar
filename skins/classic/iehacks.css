@@ -1,0 +1,88 @@
+/* CSS hacks for IE 6/7 */
+
+#main {
+	width: expression(Math.max(300, parseInt(document.documentElement.clientWidth)-10)+'px');
+	height: expression(Math.max(300, parseInt(document.documentElement.clientHeight)-100)+'px');
+}
+
+#calendarsidebar,
+#calendarsidebartoggle {
+	height: expression((parseInt(this.parentNode.offsetHeight)-37)+'px');
+}
+
+#calendar {
+	width: expression((parseInt(this.parentNode.offsetWidth)-parseInt(document.getElementById('calendarsidebartoggle').offsetWidth)-parseInt(document.getElementById('calendarsidebartoggle').offsetLeft)-4)+'px');
+	height: expression(parseInt(this.parentNode.offsetHeight)+'px');
+}
+
+#calendars {
+	height: expression((parseInt(this.parentNode.offsetHeight)-220)+'px');
+}
+
+#agendaoptions {
+	width: expression((parseInt(this.parentNode.offsetWidth)-12)+'px');
+}
+
+#calendartoolbar a.buttonPas {
+	filter: alpha(opacity=35);
+}
+
+html #calendartoolbar a.button,
+html #calendartoolbar a.buttonPas {
+	background-image: url(images/toolbar.gif);
+}
+
+#datepicker a.ui-priority-secondary {
+	filter: alpha(opacity=40);
+}
+
+#calendarslist li span.handle {
+	background-image: url(images/calendars.gif);
+}
+
+#datepicker .ui-widget-header {
+	width: 102%;
+}
+
+#eventshow.sensitivity-private {
+	background-image: url(images/badge_private.gif);
+}
+
+#eventshow.sensitivity-confidential {
+	background-image: url(images/badge_confidential.gif);
+}
+
+.fc-day-content {
+	cursor: default;
+}
+
+.fc-header-title h2 {
+	font-size: 16px;
+}
+
+.fc-event-temp .fc-event-bg {
+	display: none; /* nested opacity filters while dragging don't work */
+}
+
+#schedule-event-time {
+	filter: alpha(opacity=40);
+}
+
+#eventfreebusy .schedule-buttons,
+#edit-attendees-form #edit-attendee-schedule {
+	right: 0.6em;
+}
+
+#schedule-freebusy-times td.all-busy,
+#schedule-freebusy-times td.all-tentative,
+#schedule-freebusy-times td.all-out-of-office {
+	background-image: url('images/freebusy-colors.gif');
+}
+
+#schedule-freebusy-times tr.times td.allday {
+	width: expression(Math.max(60, parseInt(this.offsetWidth))+'px');
+}
+
+.ui-dialog .ui-dialog-titlebar {
+	width: expression((parseInt(this.parentNode.offsetWidth)-26)+'px');
+}

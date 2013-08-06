@@ -1,0 +1,31 @@
+{
+    "name": "kolab/calendar",
+    "type": "roundcube-plugin",
+    "description": "Calendar module for Roundcube",
+    "keywords": ["apps","calendar"],
+    "homepage": "http://git.kolab.org/roundcubemail-plugins-kolab/",
+    "license": "GPL-3.0+",
+    "authors": [
+        {
+            "name": "Thomas Bruederli",
+            "email": "bruederli@kolabsys.com",
+            "role": "Developer"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "http://33.33.108.2"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "roundcube/plugin-installer": "dev-master"
+    },
+    "extra": {
+        "roundcube": {
+            "min-version": "0.9.2",
+            "sql-dir": "drivers/database/SQL"
+        }
+    }
+}
