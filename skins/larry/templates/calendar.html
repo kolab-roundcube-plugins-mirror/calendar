@@ -5,7 +5,7 @@
 <roundcube:include file="/includes/links.html" />
 <!--[if lte IE 7]><link rel="stylesheet" type="text/css" href="/this/iehacks.css" /><![endif]-->
 </head>
-<body class="calendarmain noscroll">
+<body class="calendarmain">
 
 <roundcube:include file="/includes/header.html" />
 
@@ -14,6 +14,7 @@
 		<div id="calendartoolbar" class="toolbar">
 			<roundcube:button command="addevent" type="link" class="button addevent disabled" classAct="button addevent" classSel="button addevent pressed" label="calendar.new_event" title="calendar.new_event" />
 			<roundcube:button command="print" type="link" class="button print disabled" classAct="button print" classSel="button print pressed" label="calendar.print" title="calendar.printtitle" />
+			<roundcube:button command="events-import" type="link" class="button import disabled" classAct="button import" classSel="button import pressed" label="import" title="calendar.importevents" />
 			<roundcube:button command="export" type="link" class="button export disabled" classAct="button export" classSel="button export pressed" label="calendar.export" title="calendar.exporttitle" />
 			<roundcube:container name="toolbar" id="calendartoolbar" />
 		</div>
@@ -40,16 +41,17 @@
 
 	<div id="calendar">
 		<roundcube:object name="plugin.angenda_options" class="boxfooter" id="agendaoptions" />
-		<roundcube:object name="message" id="message" class="statusbar" />
-		<div class="timezonedisplay"><roundcube:var name="env:timezone" /></div>
 	</div>
 </div>
+
+<div id="timezonedisplay"><roundcube:var name="env:timezone" /></div>
+
+<roundcube:object name="message" id="messagestack" />
 
 <div id="calendaroptionsmenu" class="popupmenu">
 	<ul class="toolbarmenu">
 		<li><roundcube:button command="calendar-edit" label="calendar.edit" classAct="active" /></li>
 		<li><roundcube:button command="calendar-remove" label="calendar.remove" classAct="active" /></li>
-		<li><roundcube:button command="events-import" label="calendar.importevents" classAct="active" /></li>
 		<li><roundcube:button command="calendar-showurl" label="calendar.showurl" classAct="active" /></li>
 		<roundcube:if condition="env:calendar_driver == 'kolab'" />
 		<li class="separator_above"><roundcube:button command="folders" task="settings" type="link" label="managefolders" classAct="active" /></li>
@@ -77,7 +79,7 @@
 		<h5 class="label"><roundcube:label name="calendar.alarms" /></h5>
 		<div class="event-text"></div>
 	</div>
-	<div class="event-section" id="event-attendees">
+	<div class="event-section event-attendees" id="event-attendees">
 		<h5 class="label"><roundcube:label name="calendar.tabattendees" /></h5>
 		<div class="event-text"></div>
 	</div>
@@ -161,9 +163,17 @@
 	<roundcube:object name="plugin.events_import_form" id="events-import-form" uploadFieldSize="30" />
 </div>
 
+<div id="eventsexport" class="uidialog">
+	<roundcube:object name="plugin.events_export_form" id="events-export-form" />
+</div>
+
 <div id="calendarurlbox" class="uidialog">
 	<p><roundcube:label name="calendar.showurldescription" /></p>
 	<textarea id="calfeedurl" rows="2" readonly="readonly"></textarea>
+	<div id="calendarcaldavurl" style="display:none">
+		<p><roundcube:label name="calendar.caldavurldescription" html="yes" /></p>
+		<textarea id="caldavurl" rows="2" readonly="readonly"></textarea>
+	</div>
 </div>
 
 <roundcube:object name="plugin.calendar_css" />

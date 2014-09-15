@@ -127,6 +127,13 @@ class Horde_Date_Recurrence
     public $recurMonths = array();
 
     /**
+     * RDATE recurrence values
+     *
+     * @var array
+     */
+    public $rdates = array();
+
+    /**
      * All the exceptions from recurrence for this event.
      *
      * @var array
@@ -427,7 +434,7 @@ class Horde_Date_Recurrence
             return clone $this->start;
         }
 
-        if ($this->recurInterval == 0) {
+        if ($this->recurInterval == 0 && empty($this->rdates)) {
             return false;
         }
 
@@ -779,6 +786,19 @@ class Horde_Date_Recurrence
             return $next;
         }
 
+        // fall-back to RDATE properties
+        if (!empty($this->rdates)) {
+            $next = clone $this->start;
+            foreach ($this->rdates as $rdate) {
+                $next->year  = $rdate->year;
+                $next->month = $rdate->month;
+                $next->mday  = $rdate->mday;
+                if ($next->compareDateTime($after) > 0) {
+                    return $next;
+                }
+            }
+        }
+
         // We didn't find anything, the recurType was bad, or something else
         // went wrong - return false.
         return false;
@@ -832,6 +852,18 @@ class Horde_Date_Recurrence
         }
 
         return false;
+    }
+
+    /**
+     * Adds an absolute recurrence date.
+     *
+     * @param integer $year   The year of the instance.
+     * @param integer $month  The month of the instance.
+     * @param integer $mday   The day of the month of the instance.
+     */
+    public function addRDate($year, $month, $mday)
+    {
+        $this->rdates[] = new Horde_Date($year, $month, $mday);
     }
 
     /**

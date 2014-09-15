@@ -110,7 +110,7 @@ $rcmail_config['calendar_allow_invite_shared'] = false;
 // enable asynchronous free-busy triggering after data changed
 $rcmail_config['calendar_freebusy_trigger'] = false;
 
-// SMTP username used to send (anonymous) itip messages
+// SMTP server host used to send (anonymous) itip messages
 $rcmail_config['calendar_itip_smtp_server'] = null;
 
 // SMTP username used to send (anonymous) itip messages
@@ -119,5 +119,12 @@ $rcmail_config['calendar_itip_smtp_user'] = 'smtpauth';
 // SMTP password used to send (anonymous) itip messages
 $rcmail_config['calendar_itip_smtp_pass'] = '123456';
 
+// Base URL to build fully qualified URIs to access calendars via CALDAV
+// The following replacement variables are supported:
+// %h - Current HTTP host
+// %u - Current webmail user name
+// %n - Calendar name
+// %i - Calendar UUID
+// $rcmail_config['calendar_caldav_url'] = 'http://%h/iRony/calendars/%u/%i';
 
 ?>

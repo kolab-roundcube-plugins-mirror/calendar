@@ -164,7 +164,12 @@ pre {
     background-position: 0 -92px;
 }
 
-#calfeedurl {
+#calendarslist li.virtual span.calname {
+	color: #666;
+}
+
+#calfeedurl,
+#caldavurl {
 	width: 98%;
 	background: #fbfbfb;
 	padding: 4px;
@@ -246,6 +251,14 @@ pre {
 
 #calendartoolbar a.printSel {
   background-position: -64px -32px;
+}
+
+#calendartoolbar a.import {
+	background-position: -168px 0;
+}
+
+#calendartoolbar a.importSel {
+	background-position: -168px -32px;
 }
 
 #calendartoolbar a.export {
@@ -369,35 +382,42 @@ a.miniColors-trigger {
 	margin: 0.5em 0;
 }
 
-#event-attendees span.attendee {
+.event-attendees span.attendee {
 	padding-right: 18px;
 	margin-right: 0.5em;
 	background: url(images/attendee-status.gif) right 0 no-repeat;
 }
 
-#event-attendees span.attendee a.mailtolink {
+.event-attendees span.attendee a.mailtolink {
 	text-decoration: none;
 	white-space: nowrap;
 }
 
-#event-attendees span.attendee a.mailtolink:hover {
+.event-attendees span.attendee a.mailtolink:hover {
 	text-decoration: underline;
 }
 
-#event-attendees span.accepted {
+.event-attendees span.accepted {
 	background-position: right -20px;
 }
 
-#event-attendees span.declined {
+.event-attendees span.declined {
 	background-position: right -40px;
 }
 
-#event-attendees span.tentative {
+.event-attendees span.tentative {
 	background-position: right -60px;
 }
 
-#event-attendees span.organizer {
+.event-attendees span.organizer {
 	background-position: right -80px;
+}
+
+#all-event-attendees span.attendee {
+	display: block;
+	margin-bottom: 4px;
+	padding-bottom: 3px;
+	border-bottom: 1px solid #ddd;
 }
 
 /* jQuery UI overrides */
@@ -438,6 +458,12 @@ a.miniColors-trigger {
 #eventshow div.event-line {
 	margin-top: 0.1em;
 	margin-bottom: 0.3em;
+}
+
+#eventshow #event-url .event-text {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
 }
 
 #eventedit {
@@ -515,6 +541,28 @@ td.topalign {
 
 #edit-recurrence-yearly-bymonthblock {
 	margin-left: 7.5em;
+}
+
+#edit-recurrence-rdates {
+	display: block;
+	list-style: none;
+	margin: 0 0 0.8em 0;
+	padding: 0;
+	max-height: 300px;
+	overflow: auto;
+}
+
+#edit-recurrence-rdates li {
+	display: block;
+	position: relative;
+	width: 14em;
+	padding: 1px;
+}
+
+#edit-recurrence-rdates li a.delete {
+	position: absolute;
+	top: 1px;
+	right: 0;
 }
 
 #eventedit .recurrence-form {
@@ -1139,8 +1187,8 @@ div.fc-event-location {
 	color: #333;
 }
 
-.fc-view-table col.fc-event-location {
-	width: 20%;
+.fc-view-table table.fc-list-smart {
+	table-layout: auto;
 }
 
 .fc-listappend {

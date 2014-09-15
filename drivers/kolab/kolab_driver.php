@@ -33,7 +33,7 @@ class kolab_driver extends calendar_driver
   public $freebusy = true;
   public $attachments = true;
   public $undelete = true;
-  public $alarm_types = array('DISPLAY');
+  public $alarm_types = array('DISPLAY','AUDIO');
   public $categoriesimmutable = true;
 
   private $rc;
@@ -105,29 +105,47 @@ class kolab_driver extends calendar_driver
       }
     }
 
-    $calendars = $this->filter_calendars(false, $active, $personal);
-    $names     = array();
+    $folders = $this->filter_calendars(false, $active, $personal);
+    $calendars = $names = array();
 
-    foreach ($calendars as $id => $cal) {
-      $name = kolab_storage::folder_displayname($cal->get_name(), $names);
+    // include virtual folders for a full folder tree
+    if (!$active && !$personal && !$this->rc->output->ajax_call && in_array($this->rc->action, array('index','')))
+      $folders = kolab_storage::folder_hierarchy($folders);
 
-      $calendars[$id] = array(
-        'id'       => $cal->id,
-        'name'     => $name,
-        'editname' => $cal->get_foldername(),
-        'color'    => $cal->get_color(),
-        'readonly' => $cal->readonly,
-        'showalarms' => $cal->alarms,
-        'class_name' => $cal->get_namespace(),
-        'default'  => $cal->storage->default,
-        'active'   => $cal->storage->is_active(),
-        'owner'    => $cal->get_owner(),
-      );
+    foreach ($folders as $id => $cal) {
+      $fullname = $cal->get_name();
+      $listname = kolab_storage::folder_displayname($fullname, $names);
+
+      // special handling for virtual folders
+      if ($cal->virtual) {
+        $calendars[$cal->id] = array(
+          'id' => $cal->id,
+          'name' => $fullname,
+          'listname' => $listname,
+          'virtual' => true,
+        );
+      }
+      else {
+        $calendars[$cal->id] = array(
+          'id'       => $cal->id,
+          'name'     => $fullname,
+          'listname' => $listname,
+          'editname' => $cal->get_foldername(),
+          'color'    => $cal->get_color(),
+          'readonly' => $cal->readonly,
+          'showalarms' => $cal->alarms,
+          'class_name' => $cal->get_namespace(),
+          'default'  => $cal->storage->default,
+          'active'   => $cal->storage->is_active(),
+          'owner'    => $cal->get_owner(),
+          'children' => true,  // TODO: determine if that folder indeed has child folders
+          'caldavurl' => $cal->get_caldav_url(),
+        );
+      }
     }
 
     return $calendars;
   }
-
 
   /**
    * Get list of calendars according to specified filters
@@ -448,6 +466,15 @@ class kolab_driver extends calendar_driver
             if ($master['recurrence']['COUNT'])
               $master['recurrence']['COUNT']--;
           }
+          // remove the matching RDATE entry
+          else if ($master['recurrence']['RDATE']) {
+            foreach ($master['recurrence']['RDATE'] as $j => $rdate) {
+              if ($rdate->format('Ymd') == $event['start']->format('Ymd')) {
+                unset($master['recurrence']['RDATE'][$j]);
+                break;
+              }
+            }
+          }
           else {  // add exception to master event
             $master['recurrence']['EXDATE'][] = $event['start'];
           }
@@ -464,8 +491,18 @@ class kolab_driver extends calendar_driver
             unset($master['recurrence']['COUNT']);
 
             // if all future instances are deleted, remove recurrence rule entirely (bug #1677)
-            if ($master['recurrence']['UNTIL']->format('Ymd') == $master['start']->format('Ymd'))
+            if ($master['recurrence']['UNTIL']->format('Ymd') == $master['start']->format('Ymd')) {
               $master['recurrence'] = array();
+            }
+            // remove matching RDATE entries
+            else if ($master['recurrence']['RDATE']) {
+              foreach ($master['recurrence']['RDATE'] as $j => $rdate) {
+                if ($rdate->format('Ymd') == $event['start']->format('Ymd')) {
+                  $master['recurrence']['RDATE'] = array_slice($master['recurrence']['RDATE'], 0, $j);
+                  break;
+                }
+              }
+            }
 
             $success = $storage->update_event($master);
             break;
@@ -622,8 +659,24 @@ class kolab_driver extends calendar_driver
             }
         }
 
+        $add_exception = true;
+
+        // adjust matching RDATE entry if dates changed
+        if ($savemode == 'current' && $master['recurrence']['RDATE'] && ($old_date = $old['start']->format('Ymd')) != $event['start']->format('Ymd')) {
+          foreach ($master['recurrence']['RDATE'] as $j => $rdate) {
+            if ($rdate->format('Ymd') == $old_date) {
+              $master['recurrence']['RDATE'][$j] = $event['start'];
+              sort($master['recurrence']['RDATE']);
+              $add_exception = false;
+              break;
+            }
+          }
+        }
+
         // save as new exception to master event
-        $master['recurrence']['EXCEPTIONS'][] = $event;
+        if ($add_exception) {
+          $master['recurrence']['EXCEPTIONS'][] = $event;
+        }
         $success = $storage->update_event($master);
         break;
 
@@ -662,6 +715,9 @@ class kolab_driver extends calendar_driver
           $event['end'] = $master['end'];
         }
 
+        // unset _dateonly flags in (cached) date objects
+        unset($event['start']->_dateonly, $event['end']->_dateonly);
+
         $success = $storage->update_event($event);
         break;
     }
@@ -679,26 +735,31 @@ class kolab_driver extends calendar_driver
    * @param  integer Event's new end (unix timestamp)
    * @param  string  Search query (optional)
    * @param  mixed   List of calendar IDs to load events from (either as array or comma-separated string)
-   * @param  boolean Strip virtual events (optional)
+   * @param  boolean Include virtual events (optional)
+   * @param  integer Only list events modified since this time (unix timestamp)
    * @return array A list of event records
    */
-  public function load_events($start, $end, $search = null, $calendars = null, $virtual = 1)
+  public function load_events($start, $end, $search = null, $calendars = null, $virtual = 1, $modifiedsince = null)
   {
     if ($calendars && is_string($calendars))
       $calendars = explode(',', $calendars);
+
+    $query = array();
+    if ($modifiedsince)
+      $query[] = array('changed', '>=', $modifiedsince);
 
     $events = $categories = array();
     foreach (array_keys($this->calendars) as $cid) {
       if ($calendars && !in_array($cid, $calendars))
         continue;
 
-      $events = array_merge($events, $this->calendars[$cid]->list_events($start, $end, $search, $virtual));
+      $events = array_merge($events, $this->calendars[$cid]->list_events($start, $end, $search, $virtual, $query));
       $categories += $this->calendars[$cid]->categories;
     }
     
     // add new categories to user prefs
     $old_categories = $this->rc->config->get('calendar_categories', $this->default_categories);
-    if ($newcats = array_diff(array_map('strtolower', array_keys($categories)), array_map('strtolower', array_keys($old_categories)))) {
+    if ($newcats = array_udiff(array_keys($categories), array_keys($old_categories), function($a, $b){ return strcasecmp($a, $b); })) {
       foreach ($newcats as $category)
         $old_categories[$category] = '';  // no color set yet
       $this->rc->user->save_prefs(array('calendar_categories' => $old_categories));
@@ -874,8 +935,6 @@ class kolab_driver extends calendar_driver
    */
   public function get_freebusy_list($email, $start, $end)
   {
-    require_once('HTTP/Request2.php');
-
     if (empty($email)/* || $end < time()*/)
       return false;
 
@@ -888,14 +947,11 @@ class kolab_driver extends calendar_driver
 
     // ask kolab server first
     try {
-      $rcmail = rcube::get_instance();
-      $request = new HTTP_Request2(kolab_storage::get_freebusy_url($email));
-      $request->setConfig(array(
+      $request_config = array(
         'store_body'       => true,
         'follow_redirects' => true,
-        'ssl_verify_peer'  => $rcmail->config->get('kolab_ssl_verify_peer', true),
-      ));
-
+      );
+      $request  = libkolab::http_request(kolab_storage::get_freebusy_url($email), 'GET', $request_config);
       $response = $request->send();
 
       // authentication required
@@ -935,28 +991,25 @@ class kolab_driver extends calendar_driver
 
     // parse free-busy information using Horde classes
     if ($fbdata) {
-      $fbcal = $this->cal->get_ical()->get_parser();
-      $fbcal->parsevCalendar($fbdata);
-      if ($fb = $fbcal->findComponent('vfreebusy')) {
+      $ical = $this->cal->get_ical();
+      $ical->import($fbdata);
+      if ($fb = $ical->freebusy) {
         $result = array();
-        $params = $fb->getExtraParams();
-        foreach ($fb->getBusyPeriods() as $from => $to) {
-          if ($to == null)  // no information, assume free
-            break;
-          $type = $params[$from]['FBTYPE'];
-          $result[] = array($from, $to, isset($fbtypemap[$type]) ? $fbtypemap[$type] : calendar::FREEBUSY_BUSY);
+        foreach ($fb['periods'] as $tuple) {
+          list($from, $to, $type) = $tuple;
+          $result[] = array($from->format('U'), $to->format('U'), isset($fbtypemap[$type]) ? $fbtypemap[$type] : calendar::FREEBUSY_BUSY);
         }
 
         // we take 'dummy' free-busy lists as "unknown"
-        if (empty($result) && ($comment = $fb->getAttribute('COMMENT')) && stripos($comment, 'dummy'))
+        if (empty($result) && !empty($fb['comment']) && stripos($fb['comment'], 'dummy'))
           return false;
 
         // set period from $start till the begin of the free-busy information as 'unknown'
-        if (($fbstart = $fb->getStart()) && $start < $fbstart) {
+        if ($fb['start'] && ($fbstart = $fb['start']->format('U')) && $start < $fbstart) {
           array_unshift($result, array($start, $fbstart, calendar::FREEBUSY_UNKNOWN));
         }
         // pad period till $end with status 'unknown'
-        if (($fbend = $fb->getEnd()) && $fbend < $end) {
+        if ($fb['end'] && ($fbend = $fb['end']->format('U')) && $fbend < $end) {
           $result[] = array($fbend, $end, calendar::FREEBUSY_UNKNOWN);
         }
 
@@ -1039,7 +1092,7 @@ class kolab_driver extends calendar_driver
     // Disable folder name input
     if (!empty($options) && ($options['norename'] || $options['protected'])) {
       $input_name = new html_hiddenfield(array('name' => 'name', 'id' => 'calendar-name'));
-      $formfields['name']['value'] = Q(str_replace($delim, ' &raquo; ', kolab_storage::object_name($folder)))
+      $formfields['name']['value'] = kolab_storage::object_name($folder)
         . $input_name->show($folder);
     }
 

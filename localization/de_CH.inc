@@ -46,6 +46,9 @@ $labels['description'] = 'Beschrieb';
 $labels['all-day'] = 'ganztägig';
 $labels['export'] = 'Exportieren';
 $labels['exporttitle'] = 'Kalender als iCalendar exportieren';
+$labels['exportrange'] = 'Termine ab';
+$labels['exportattachments'] = 'Mit Anhängen';
+$labels['customdate'] = 'Eigenes Datum';
 $labels['location'] = 'Ort';
 $labels['date'] = 'Datum';
 $labels['start'] = 'Beginn';
@@ -76,6 +79,7 @@ $labels['onemonthback'] = '1 Monat zurück';
 $labels['nmonthsback'] = '$nr Monate zurück';
 $labels['showurl'] = 'URL anzeigen';
 $labels['showurldescription'] = 'Über die folgende Adresse können Sie mit einem beliebigen Kalenderprogramm Ihren Kalender abrufen (nur lesend), sofern dieses das iCal-Format unterstützt.';
+$labels['caldavurldescription'] = 'Benutzen Sie folgende Addresse in einer <a href="http://de.wikipedia.org/wiki/CalDAV" target="_blank">CalDAV</a>-Anwendung (wie z.B. Evolution oder Mozilla Thunderbird) um diesen spezifischen Kalender mit dem Computer oder Mobiltelefon zu synchronisieren.';
 
 // agenda view
 $labels['listrange'] = 'Angezeigter Bereich:';
@@ -167,6 +171,7 @@ $labels['tabsharing'] = 'Freigabe';
 // messages
 $labels['deleteventconfirm'] = 'Möchten Sie diesen Termin wirklich löschen?';
 $labels['deletecalendarconfirm'] = 'Möchten Sie diesen Kalender mit allen Terminen wirklich löschen?';
+$labels['deletecalendarconfirmrecursive'] = 'Möchten Sie diesen Kalender mit allen Terminen und Unter-Kalendern wirklich löschen?';
 $labels['savingdata'] = 'Speichere Daten...';
 $labels['errorsaving'] = 'Fehler beim Speichern.';
 $labels['operationfailed'] = 'Die Aktion ist fehlgeschlagen.';
@@ -197,6 +202,7 @@ $labels['daily'] = 'täglich';
 $labels['weekly'] = 'wöchentlich';
 $labels['monthly'] = 'monatlich';
 $labels['yearly'] = 'jährlich';
+$labels['rdate'] = 'per Datum';
 $labels['every'] = 'Alle';
 $labels['days'] = 'Tag(e)';
 $labels['weeks'] = 'Woche(n)';
@@ -216,7 +222,7 @@ $labels['third'] = 'dritter';
 $labels['fourth'] = 'vierter';
 $labels['last'] = 'letzter';
 $labels['dayofmonth'] = 'Tag des Montats';
-
+$labels['addrdate'] = 'Datum hinzufügen';
 $labels['changeeventconfirm'] = 'Termin ändern';
 $labels['removeeventconfirm'] = 'Termin löschen';
 $labels['changerecurringeventwarning'] = 'Dies ist eine Terminreihe. Möchten Sie nur den aktuellen, diesen und alle zukünftigen oder alle Termine bearbeiten oder die Änderungen als neuen Termin speichern?';

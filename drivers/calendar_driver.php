@@ -54,7 +54,18 @@
  *     'free_busy' => 'free|busy|outofoffice|tentative',  // Show time as
  *      'priority' => 0-9,     // Event priority (0=undefined, 1=highest, 9=lowest)
  *   'sensitivity' => 'public|private|confidential',   // Event sensitivity
- *        'alarms' => '-15M:DISPLAY',  // Reminder settings inspired by valarm definition (e.g. display alert 15 minutes before event)
+ *        'alarms' => '-15M:DISPLAY',  // DEPRECATED Reminder settings inspired by valarm definition (e.g. display alert 15 minutes before event)
+ *       'valarms' => array(           // List of reminders (new format), each represented as a hash array:
+ *                  array(
+ *                     'trigger' => '-PT90M',     // ISO 8601 period string prefixed with '+' or '-', or DateTime object
+ *                      'action' => 'DISPLAY|EMAIL|AUDIO',
+ *                    'duration' => 'PT15M',      // ISO 8601 period string
+ *                      'repeat' => 0,            // number of repetitions
+ *                 'description' => '',        // text to display for DISPLAY actions
+ *                     'summary' => '',        // message text for EMAIL actions
+ *                   'attendees' => array(),   // list of email addresses to receive alarm messages
+ *                  ),
+ *   ),
  *   'attachments' => array(   // List of attachments
  *            'name' => 'File name',
  *        'mimetype' => 'Content type',
@@ -236,9 +247,11 @@ abstract class calendar_driver
    * @param  integer Event's new end (unix timestamp)
    * @param  string  Search query (optional)
    * @param  mixed   List of calendar IDs to load events from (either as array or comma-separated string)
+   * @param  boolean Include virtual/recurring events (optional)
+   * @param  integer Only list events modified since this time (unix timestamp)
    * @return array A list of event objects (see header of this file for struct of an event)
    */
-  abstract function load_events($start, $end, $query = null, $calendars = null);
+  abstract function load_events($start, $end, $query = null, $calendars = null, $virtual = 1, $modifiedsince = null);
 
   /**
    * Get a list of pending alarms to be displayed to the user

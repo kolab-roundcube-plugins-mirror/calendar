@@ -6,7 +6,7 @@
  * @author Thomas Bruederli <bruederli@kolabsys.com>
  *
  * Copyright (C) 2010, Lazlo Westerhof <hello@lazlo.me>
- * Copyright (C) 2012, Kolab Systems AG <contact@kolabsys.com>
+ * Copyright (C) 2013, Kolab Systems AG <contact@kolabsys.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -36,10 +36,9 @@ function rcube_calendar(settings)
     var me = this;
 
     // create new event from current mail message
-    this.create_from_mail = function()
+    this.create_from_mail = function(uid)
     {
-      var uid;
-      if ((uid = rcmail.get_single_uid())) {
+      if (uid || (uid = rcmail.get_single_uid())) {
         // load calendar UI (scripts and edit dialog template)
         if (!this.ui_loaded) {
           $.when(
@@ -53,7 +52,7 @@ function rcube_calendar(settings)
             
             me.ui_loaded = true;
             me.ui = new rcube_calendar_ui(me.settings);
-            me.create_from_mail();  // start over
+            me.create_from_mail(uid);  // start over
           });
           return;
         }
@@ -156,9 +155,6 @@ window.rcmail && rcmail.addEventListener('init', function(evt) {
     
     // register create-from-mail command to message_commands array
     if (rcmail.env.task == 'mail') {
-      // place link above 'view source'
-      $('#messagemenu a.calendarlink').parent().insertBefore($('#messagemenu a.sourcelink').parent());
-      
       rcmail.register_command('calendar-create-from-mail', function() { cal.create_from_mail() });
       rcmail.addEventListener('plugin.mail2event_dialog', function(p){ cal.mail2event_dialog(p) });
       rcmail.addEventListener('plugin.unlock_saving', function(p){ cal.ui && cal.ui.unlock_saving(); });
@@ -169,6 +165,15 @@ window.rcmail && rcmail.addEventListener('init', function(evt) {
       }
       else
         rcmail.enable_command('calendar-create-from-mail', true);
+
+      // add contextmenu item
+      if (window.rcm_contextmenu_register_command) {
+        rcm_contextmenu_register_command(
+          'calendar-create-from-mail',
+          function(cmd,el){ cal.create_from_mail() },
+          'calendar.createfrommail',
+          'moveto');
+      }
     }
   }
 

@@ -57,8 +57,18 @@ class calendar_recurrence
     $this->engine->fromRRule20(libcalendaring::to_rrule($event['recurrence']));
 
     if (is_array($event['recurrence']['EXDATE'])) {
-      foreach ($event['recurrence']['EXDATE'] as $exdate)
-        $this->engine->addException($exdate->format('Y'), $exdate->format('n'), $exdate->format('j'));
+      foreach ($event['recurrence']['EXDATE'] as $exdate) {
+        if (is_a($exdate, 'DateTime')) {
+          $this->engine->addException($exdate->format('Y'), $exdate->format('n'), $exdate->format('j'));
+        }
+      }
+    }
+    if (is_array($event['recurrence']['RDATE'])) {
+      foreach ($event['recurrence']['RDATE'] as $rdate) {
+        if (is_a($rdate, 'DateTime')) {
+          $this->engine->addRDate($rdate->format('Y'), $rdate->format('n'), $rdate->format('j'));
+        }
+      }
     }
   }
 

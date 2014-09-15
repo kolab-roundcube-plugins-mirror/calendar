@@ -90,6 +90,7 @@ class database_driver extends calendar_driver
         $arr['showalarms'] = intval($arr['showalarms']);
         $arr['active']     = !in_array($arr['id'], $hidden);
         $arr['name']       = html::quote($arr['name']);
+        $arr['listname']   = html::quote($arr['name']);
         $this->calendars[$arr['calendar_id']] = $arr;
         $calendar_ids[] = $this->rc->db->quote($arr['calendar_id']);
       }
@@ -723,7 +724,7 @@ class database_driver extends calendar_driver
    *
    * @see calendar_driver::load_events()
    */
-  public function load_events($start, $end, $query = null, $calendars = null)
+  public function load_events($start, $end, $query = null, $calendars = null, $virtual = 1, $modifiedsince = null)
   {
     if (empty($calendars))
       $calendars = array_keys($this->calendars);
@@ -740,6 +741,12 @@ class database_driver extends calendar_driver
         $sql_query[] = $this->rc->db->ilike($col, '%'.$query.'%');
       $sql_add = 'AND (' . join(' OR ', $sql_query) . ')';
     }
+    
+    if (!$virtual)
+      $sql_arr .= ' AND e.recurrence_id = 0';
+    
+    if ($modifiedsince)
+      $sql_add .= ' AND e.changed >= ' . $this->rc->db->quote(date('Y-m-d H:i:s', $modifiedsince));
     
     $events = array();
     if (!empty($calendar_ids)) {
@@ -792,6 +799,8 @@ class database_driver extends calendar_driver
           $rr[2] = intval($rr[2]);
         else if ($rr[1] == 'UNTIL')
           $rr[2] = date_create($rr[2]);
+        else if ($rr[1] == 'RDATE')
+          $rr[2] = array_map('date_create', explode(',', $rr[2]));
         else if ($rr[1] == 'EXDATE')
           $rr[2] = array_map('date_create', explode(',', $rr[2]));
         $event['recurrence'][$rr[1]] = $rr[2];

@@ -18,6 +18,22 @@ body.calendarmain #mainscreen {
 	left: 0;
 }
 
+/* overrides for tablets and mobile phones */
+@media screen and (max-device-width: 1024px){
+	body.calendarmain {
+		overflow: visible;
+	}
+
+	body.calendarmain #mainscreen {
+		min-width: 1000px !important;
+		min-height: 520px !important;
+	}
+
+	body.calendarmain #header {
+		min-width: 1020px !important;
+	}
+}
+
 body.attachmentwin #mainscreen {
 	top: 60px;
 }
@@ -117,7 +133,6 @@ div.sidebarclosed {
 	left: 266px;
 	right: 0;
 	bottom: 0;
-	padding-bottom: 28px;
 }
 
 .calendarmain #message.statusbar {
@@ -125,10 +140,10 @@ div.sidebarclosed {
 	border-bottom-color: #ababab;
 }
 
-#calendar .timezonedisplay {
+#timezonedisplay {
 	position: absolute;
-	bottom: 9px;
-	right: 8px;
+	bottom: 5px;
+	right: 12px;
 	font-size: 0.85em;
 	color: #666;
 }
@@ -155,6 +170,10 @@ pre {
 	padding: 6px 8px 2px;
 	display: block;
 	position: relative;
+}
+
+#calendarslist li.virtual {
+	height: 12px;
 }
 
 #calendarslist li label {
@@ -225,7 +244,13 @@ pre {
 	background-position: right -92px;
 }
 
-#calfeedurl {
+#calendarslist li.virtual span.calname {
+	color: #aaa;
+	top: 2px;
+}
+
+#calfeedurl,
+#caldavurl {
 	width: 98%;
 	background: #fbfbfb;
 	padding: 4px;
@@ -266,6 +291,7 @@ pre {
 	top: -6px;
 	left: 0;
 	height: 40px;
+	white-space: nowrap;
 }
 
 #calendartoolbar a.button {
@@ -277,7 +303,15 @@ pre {
 }
 
 #calendartoolbar a.button.export {
+	min-width: 50px;
+	max-width: 55px;
 	background-position: center -40px;
+}
+
+#calendartoolbar a.button.import {
+	min-width: 50px;
+	max-width: 55px;
+	background-position: center -440px;
 }
 
 #calendartoolbar a.button.print {
@@ -367,7 +401,7 @@ a.miniColors-trigger {
 	display: block;
 	color: #333;
 	font-weight: bold;
-	padding: 8px 4px 3px 30px;
+	padding: 4px 4px 3px 30px;
 	text-shadow: 0px 1px 1px #fff;
 	text-decoration: none;
 	white-space: nowrap;
@@ -419,35 +453,43 @@ a.miniColors-trigger {
 	outline: none;
 }
 
-#event-attendees span.attendee {
+.event-attendees span.attendee {
 	padding-right: 18px;
 	margin-right: 0.5em;
 	background: url(images/attendee-status.gif) right 0 no-repeat;
 }
 
-#event-attendees span.attendee a.mailtolink {
+.event-attendees span.attendee a.mailtolink {
 	text-decoration: none;
 	white-space: nowrap;
+	outline: none;
 }
 
-#event-attendees span.attendee a.mailtolink:hover {
+.event-attendees span.attendee a.mailtolink:hover {
 	text-decoration: underline;
 }
 
-#event-attendees span.accepted {
+.event-attendees span.accepted {
 	background-position: right -20px;
 }
 
-#event-attendees span.declined {
+.event-attendees span.declined {
 	background-position: right -40px;
 }
 
-#event-attendees span.tentative {
+.event-attendees span.tentative {
 	background-position: right -60px;
 }
 
-#event-attendees span.organizer {
+.event-attendees span.organizer {
 	background-position: right -80px;
+}
+
+#all-event-attendees span.attendee {
+	display: block;
+	margin-bottom: 0.4em;
+	padding-bottom: 0.3em;
+	border-bottom: 1px solid #ddd;
 }
 
 .calendarmain .fc-view-table td.fc-list-header,
@@ -550,6 +592,12 @@ div.form-section,
 	padding-right: 0.5em;
 }
 
+.calendarmain .eventdialog #event-url .event-text {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
 #eventedit .formtable td.label {
 	min-width: 6em;
 }
@@ -573,6 +621,31 @@ td.topalign {
 
 #eventedit .recurrence-form {
 	display: none;
+}
+
+#edit-recurrence-rdates {
+	display: block;
+	list-style: none;
+	margin: 0 0 0.8em 0;
+	padding: 0;
+	max-height: 300px;
+	overflow: auto;
+}
+
+#edit-recurrence-rdates li {
+	display: block;
+	position: relative;
+	width: 12em;
+	padding: 4px 0 4px 0;
+}
+
+#edit-recurrence-rdates li a.delete {
+	position: absolute;
+	top: 2px;
+	right: 0;
+	width: 20px;
+	height: 18px;
+	background-position: -7px -337px;
 }
 
 #eventedit .formtable td {
@@ -963,7 +1036,7 @@ a.dropdown-link:after {
 
 #agendaoptions {
 	position: absolute;
-	bottom: 28px;
+	bottom: 0;
 	left: 0;
 	right: 0;
 	height: auto;
@@ -972,6 +1045,7 @@ a.dropdown-link:after {
 	border: 1px solid #c3c3c3;
 	border-top-color: #ddd;
 	border-bottom-color: #bbb;
+	border-radius: 0 0 4px 4px;
 	background: #ebebeb;
 	background: -moz-linear-gradient(top, #ebebeb 0%, #c6c6c6 100%);
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ebebeb), color-stop(100%,#c6c6c6));
@@ -1011,7 +1085,7 @@ a.dropdown-link:after {
 .rcube-fc-content {
 	overflow: hidden;
 	border: 0;
-	border-radius: 4px 4px 0 0;
+	border-radius: 4px;
 	box-shadow: 0 0 2px #999;
 	-o-box-shadow: 0 0 2px #999;
 	-webkit-box-shadow: 0 0 2px #999;
@@ -1023,7 +1097,7 @@ a.dropdown-link:after {
 	top: 40px;
 	left: 0;
 	right: 0;
-	bottom: 28px;
+	bottom: 0;
 	background: #fff;
 }
 
@@ -1281,14 +1355,13 @@ div.fc-event-location {
 .calendarmain .fc-view-table tr.fc-event td {
 	border-color: #ddd;
 	padding: 4px 7px;
-}
-
-.calendarmain .fc-view-table col.fc-event-location {
-	width: 20%;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .calendarmain .fc-view-table tr.fc-event td.fc-event-handle {
-	padding: 5px 10px 2px 7px;
+	padding: 5px 0 2px 7px;
 	width: 12px;
 }
 
@@ -1315,6 +1388,13 @@ div.fc-event-location {
 	box-shadow: inset 0px 0 1px 1px rgba(0, 0, 0, 0.3);
 }
 
+.calendarmain .fc-view-table col.fc-event-location {
+	width: 25%;
+}
+
+.fc-view-table table.fc-list-smart {
+/*	table-layout: auto; */
+}
 
 .fc-listappend {
 	text-align: center;
@@ -1347,7 +1427,7 @@ fieldset #calendarcategories div {
 /* Invitation UI in mail */
 
 #messagemenu li a.calendarlink span.calendar {
-	background-position: 0px -1948px;
+	background-position: 0px -2197px;
 }
 
 div.calendar-invitebox {
@@ -1410,6 +1490,7 @@ div.calendar-invitebox .rsvp-status.tentative {
 
 .calendaritipattend .centerbox {
 	width: 40em;
+	min-height: 7em;
 	margin: 80px auto 0 auto;
 	padding: 10px 10px 10px 90px;
 	background: url(images/invitation.png) 10px 10px no-repeat #fff;

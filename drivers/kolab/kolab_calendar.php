@@ -33,6 +33,7 @@ class kolab_calendar
   public $alarms = false;
   public $categories = array();
   public $storage;
+  public $name;
 
   private $cal;
   private $events = array();
@@ -48,7 +49,7 @@ class kolab_calendar
     $this->cal = $calendar;
 
     if (strlen($imap_folder))
-      $this->imap_folder = $imap_folder;
+      $this->imap_folder = $this->name = $imap_folder;
 
     // ID is derrived from folder name
     $this->id = kolab_storage::folder_id($this->imap_folder);
@@ -156,6 +157,24 @@ class kolab_calendar
   }
 
   /**
+   * Compose an URL for CalDAV access to this calendar (if configured)
+   */
+  public function get_caldav_url()
+  {
+    $url = null;
+    if ($template = $this->cal->rc->config->get('calendar_caldav_url', null)) {
+      return strtr($template, array(
+        '%h' => $_SERVER['HTTP_HOST'],
+        '%u' => urlencode($this->cal->rc->get_user_name()),
+        '%i' => urlencode($this->storage->get_uid()),
+        '%n' => urlencode($this->imap_folder),
+      ));
+    }
+
+    return false;
+  }
+
+  /**
    * Return the corresponding kolab_storage_folder instance
    */
   public function get_folder()
@@ -214,7 +233,7 @@ class kolab_calendar
     }
 
     $events = array();
-    foreach ((array)$this->storage->select($query) as $record) {
+    foreach ($this->storage->select($query) as $record) {
       $event = $this->_to_rcube_event($record);
       $this->events[$event['id']] = $event;
 
@@ -248,9 +267,18 @@ class kolab_calendar
         $add = true;
 
         // skip the first instance of a recurring event if listed in exdate
-        if ($virtual && !empty($event['recurrence']['EXDATE'])) {
+        if ($virtual && (!empty($event['recurrence']['EXDATE']) || !empty($event['recurrence']['EXCEPTIONS']))) {
           $event_date = $event['start']->format('Ymd');
-          foreach ($event['recurrence']['EXDATE'] as $exdate) {
+          $exdates = (array)$event['recurrence']['EXDATE'];
+
+          // add dates from exceptions to list
+          if (is_array($event['recurrence']['EXCEPTIONS'])) {
+              foreach ($event['recurrence']['EXCEPTIONS'] as $exception) {
+                  $exdates[] = clone $exception['start'];
+              }
+          }
+
+          foreach ($exdates as $exdate) {
             if ($exdate->format('Ymd') == $event_date) {
               $add = false;
               break;
@@ -298,7 +326,7 @@ class kolab_calendar
     }
     else {
       $event['id'] = $event['uid'];
-      $this->events[$event['uid']] = $this->_to_rcube_event($object);
+      $this->events = array($event['uid'] => $this->_to_rcube_event($object));
     }
     
     return $saved;
@@ -318,7 +346,6 @@ class kolab_calendar
     if (!$old || PEAR::isError($old))
       return false;
 
-    $old['recurrence'] = '';  # clear old field, could have been removed in new, too
     $object = $this->_from_rcube_event($event, $old);
     $saved = $this->storage->save($object, 'event', $event['id']);
 
@@ -560,12 +587,16 @@ class kolab_calendar
     if (is_array($record['categories']))
       $record['categories'] = $record['categories'][0];
 
+    // The web client only supports DISPLAY type of alarms
+    if (!empty($record['alarms']))
+      $record['alarms'] = preg_replace('/:[A-Z]+$/', ':DISPLAY', $record['alarms']);
+
     // remove empty recurrence array
     if (empty($record['recurrence']))
       unset($record['recurrence']);
 
     // remove internals
-    unset($record['_mailbox'], $record['_msguid'], $record['_formatobj'], $record['_attachments']);
+    unset($record['_mailbox'], $record['_msguid'], $record['_formatobj'], $record['_attachments'], $record['x-custom']);
 
     return $record;
   }
@@ -615,6 +646,11 @@ class kolab_calendar
       $event['attendees'] = array(array('role' => 'ORGANIZER', 'name' => $identity['name'], 'email' => $identity['email']));
 
     $event['_owner'] = $identity['email'];
+
+    # remove EXDATE values if RDATE is given
+    if (!empty($event['recurrence']['RDATE'])) {
+      $event['recurrence']['EXDATE'] = array();
+    }
 
     // remove some internal properties which should not be saved
     unset($event['_savemode'], $event['_fromcalendar'], $event['_identity']);

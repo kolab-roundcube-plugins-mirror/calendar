@@ -46,6 +46,9 @@ $labels['description'] = 'Description';
 $labels['all-day'] = 'all-day';
 $labels['export'] = 'Export';
 $labels['exporttitle'] = 'Export to iCalendar';
+$labels['exportrange'] = 'Events from';
+$labels['exportattachments'] = 'With attachments';
+$labels['customdate'] = 'Custom date';
 $labels['location'] = 'Location';
 $labels['url'] = 'URL';
 $labels['date'] = 'Date';
@@ -77,6 +80,7 @@ $labels['onemonthback'] = '1 month back';
 $labels['nmonthsback'] = '$nr months back';
 $labels['showurl'] = 'Show calendar URL';
 $labels['showurldescription'] = 'Use the following address to access (read only) your calendar from other applications. You can copy and paste this into any calendar software that supports the iCal format.';
+$labels['caldavurldescription'] = 'Copy this address to a <a href="http://en.wikipedia.org/wiki/CalDAV" target="_blank">CalDAV</a> client application (e.g. Evolution or Mozilla Thunderbird) to fully synchronize this specific calendar with your computer or mobile device.';
 
 // agenda view
 $labels['listrange'] = 'Range to display:';
@@ -172,6 +176,7 @@ $labels['tabsharing'] = 'Sharing';
 // messages
 $labels['deleteventconfirm'] = 'Do you really want to delete this event?';
 $labels['deletecalendarconfirm'] = 'Do you really want to delete this calendar with all its events?';
+$labels['deletecalendarconfirmrecursive'] = 'Do you really want to delete this calendar with all its events and sub-calendars?';
 $labels['savingdata'] = 'Saving data...';
 $labels['errorsaving'] = 'Failed to save changes.';
 $labels['operationfailed'] = 'The requested operation failed.';
@@ -204,6 +209,7 @@ $labels['daily'] = 'daily';
 $labels['weekly'] = 'weekly';
 $labels['monthly'] = 'monthly';
 $labels['yearly'] = 'annually';
+$labels['rdate'] = 'on dates';
 $labels['every'] = 'Every';
 $labels['days'] = 'day(s)';
 $labels['weeks'] = 'week(s)';
@@ -223,6 +229,7 @@ $labels['third'] = 'third';
 $labels['fourth'] = 'fourth';
 $labels['last'] = 'last';
 $labels['dayofmonth'] = 'Day of month';
+$labels['addrdate'] = 'Add repeat date';
 
 $labels['changeeventconfirm'] = 'Change event';
 $labels['removeeventconfirm'] = 'Remove event';
