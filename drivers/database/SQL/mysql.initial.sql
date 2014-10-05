@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS `attachments` (
   `filename` varchar(255) NOT NULL DEFAULT '',
   `mimetype` varchar(255) NOT NULL DEFAULT '',
   `size` int(11) NOT NULL DEFAULT '0',
-  `data` longtext NOT NULL DEFAULT '',
+  `data` longtext NOT NULL,
   PRIMARY KEY(`attachment_id`),
   CONSTRAINT `fk_attachments_event_id` FOREIGN KEY (`event_id`)
     REFERENCES `events`(`event_id`) ON DELETE CASCADE ON UPDATE CASCADE

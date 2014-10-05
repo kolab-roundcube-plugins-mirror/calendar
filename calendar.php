@@ -1928,6 +1928,7 @@ class calendar extends rcube_plugin
     }
 
     $html = '';
+    $seen = array();
     foreach ($this->ics_parts as $mime_id) {
       $part    = $this->message->mime_parts[$mime_id];
       $charset = $part->ctype_parameters['charset'] ? $part->ctype_parameters['charset'] : RCMAIL_CHARSET;
@@ -1943,6 +1944,10 @@ class calendar extends rcube_plugin
       foreach ($events as $idx => $event) {
         if ($event['_type'] != 'event')  // skip non-event objects (#2928)
           continue;
+
+        // avoid duplicates with the same UID (e.g. from Google invitations, #3585)
+        if ($seen[$event['uid']]++)
+            continue;
 
         // define buttons according to method
         if ($this->ical->method == 'REPLY') {
