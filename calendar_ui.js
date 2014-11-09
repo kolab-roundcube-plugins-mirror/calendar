@@ -1630,6 +1630,17 @@ function rcube_calendar_ui(settings)
         event.temp = true;
         event.className = 'fc-event-cal-'+data.calendar+' fc-event-temp';
         fc.fullCalendar(data.id ? 'updateEvent' : 'renderEvent', event);
+
+        // mark all recurring instances as temp
+        if (event.recurrence || event.recurrence_id) {
+          var base_id = event.recurrence_id ? event.recurrence_id.replace(/-\d+$/, '') : event.id;
+          $.each(fc.fullCalendar('clientEvents', function(e){ return e.id == base_id || e.recurrence_id == base_id; }), function(i,ev) {
+            ev.temp = true;
+            ev.editable = false;
+            event.className += ' fc-event-temp';
+            fc.fullCalendar('updateEvent', ev);
+          });
+        }
       }
     };
 
@@ -2768,6 +2779,8 @@ function rcube_calendar_ui(settings)
               $('#edit-attendees-form .attendees-invitebox').show();
             }
           }
+          // reset autocompletion on tab change (#3389)
+          rcmail.ksearch_blur();
         }
       });
       $('#edit-enddate').datepicker(datepicker_settings);
