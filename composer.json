@@ -3,6 +3,7 @@
     "type": "roundcube-plugin",
     "description": "Calendar plugin",
     "homepage": "http://git.kolab.org/roundcubemail-plugins-kolab/",
+    "keywords": ["apps","calendar","ical","itip"],
     "license": "AGPLv3",
     "authors": [
         {
