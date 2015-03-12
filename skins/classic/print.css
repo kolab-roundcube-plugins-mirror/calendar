@@ -130,7 +130,7 @@ body, td, th, div, p, h3, select, input, textarea {
 	font-style: italic;
 }
 
-div.fc-event-location {
+.fc-event-location {
 	font-size: 90%;
 }
 

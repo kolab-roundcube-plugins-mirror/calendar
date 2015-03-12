@@ -16,7 +16,7 @@ body.calendarmain {
 #main {
 	position: absolute;
 	clear: both;
-	top: 90px;
+	top: 72px;
 	left: 0;
 	right: 0;
 	bottom: 10px;
@@ -24,13 +24,15 @@ body.calendarmain {
 
 #calendarsidebar {
 	position: absolute;
-	top: 37px;
+	top: 0px;
 	left: 10px;
 	bottom: 0;
 	width: 230px;
 }
 
 #datepicker {
+	position: relative;
+	top: 42px;
 	width: 100%;
 }
 
@@ -62,7 +64,7 @@ body.calendarmain {
 	position: absolute;
 	left: 244px;
 	width: 8px;
-	top: 37px;
+	top: 4px;
 	bottom: 0;
 	background: url(images/toggle.gif) 0 48% no-repeat transparent;
 	cursor: pointer;
@@ -78,7 +80,7 @@ div.sidebarclosed {
 
 #calendar {
 	position: absolute;
-	top: 0;
+	top: 4px;
 	left: 256px;
 	right: 10px;
 	bottom: 0;
@@ -94,13 +96,21 @@ pre {
 
 #calendars {
 	position: absolute;
-	top: 220px;
+	top: 228px;
 	left: 0;
 	bottom: 0;
 	right: 0;
 	background-color: #F9F9F9;
 	border: 1px solid #999999;
 	overflow: hidden;
+}
+
+#calendars .boxlistcontent {
+	top: 43px;
+}
+
+#calendars .listsearchbox {
+	padding: 2px 4px;
 }
 
 #calendarslist {
@@ -120,52 +130,141 @@ pre {
 	cursor: default;
 }
 
-#calendarslist li label {
+#calendars .treelist li {
+	margin: 0;
+	padding: 0;
+	position: relative;
+}
+
+#calendars .treelist ul li:last-child {
+	border-bottom: 0;
+}
+
+#calendars .treelist li div.folder,
+#calendars .treelist li div.calendar {
+	position: relative;
+	height: 22px;
+}
+
+#calendars .treelist li span.calname {
 	display: block;
-}
-
-#calendarslist li span.handle {
+	padding: 0px 30px 2px 2px;
+	position: absolute;
+	top: 4px;
+	left: 38px;
+	right: 40px;
 	cursor: default;
-	background: url(images/calendars.png) 0 -2px no-repeat;
+	background: url(images/calendars.png) right 20px no-repeat;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+#calendars .treelist li div.virtual > span.calname {
+	color: #aaa;
+	left: 20px;
+}
+
+#calendars .treelist.flat li span.calname {
+	left: 24px;
+	right: 22px;
+}
+
+#calendars .treelist li span.handle {
 	display: inline-block;
-	width: 20px;
+	position: absolute;
+	top: 5px;
+	right: 6px;
+	padding: 0;
+	width: 12px;
+	height: 12px;
+	border-radius: 3px;
+	font-size: 0.8em;
 }
 
-#calendarslist li input {
-	margin-right: 5px;
+#calendars .treelist li a.subscribed {
+	display: inline-block;
+	position: absolute;
+	top: 2px;
+	right: 22px;
+	height: 16px;
+	width: 16px;
+	padding: 0;
+	background: url(images/calendars.png) -100px 0 no-repeat;
+	overflow: hidden;
+	text-indent: -5000px;
+	cursor: pointer;
 }
 
-#calendarslist li.selected {
+#calendars .treelist div:hover > a.subscribed {
+	background-position: 0 -126px;
+}
+
+#calendars .treelist div.subscribed a.subscribed {
+	background-position: 0 -144px;
+}
+
+#calendars .treelist li input {
+	position: absolute;
+	top: 1px;
+	left: 18px;
+}
+
+#calendars .treelist li div.treetoggle {
+	top: -1px;
+	left: 1px !important;
+}
+
+#calendars .treelist ul li div.treetoggle {
+	left: 17px !important;
+}
+
+#calendars .treelist ul ul li div.treetoggle {
+	left: 33px !important;
+}
+
+#calendars .treelist.flat li input {
+	left: 4px;
+}
+
+#calendars .treelist ul li div.folder,
+#calendars .treelist ul li div.calendar {
+	margin-left: 16px;
+}
+
+#calendars .treelist ul ul li div.folder,
+#calendars .treelist ul ul li div.calendar {
+	margin-left: 32px;
+}
+
+#calendars .treelist ul ul ul li div.folder,
+#calendars .treelist ul ul ul li div.calendar {
+	margin-left: 48px;
+}
+
+#calendars .treelist li.selected {
 	background-color: #ccc;
-	border-bottom: 1px solid #bbb;
 }
 
-#calendarslist li.selected span {
+#calendars .treelist li.selected > span.calname {
 	font-weight: bold;
 }
 
-#calendarslist li.readonly span.handle {
-    background-position: 0 -20px;
+#calendars .treelist div.readonly span.calname {
+	background-position: right -20px;
 }
 
-#calendarslist li.other span.handle {
-    background-position: 0 -38px;
-}
-
-#calendarslist li.other.readonly span.handle {
-    background-position: 0 -56px;
-}
-
-#calendarslist li.shared span.handle {
-    background-position: 0 -74px;
-}
-
-#calendarslist li.shared.readonly span.handle {
-    background-position: 0 -92px;
+#calendars .treelist li.user > div > span.calname {
+	background-position: right -38px;
 }
 
 #calendarslist li.virtual span.calname {
 	color: #666;
+}
+
+#calendars .searchresults .boxtitle {
+	border-top: 1px solid #aaa;
+	margin-bottom: 0;
 }
 
 #calfeedurl,
@@ -207,8 +306,8 @@ pre {
 
 #calendartoolbar {
 	position: absolute;
-	top: 45px;
-	left: 256px;
+	top: 0px;
+	left: 0px;
 	height: 35px;
 }
 
@@ -269,11 +368,12 @@ pre {
 	background-position: -128px -32px;
 }
 
-#quicksearchbar {
+.calendarmain #quicksearchbar {
+	top: 80px;
 	right: 4px;
 }
 
-div.uidialog {
+.calendarmain div.uidialog {
 	display: none;
 }
 
@@ -409,6 +509,10 @@ a.miniColors-trigger {
 	background-position: right -60px;
 }
 
+.event-attendees span.delegated {
+	background-position: right -180px;
+}
+
 .event-attendees span.organizer {
 	background-position: right -80px;
 }
@@ -421,6 +525,10 @@ a.miniColors-trigger {
 }
 
 /* jQuery UI overrides */
+
+.calendarmain .ui-dialog .ui-dialog-buttonpane .ui-dialog-buttonset {
+	float: left;
+}
 
 #eventshow h1 {
 	font-size: 20px;
@@ -437,6 +545,10 @@ a.miniColors-trigger {
 
 #eventshow {
 	margin: 0 -0.2em;
+}
+
+#eventshow.status-cancelled {
+	background: url(images/badge_cancelled.png) top right no-repeat;
 }
 
 #eventshow.sensitivity-private {
@@ -464,6 +576,41 @@ a.miniColors-trigger {
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
+}
+
+#event-rsvp .itip-reply-controls {
+	margin-top: 0.5em;
+}
+
+#eventshow .itip-reply-controls label {
+	font-size: 1em;
+	color: #333;
+}
+
+#event-partstat .changersvp {
+	cursor: pointer;
+	color: #333;
+	text-decoration: none;
+}
+
+#event-partstat:hover .changersvp {
+	text-decoration: underline;
+}
+
+#event-partstat .changersvp.accepted {
+	color: #589b1e;
+}
+
+#event-partstat .changersvp.tentative {
+	color: #f0bb1d;
+}
+
+#event-partstat .changersvp.declined {
+	color: #ea0000;
+}
+
+#event-partstat .changersvp.delegated {
+	color: #018be9;
 }
 
 #eventedit {
@@ -528,6 +675,44 @@ div.form-section,
 
 td.topalign {
 	vertical-align: top;
+}
+
+#eventedit .edit-alarm-item {
+	position: relative;
+	padding-right: 30px;
+	margin-bottom: 2px;
+}
+
+#eventedit .edit-alarm-buttons {
+	position: absolute;
+	top: 2px;
+	right: 0;
+}
+
+#eventedit .edit-alarm-buttons a.iconlink {
+	display: none;
+	width: 18px;
+	height: 17px;
+	padding: 1px;
+	text-indent: -5000px;
+	overflow: hidden;
+}
+
+#eventedit .edit-alarm-buttons a.add-alarm {
+	background: url(images/plus.png) 1px 1px no-repeat;
+}
+
+#eventedit .edit-alarm-buttons a.delete-alarm {
+	background: url(images/delete.png) 1px 1px no-repeat;
+}
+
+#eventedit .edit-alarm-buttons a.delete-alarm,
+#eventedit .first .edit-alarm-buttons a.add-alarm {
+	display: inline-block;
+}
+
+#eventedit .first .edit-alarm-buttons a.delete-alarm {
+	display: none;
 }
 
 #eventedit label.weekday,
@@ -623,7 +808,7 @@ td.topalign {
 	border: 1px solid #C2D071;
 }
 
-#edit-attendees-table {
+.edit-attendees-table {
 	width: 100%;
 	display: table;
 	table-layout: fixed;
@@ -631,49 +816,72 @@ td.topalign {
 	border: 1px solid #ccc;
 }
 
-#edit-attendees-table td {
+.edit-attendees-table th,
+.edit-attendees-table td {
 	padding: 3px;
 	border-bottom: 1px solid #ccc;
+	text-align: left;
 }
 
-#edit-attendees-table td.role {
+.edit-attendees-table th.role,
+.edit-attendees-table td.role {
 	width: 8em;
 }
 
-#edit-attendees-table td.availability,
-#edit-attendees-table td.confirmstate {
+.edit-attendees-table th.availability,
+.edit-attendees-table th.confirmstate,
+.edit-attendees-table td.availability,
+.edit-attendees-table td.confirmstate {
 	width: 4em;
 }
 
-#edit-attendees-table td.options {
-	width: 3em;
+.edit-attendees-table th.options,
+.edit-attendees-table td.options {
+	width: 2em;
 	text-align: right;
 	padding-right: 4px;
 }
 
-#edit-attendees-table td.name {
+.edit-attendees-table th.invite,
+.edit-attendees-table td.invite {
+	width: 24px;
+	padding: 2px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: hidden;
+}
+
+#eventedit .edit-attendees-table th.invite label {
+	display: none;
+}
+
+.edit-attendees-table th.name,
+.edit-attendees-table td.name {
 	width: auto;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
-#edit-attendees-table thead td {
+.edit-attendees-table thead th,
+.edit-attendees-table thead td {
 	background: url(images/listheader.gif) top left repeat-x #CCC;
 }
 
-#edit-attendees-form {
+#edit-attendees-form,
+#edit-resources-form {
 	position: relative;
 	margin-top: 1em;
 }
 
-#edit-attendees-form #edit-attendee-schedule {
+#edit-attendees-form #edit-attendee-schedule,
+#edit-resources-form #edit-resource-find {
 	position: absolute;
 	top: 0;
 	right: 0;
 }
 
-#edit-attendees-table select.edit-attendee-role {
+.edit-attendees-table select.edit-attendee-role {
 	border: 0;
 	padding: 2px;
 	background: white;
@@ -746,31 +954,35 @@ td.topalign {
 	vertical-align: middle;
 }
 
-#edit-attendees-table tbody td.confirmstate {
+.edit-attendees-table tbody td.confirmstate {
 	overflow: hidden;
 	white-space: nowrap;
 	text-indent: -2000%;
 }
 
-#edit-attendees-table td.confirmstate span {
+.edit-attendees-table td.confirmstate span {
 	display: block;
 	width: 20px;
 	background: url(images/attendee-status.gif) 5px 0 no-repeat;
 }
 
-#edit-attendees-table td.confirmstate span.needs-action {
+.edit-attendees-table td.confirmstate span.needs-action {
 }
 
-#edit-attendees-table td.confirmstate span.accepted {
+.edit-attendees-table td.confirmstate span.accepted {
 	background-position: 5px -20px;
 }
 
-#edit-attendees-table td.confirmstate span.declined {
+.edit-attendees-table td.confirmstate span.declined {
 	background-position: 5px -40px;
 }
 
-#edit-attendees-table td.confirmstate span.tentative {
+.edit-attendees-table td.confirmstate span.tentative {
 	background-position: 5px -60px;
+}
+
+.edit-attendees-table td.confirmstate span.delegated {
+	background-position: 5px -180px;
 }
 
 #attendees-freebusy-table {
@@ -834,8 +1046,12 @@ td.topalign {
 	background-position: 2px -117px;
 }
 
-.attendees-list .chair {
+.attendees-list .non-participant {
 	background-position: 2px -137px;
+}
+
+.attendees-list .chair {
+	background-position: 2px -157px;
 }
 
 .attendees-list .loading {
@@ -1083,12 +1299,159 @@ span.spacer {
   padding-right: 10px;
 }
 
+#resource-dialog-right {
+	position: absolute;
+	top: 10px;
+	left: 300px;
+	right: 8px;
+	bottom: 10px;
+}
+
+#resource-info,
+#resource-availability {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 48%;
+	border: 1px solid #999;
+	background-color: #F9F9F9;
+	overflow: auto;
+}
+
+#resource-availability {
+	top: auto;
+	bottom: 0;
+	height: 49%;
+	overflow: hidden;
+}
+
+#resource-info .boxtitle,
+#resource-availability .boxtitle {
+	margin-top: 0;
+}
+
+#resource-freebusy-calendar {
+	position: absolute;
+	top: 20px;
+	left: -1px;
+	right: -1px;
+	bottom: -1px;
+}
+
+#resource-freebusy-calendar .fc-content {
+	top: 0;
+}
+
+#resource-freebusy-calendar .fc-content .fc-event-bg {
+	background: 0;
+}
+
+#resource-freebusy-calendar .fc-event.status-busy,
+#resource-freebusy-calendar .status-busy .fc-event-skin {
+	border-color: #e26569;
+	background-color: #e26569;
+}
+
+#resource-freebusy-calendar .fc-event.status-tentative,
+#resource-freebusy-calendar .status-tentative .fc-event-skin {
+	border-color: #8383fc;
+	background: #8383fc;
+}
+
+#resource-freebusy-calendar .fc-event.status-outofoffice,
+#resource-freebusy-calendar .status-outofoffice .fc-event-skin {
+	border-color: #fbaa68;
+	background: #fbaa68;
+}
+
+#resources-list div.treetoggle {
+	left: 3px !important;
+	top: -2px;
+}
+
+#resources-list li ul div.treetoggle {
+	left: 23px !important;
+}
+
+#resource-selection {
+  position: absolute;
+	top: 10px;
+	bottom: 10px;
+	left: 8px;
+	width: 280px;
+	border: 1px solid #999999;
+	background-color: #F9F9F9;
+	overflow: hidden;
+}
+
+#resource-selection .boxlistcontent {
+	top: 25px;
+	border-top: 1px solid #eee;
+}
+
+#resourcequicksearch {
+	position: absolute;
+	top: 3px;
+	left: 7px;
+	right: 4px;
+	height: 17px;
+	background: #fff;
+	border: 1px solid #888;
+	border-radius: 10px;
+	-webkit-box-shadow: inset 1px 1px 1px 0px rgba(0, 0, 0, 0.3);
+	-moz-box-shadow: inset 1px 1px 1px 0px rgba(0, 0, 0, 0.3);
+	box-shadow: inset 1px 1px 1px 0px rgba(0, 0, 0, 0.3);
+}
+
+#resourcesearchbox {
+	position: absolute;
+	top: 1px;
+	left: 24px;
+	width: 140px;
+	height: 15px;
+	font-size: 11px;
+	padding: 0px;
+	border: none;
+	outline: none;
+	background: #fff;
+}
+
+#resourcesearchreset {
+	position: absolute;
+	top: 2px;
+	right: 2px;
+	text-decoration: none;
+}
+
+#resource-details,
+#resource-details-owner {
+	margin: 8px;
+}
+
+#resource-details td.title,
+#resource-details-owner td.title {
+	color: #666;
+	padding-right: 10px;
+	min-width: 10em;
+}
+
+#resource-details-owner thead td {
+	color: #333;
+	font-size: 13px;
+	font-weight: bold;
+}
 
 /* fullcalendar style overrides */
 
+#calendar .fc-header-right {
+	padding-right: 200px;
+	padding-top: 0;
+}
+
 .rcube-fc-content {
 	position: absolute !important;
-	top: 37px;
+	top: 38px;
 	left: 0;
 	right: 0;
 	bottom: 0;
@@ -1097,6 +1460,10 @@ span.spacer {
 
 .fc-event-title {
 	font-weight: bold;
+}
+
+.cal-event-status-cancelled .fc-event-title {
+	text-decoration: line-through;
 }
 
 .fc-event-hori .fc-event-title {
@@ -1111,6 +1478,21 @@ span.spacer {
 	padding-right: 0.6em;
 }
 
+.fc-event-vert.fc-invitation-needs-action,
+.fc-event-hori.fc-invitation-needs-action {
+	border: 1px dashed #5757c7 !important;
+}
+
+.fc-event-vert.fc-invitation-tentative,
+.fc-event-hori.fc-invitation-tentative {
+	border: 1px dashed #eb8900 !important;
+}
+
+.fc-event-vert.fc-invitation-declined,
+.fc-event-hori.fc-invitation-declined {
+	border: 1px dashed #c00 !important;
+}
+
 .fc-grid .fc-event-time {
 	font-weight: normal !important;
 	padding-right: 0.3em;
@@ -1120,7 +1502,7 @@ span.spacer {
 	font-style:italic; 
 }
 
-div.fc-event-location {
+.fc-event-location {
 	font-size: 90%;
 }
 
@@ -1165,9 +1547,17 @@ div.fc-event-location {
 	cursor: pointer;
 }
 
+#calendar .fc-event-vert .fc-event-head,
+#calendar .fc-event-vert .fc-event-content {
+	position: relative;
+	z-index: 2;
+	width: 100%;
+	overflow: hidden;
+}
+
 .fc-view-list div.fc-list-header,
 .fc-view-table td.fc-list-header,
-#edit-attendees-table thead td {
+.edit-attendees-table thead td {
 	padding: 3px;
 	background: #dddddd;
 	background-image: -moz-linear-gradient(center top, #f4f4f4, #d2d2d2);
@@ -1221,7 +1611,17 @@ fieldset #calendarcategories div {
 
 /* Invitation UI in mail */
 
-#messagemenu li a.calendarlink {
+.messagelist tbody .attachment span.ical {
+	display: inline-block;
+	vertical-align: middle;
+	height: 18px;
+	width: 20px;
+	padding: 0;
+	background: url(images/calendar-small.png) 1px 1px no-repeat;
+}
+
+#messagemenu li a.calendarlink,
+#attachmentmenu li a.calendarlink {
 	background-image: url(images/calendars.png);
 	background-position: 7px -109px;
 	background-repeat: no-repeat;
@@ -1246,8 +1646,7 @@ div.calendar-invitebox td.label {
 }
 
 #event-rsvp .rsvp-buttons,
-div.calendar-invitebox .rsvp-status,
-div.calendar-invitebox .rsvp-buttons {
+div.calendar-invitebox .itip-buttons div {
 	margin-top: 0.5em;
 }
 
@@ -1258,7 +1657,7 @@ div.calendar-invitebox select {
 	margin-right: 0.5em;
 }
 
-div.calendar-invitebox .calendar-select {
+div.calendar-invitebox .folder-select {
 	font-size: 11px;
 	margin-left: 1em;
 }
@@ -1271,6 +1670,7 @@ div.calendar-invitebox .rsvp-status.loading {
 
 div.calendar-invitebox .rsvp-status.declined,
 div.calendar-invitebox .rsvp-status.tentative,
+div.calendar-invitebox .rsvp-status.delegated,
 div.calendar-invitebox .rsvp-status.accepted {
 	padding: 0 0 1px 22px;
 	background: url(images/attendee-status.gif) 2px -20px no-repeat;
@@ -1282,6 +1682,46 @@ div.calendar-invitebox .rsvp-status.declined {
 
 div.calendar-invitebox .rsvp-status.tentative {
 	background-position: 2px -60px;
+}
+
+div.calendar-invitebox .rsvp-status.delegated {
+	background-position: 2px -180px;
+}
+
+div.calendar-invitebox .calendar-agenda-preview {
+	display: none;
+	border-top: 1px solid #dfdfdf;
+	margin-top: 1em;
+	padding-top: 0.6em;
+}
+
+div.calendar-invitebox .calendar-agenda-preview h3.preview-title {
+	margin: 0 0 0.5em 0;
+	font-size: 12px;
+}
+
+div.calendar-invitebox .calendar-agenda-preview .event-row {
+	color: #777;
+	padding: 2px 0;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+div.calendar-invitebox .calendar-agenda-preview .event-row.current {
+	color: #000;
+	font-weight: bold;
+}
+
+div.calendar-invitebox .calendar-agenda-preview .event-row.no-event {
+	font-style: italic;
+}
+
+div.calendar-invitebox .calendar-agenda-preview .event-date {
+	display: inline-block;
+	min-width: 8em;
+	margin-right: 1em;
+	white-space: nowrap;
 }
 
 /* iTIP attend reply page */

@@ -1,15 +1,15 @@
 <?php
 
+require_once realpath(__DIR__ . '/../../libcalendaring/lib/libcalendaring_recurrence.php');
+
 /**
  * Recurrence computation class for the Calendar plugin
  *
  * Uitility class to compute instances of recurring events.
  *
- * @version @package_version@
  * @author Thomas Bruederli <bruederli@kolabsys.com>
- * @package @package_name@
  *
- * Copyright (C) 2012, Kolab Systems AG <contact@kolabsys.com>
+ * Copyright (C) 2012-2014, Kolab Systems AG <contact@kolabsys.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -24,14 +24,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-class calendar_recurrence
+class calendar_recurrence extends libcalendaring_recurrence
 {
-  private $cal;
   private $event;
-  private $next;
-  private $engine;
   private $duration;
-  private $hour = 0;
 
   /**
    * Default constructor
@@ -41,62 +37,25 @@ class calendar_recurrence
    */
   function __construct($cal, $event)
   {
-    // use Horde classes to compute recurring instances
-    // TODO: replace with something that has less than 6'000 lines of code
-    require_once(__DIR__ . '/Horde_Date_Recurrence.php');
+    parent::__construct($cal->lib);
 
-    $this->cal = $cal;
     $this->event = $event;
-    $this->next = new Horde_Date($event['start'], $cal->timezone->getName());
-    $this->hour = $this->next->hour;
 
     if (is_object($event['start']) && is_object($event['end']))
       $this->duration = $event['start']->diff($event['end']);
 
-    $this->engine = new Horde_Date_Recurrence($event['start']);
-    $this->engine->fromRRule20(libcalendaring::to_rrule($event['recurrence']));
-
-    if (is_array($event['recurrence']['EXDATE'])) {
-      foreach ($event['recurrence']['EXDATE'] as $exdate) {
-        if (is_a($exdate, 'DateTime')) {
-          $this->engine->addException($exdate->format('Y'), $exdate->format('n'), $exdate->format('j'));
-        }
-      }
-    }
-    if (is_array($event['recurrence']['RDATE'])) {
-      foreach ($event['recurrence']['RDATE'] as $rdate) {
-        if (is_a($rdate, 'DateTime')) {
-          $this->engine->addRDate($rdate->format('Y'), $rdate->format('n'), $rdate->format('j'));
-        }
-      }
-    }
+    $event['start']->_dateonly |= $event['allday'];
+    $this->init($event['recurrence'], $event['start']);
   }
 
   /**
-   * Get date/time of the next occurence of this event
+   * Alias of libcalendaring_recurrence::next()
    *
    * @return mixed DateTime object or False if recurrence ended
    */
   public function next_start()
   {
-    $time = false;
-    $after = clone $this->next;
-    $after->mday = $after->mday + 1;
-    if ($this->next && ($next = $this->engine->nextActiveRecurrence($after))) {
-      if (!$next->after($this->next)) {
-        // avoid endless loops if recurrence computation fails
-        return false;
-      }
-      if ($this->event['allday']) {
-        $next->hour = $this->hour;  # fix time for all-day events
-        $next->min = 0;
-      }
-
-      $time = $next->toDateTime();
-      $this->next = $next;
-    }
-
-    return $time;
+    return $this->next();
   }
 
   /**
@@ -106,14 +65,18 @@ class calendar_recurrence
    */
   public function next_instance()
   {
-    if ($next_start = $this->next_start()) {
-      $next_end = clone $next_start;
-      $next_end->add($this->duration);
-
+    if ($next_start = $this->next()) {
       $next = $this->event;
-      $next['recurrence_id'] = $next_start->format('Y-m-d');
       $next['start'] = $next_start;
-      $next['end'] = $next_end;
+
+      if ($this->duration) {
+        $next['end'] = clone $next_start;
+        $next['end']->add($this->duration);
+      }
+
+      $next['recurrence_date'] = clone $next_start;
+      $next['_instance'] = libcalendaring::recurrence_instance_identifier($next);
+
       unset($next['_formatobj']);
 
       return $next;

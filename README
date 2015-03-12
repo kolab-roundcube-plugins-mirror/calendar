@@ -20,5 +20,59 @@ are used. They are packaged in a slightly modified version with this plugin.
 
 IMPORTANT
 ---------
+
 The calendar module makes heavy use of PHP's DateTime as well as DateInterval
 classes. The latter one requires at least PHP 5.3.0 to run.
+
+
+REQUIREMENTS
+------------
+
+Some functions are shared with other plugins and therefore being moved to
+library plugins. Thus in order to run the calendar plugin, you also need the
+following plugins installed:
+
+* libcalendaring [1]
+* libkolab [1] (when using the 'kolab' driver)
+
+
+INSTALLATION
+------------
+
+For a manual installation of the calendar plugin (and its dependencies),
+execute the following steps. This will set it up with the database backend
+driver.
+
+1. Get the source from git
+
+  $ cd /tmp
+  $ git clone git://git.kolab.org/git/roundcubemail-plugins-kolab
+  $ cd /<path-to-roundcube>/plugins
+  $ cp -r /tmp/roundcubemail-plugins-kolab/plugins/calendar .
+  $ cp -r /tmp/roundcubemail-plugins-kolab/plugins/libcalendaring .
+
+2. Create calendar plugin configuration
+
+  $ cd calendar/
+  $ cp config.inc.php.dist config.inc.php
+  $ edit config.inc.php
+
+3. Initialize the calendar database tables
+
+  $ mysql roundcubemail < drivers/database/SQL/mysql.initial.sql
+
+4. Enable the calendar plugin
+
+  $ cd ../../
+  $ edit config/config.inc.php
+
+Add 'calendar' to the list of active plugins:
+
+  $config['plugins'] = array(
+    (...)
+    'calendar',
+  );
+
+
+
+[1] http://git.kolab.org/roundcubemail-plugins-kolab/

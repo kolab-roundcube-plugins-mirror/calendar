@@ -1,13 +1,14 @@
 <div id="eventedit" class="uidialog">
   <form id="eventtabs" action="#" method="post" enctype="multipart/form-data">
     <ul>
-      <li><a href="#event-tab-1"><roundcube:label name="calendar.tabsummary" /></a></li>
-      <li id="edit-tab-recurrence"><a href="#event-tab-2"><roundcube:label name="calendar.tabrecurrence" /></a></li>
-      <li id="edit-tab-attendees"><a href="#event-tab-3"><roundcube:label name="calendar.tabattendees" /></a></li>
-      <li id="edit-tab-attachments"><a href="#event-tab-4"><roundcube:label name="calendar.tabattachments" /></a></li>
+      <li><a href="#event-panel-1"><roundcube:label name="calendar.tabsummary" /></a></li>
+      <li id="edit-tab-recurrence"><a href="#event-panel-recurrence"><roundcube:label name="calendar.tabrecurrence" /></a></li>
+      <li id="edit-tab-attendees"><a href="#event-panel-attendees"><roundcube:label name="calendar.tabattendees" /></a></li>
+      <li id="edit-tab-resources"><a href="#event-panel-resources"><roundcube:label name="calendar.tabresources" /></a></li>
+      <li id="edit-tab-attachments"><a href="#event-panel-attachments"><roundcube:label name="calendar.tabattachments" /></a></li>
     </ul>
     <!-- basic info -->
-    <div id="event-tab-1">
+    <div id="event-panel-1">
       <div class="event-section">
         <label for="edit-title"><roundcube:label name="calendar.title" /></label>
         <br />
@@ -40,8 +41,14 @@
         <input type="text" name="endtime" size="6"  id="edit-endtime" />
       </div>
       <div class="event-section" id="edit-alarms">
-        <label for="edit-alarm"><roundcube:label name="calendar.alarms" /></label>
-        <roundcube:object name="plugin.alarm_select" />
+        <div class="edit-alarm-item first">
+          <label for="edit-alarm"><roundcube:label name="calendar.alarms" /></label>
+          <roundcube:object name="plugin.alarm_select" />
+          <span class="edit-alarm-buttons">
+            <a href="#add" class="iconlink add add-alarm">+</a>
+            <a href="#delete" class="iconlink delete delete-alarm">-</a>
+          </span>
+        </div>
       </div>
       <div class="event-section" id="calendar-select">
         <label for="edit-calendar"><roundcube:label name="calendar.calendar" /></label>
@@ -50,6 +57,10 @@
       <div class="event-section">
         <label for="edit-categories"><roundcube:label name="calendar.category" /></label>
         <roundcube:object name="plugin.category_select" id="edit-categories" />
+      </div>
+      <div class="event-section">
+        <label for="edit-event-status"><roundcube:label name="calendar.status" /></label>
+        <roundcube:object name="plugin.status_select" id="edit-event-status" />
       </div>
       <div class="event-section">
         <label for="edit-free-busy"><roundcube:label name="calendar.freebusy" /></label>
@@ -65,7 +76,7 @@
       </div>
     </div>
     <!-- recurrence settings -->
-    <div id="event-tab-2">
+    <div id="event-panel-recurrence">
       <div class="event-section border-after">
         <roundcube:object name="plugin.recurrence_form" part="frequency" />
       </div>
@@ -89,13 +100,19 @@
       </div>
     </div>
     <!-- attendees list -->
-    <div id="event-tab-3">
-      <roundcube:object name="plugin.attendees_list" id="edit-attendees-table" cellspacing="0" cellpadding="0" border="0" />
+    <div id="event-panel-attendees">
+      <roundcube:object name="plugin.attendees_list" id="edit-attendees-table" class="edit-attendees-table" cellspacing="0" cellpadding="0" border="0" />
       <roundcube:object name="plugin.attendees_form" id="edit-attendees-form" />
       <roundcube:include file="/templates/freebusylegend.html" />
     </div>
+    <!-- resources list -->
+    <div id="event-panel-resources">
+      <roundcube:object name="plugin.attendees_list" id="edit-resources-table" class="edit-attendees-table" cellspacing="0" cellpadding="0" border="0" coltitle="resource" />
+      <roundcube:object name="plugin.resources_form" id="edit-resources-form" />
+      <roundcube:include file="/templates/freebusylegend.html" />
+    </div>
     <!-- attachments list (with upload form) -->
-    <div id="event-tab-4">
+    <div id="event-panel-attachments">
       <div id="edit-attachments" class="attachments-list">
         <roundcube:object name="plugin.attachments_list" id="attachmentlist" deleteIcon="/images/icons/delete.png" cancelIcon="/images/icons/delete.png" loadingIcon="/images/display/loading_blue.gif" />
       </div>

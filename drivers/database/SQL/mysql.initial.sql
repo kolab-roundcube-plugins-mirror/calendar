@@ -3,12 +3,11 @@
  *
  * Plugin to add a calendar to Roundcube.
  *
- * @version @package_version@
  * @author Lazlo Westerhof
  * @author Thomas Bruederli
- * @url http://rc-calendar.lazlo.me
  * @licence GNU AGPL
  * @copyright (c) 2010 Lazlo Westerhof - Netherlands
+ * @copyright (c) 2014 Kolab Systems AG
  *
  **/
 
@@ -29,6 +28,8 @@ CREATE TABLE IF NOT EXISTS `events` (
   `calendar_id` int(11) UNSIGNED NOT NULL DEFAULT '0',
   `recurrence_id` int(11) UNSIGNED NOT NULL DEFAULT '0',
   `uid` varchar(255) NOT NULL DEFAULT '',
+  `instance` varchar(16) NOT NULL DEFAULT ''
+  `isexception` tinyint(1) NOT NULL DEFAULT '0',
   `created` datetime NOT NULL DEFAULT '1000-01-01 00:00:00',
   `changed` datetime NOT NULL DEFAULT '1000-01-01 00:00:00',
   `sequence` int(1) UNSIGNED NOT NULL DEFAULT '0',
@@ -44,7 +45,8 @@ CREATE TABLE IF NOT EXISTS `events` (
   `free_busy` tinyint(1) NOT NULL DEFAULT '0',
   `priority` tinyint(1) NOT NULL DEFAULT '0',
   `sensitivity` tinyint(1) NOT NULL DEFAULT '0',
-  `alarms` varchar(255) DEFAULT NULL,
+  `status` varchar(32) NOT NULL DEFAULT '',
+  `alarms` text DEFAULT NULL,
   `attendees` text DEFAULT NULL,
   `notifyat` datetime DEFAULT NULL,
   PRIMARY KEY(`event_id`),
@@ -80,4 +82,4 @@ CREATE TABLE IF NOT EXISTS `itipinvitations` (
     REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) /*!40000 ENGINE=INNODB */ /*!40101 CHARACTER SET utf8 COLLATE utf8_general_ci */;
 
-REPLACE INTO system (name, value) VALUES ('calendar-database-version', '2013051600');
+REPLACE INTO system (name, value) VALUES ('calendar-database-version', '2015022700');

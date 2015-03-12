@@ -2,12 +2,11 @@
 /**
  * User Interface class for the Calendar plugin
  *
- * @version @package_version@
  * @author Lazlo Westerhof <hello@lazlo.me>
  * @author Thomas Bruederli <bruederli@kolabsys.com>
  *
  * Copyright (C) 2010, Lazlo Westerhof <hello@lazlo.me>
- * Copyright (C) 2012, Kolab Systems AG <contact@kolabsys.com>
+ * Copyright (C) 2014, Kolab Systems AG <contact@kolabsys.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -74,16 +73,22 @@ class calendar_ui
     $this->cal->register_handler('plugin.calendar_select', array($this, 'calendar_select'));
     $this->cal->register_handler('plugin.identity_select', array($this, 'identity_select'));
     $this->cal->register_handler('plugin.category_select', array($this, 'category_select'));
+    $this->cal->register_handler('plugin.status_select', array($this, 'status_select'));
     $this->cal->register_handler('plugin.freebusy_select', array($this, 'freebusy_select'));
     $this->cal->register_handler('plugin.priority_select', array($this, 'priority_select'));
     $this->cal->register_handler('plugin.sensitivity_select', array($this, 'sensitivity_select'));
     $this->cal->register_handler('plugin.alarm_select', array($this, 'alarm_select'));
-    $this->cal->register_handler('plugin.recurrence_form', array($this, 'recurrence_form'));
+    $this->cal->register_handler('plugin.recurrence_form', array($this->cal->lib, 'recurrence_form'));
     $this->cal->register_handler('plugin.attachments_form', array($this, 'attachments_form'));
     $this->cal->register_handler('plugin.attachments_list', array($this, 'attachments_list'));
     $this->cal->register_handler('plugin.filedroparea', array($this, 'file_drop_area'));
     $this->cal->register_handler('plugin.attendees_list', array($this, 'attendees_list'));
     $this->cal->register_handler('plugin.attendees_form', array($this, 'attendees_form'));
+    $this->cal->register_handler('plugin.resources_form', array($this, 'resources_form'));
+    $this->cal->register_handler('plugin.resources_list', array($this, 'resources_list'));
+    $this->cal->register_handler('plugin.resources_searchform', array($this, 'resources_search_form'));
+    $this->cal->register_handler('plugin.resource_info', array($this, 'resource_info'));
+    $this->cal->register_handler('plugin.resource_calendar', array($this, 'resource_calendar'));
     $this->cal->register_handler('plugin.attendees_freebusy_table', array($this, 'attendees_freebusy_table'));
     $this->cal->register_handler('plugin.edit_attendees_notify', array($this, 'edit_attendees_notify'));
     $this->cal->register_handler('plugin.edit_recurring_warning', array($this, 'recurring_event_warning'));
@@ -91,6 +96,7 @@ class calendar_ui
     $this->cal->register_handler('plugin.angenda_options', array($this, 'angenda_options'));
     $this->cal->register_handler('plugin.events_import_form', array($this, 'events_import_form'));
     $this->cal->register_handler('plugin.events_export_form', array($this, 'events_export_form'));
+    $this->cal->register_handler('plugin.event_changelog_table', array($this, 'event_changelog_table'));
     $this->cal->register_handler('plugin.searchform', array($this->rc->output, 'search_form'));  // use generic method from rcube_template
   }
 
@@ -101,7 +107,6 @@ class calendar_ui
   {
     $skin_path = $this->cal->local_skin_path();
     $this->cal->include_stylesheet($skin_path . '/fullcalendar.css');
-    $this->cal->include_stylesheet($skin_path . '/jquery.miniColors.css');
   }
 
   /**
@@ -111,7 +116,14 @@ class calendar_ui
   {
     $this->cal->include_script('calendar_ui.js');
     $this->cal->include_script('lib/js/fullcalendar.js');
-    $this->cal->include_script('lib/js/jquery.miniColors.min.js');
+    $this->rc->output->include_script('treelist.js');
+
+    // include kolab folderlist widget if available
+    if (in_array('libkolab', $this->cal->api->loaded_plugins())) {
+        $this->cal->api->include_script('libkolab/js/folderlist.js');
+    }
+
+    jqueryui::miniColors();
   }
 
   /**
@@ -151,26 +163,7 @@ class calendar_ui
     foreach ((array)$calendars as $id => $prop) {
       if (!$prop['color'])
         continue;
-      $color = $prop['color'];
-      $class = 'cal-' . asciiwords($id, true);
-      $css .= "li.$class, #eventshow .$class { color: #$color }\n";
-      if ($mode != 1) {
-        if ($mode == 3) {
-          $css .= ".fc-event-$class .fc-event-bg {";
-          $css .= " opacity: 0.9;";
-          $css .= " filter: alpha(opacity=90);";
-        }
-        else {
-          $css .= ".fc-event-$class, ";
-          $css .= ".fc-event-$class .fc-event-inner {";
-        }
-        if (!$attrib['printmode'])
-          $css .= " background-color: #$color;";
-        if ($mode % 2 == 0)
-        $css .= " border-color: #$color;";
-        $css .= "}\n";
-      }
-      $css .= ".$class .handle { background-color: #$color; }";
+      $css .= $this->calendar_css_classes($id, $prop, $mode);
     }
     
     return html::tag('style', array('type' => 'text/css'), $css);
@@ -179,47 +172,155 @@ class calendar_ui
   /**
    *
    */
+  public function calendar_css_classes($id, $prop, $mode)
+  {
+    $color = $prop['color'];
+    $class = 'cal-' . asciiwords($id, true);
+    $css .= "li .$class, #eventshow .$class { color: #$color }\n";
+
+    if ($mode != 1) {
+      if ($mode == 3) {
+        $css .= ".fc-event-$class .fc-event-bg {";
+        $css .= " opacity: 0.9;";
+        $css .= " filter: alpha(opacity=90);";
+      }
+      else {
+        $css .= ".fc-event-$class, ";
+        $css .= ".fc-event-$class .fc-event-inner {";
+      }
+      if (!$attrib['printmode'])
+        $css .= " background-color: #$color;";
+      if ($mode % 2 == 0)
+      $css .= " border-color: #$color;";
+      $css .= "}\n";
+    }
+
+    return $css . ".$class .handle { background-color: #$color; }\n";
+  }
+
+  /**
+   *
+   */
   function calendar_list($attrib = array())
   {
-    $calendars = $this->cal->driver->list_calendars();
+    $html = '';
+    $jsenv = array();
+    $tree = true;
+    $calendars = $this->cal->driver->list_calendars(0, $tree);
 
-    $li = '';
+    // walk folder tree
+    if (is_object($tree)) {
+      $html = $this->list_tree_html($tree, $calendars, $jsenv, $attrib);
+
+      // append birthdays calendar which isn't part of $tree
+      if ($bdaycal = $calendars[calendar_driver::BIRTHDAY_CALENDAR_ID]) {
+        $calendars = array(calendar_driver::BIRTHDAY_CALENDAR_ID => $bdaycal);
+      }
+      else {
+        $calendars = array();  // clear array for flat listing
+      }
+    }
+    else {
+      // fall-back to flat folder listing
+      $attrib['class'] .= ' flat';
+    }
+
     foreach ((array)$calendars as $id => $prop) {
       if ($attrib['activeonly'] && !$prop['active'])
         continue;
-      
-      unset($prop['user_id']);
-      $prop['alarms'] = $this->cal->driver->alarms;
-      $prop['attendees'] = $this->cal->driver->attendees;
-      $prop['freebusy'] = $this->cal->driver->freebusy;
-      $prop['attachments'] = $this->cal->driver->attachments;
-      $prop['undelete'] = $this->cal->driver->undelete;
-      $prop['feedurl'] = $this->cal->get_url(array('_cal' => $this->cal->ical_feed_hash($id) . '.ics', 'action' => 'feed'));
 
-      if (!$prop['virtual'])
-        $jsenv[$id] = $prop;
-
-      $html_id = html_identifier($id);
-      $class = 'cal-'  . asciiwords($id, true);
-      $title = $prop['name'] != $prop['listname'] ? html_entity_decode($prop['name'], ENT_COMPAT, RCMAIL_CHARSET) : '';
-
-      if ($prop['virtual'])
-        $class .= ' virtual';
-      else if ($prop['readonly'])
-        $class .= ' readonly';
-      if ($prop['class_name'])
-        $class .= ' '.$prop['class_name'];
-
-      $li .= html::tag('li', array('id' => 'rcmlical' . $html_id, 'class' => $class),
-        ($prop['virtual'] ? '' : html::tag('input', array('type' => 'checkbox', 'name' => '_cal[]', 'value' => $id, 'checked' => $prop['active']), '') .
-        html::span('handle', '&nbsp;')) .
-        html::span(array('class' => 'calname', 'title' => $title), $prop['listname']));
+      $html .= html::tag('li', array('id' => 'rcmlical' . $id, 'class' => $prop['group']),
+        $content = $this->calendar_list_item($id, $prop, $jsenv, $attrib['activeonly'])
+      );
     }
 
     $this->rc->output->set_env('calendars', $jsenv);
-    $this->rc->output->add_gui_object('folderlist', $attrib['id']);
+    $this->rc->output->add_gui_object('calendarslist', $attrib['id']);
 
-    return html::tag('ul', $attrib, $li, html::$common_attrib);
+    return html::tag('ul', $attrib, $html, html::$common_attrib);
+  }
+
+  /**
+   * Return html for a structured list <ul> for the folder tree
+   */
+  public function list_tree_html($node, $data, &$jsenv, $attrib)
+  {
+    $out = '';
+    foreach ($node->children as $folder) {
+      $id = $folder->id;
+      $prop = $data[$id];
+      $is_collapsed = false; // TODO: determine this somehow?
+
+      $content = $this->calendar_list_item($id, $prop, $jsenv, $attrib['activeonly']);
+
+      if (!empty($folder->children)) {
+        $content .= html::tag('ul', array('style' => ($is_collapsed ? "display:none;" : null)),
+          $this->list_tree_html($folder, $data, $jsenv, $attrib));
+      }
+
+      if (strlen($content)) {
+        $out .= html::tag('li', array(
+            'id' => 'rcmlical' . rcube_utils::html_identifier($id),
+            'class' => $prop['group'] . ($prop['virtual'] ? ' virtual' : ''),
+          ),
+          $content);
+      }
+    }
+
+    return $out;
+  }
+
+  /**
+   * Helper method to build a calendar list item (HTML content and js data)
+   */
+  public function calendar_list_item($id, $prop, &$jsenv, $activeonly = false)
+  {
+    // enrich calendar properties with settings from the driver
+    if (!$prop['virtual']) {
+      unset($prop['user_id']);
+      $prop['alarms']      = $this->cal->driver->alarms;
+      $prop['attendees']   = $this->cal->driver->attendees;
+      $prop['freebusy']    = $this->cal->driver->freebusy;
+      $prop['attachments'] = $this->cal->driver->attachments;
+      $prop['undelete']    = $this->cal->driver->undelete;
+      $prop['feedurl']     = $this->cal->get_url(array('_cal' => $this->cal->ical_feed_hash($id) . '.ics', 'action' => 'feed'));
+
+      $jsenv[$id] = $prop;
+    }
+
+    $classes = array('calendar', 'cal-'  . asciiwords($id, true));
+    $title = $prop['title'] ?: ($prop['name'] != $prop['listname'] || strlen($prop['name']) > 25 ?
+      html_entity_decode($prop['name'], ENT_COMPAT, RCMAIL_CHARSET) : '');
+
+    if ($prop['virtual'])
+      $classes[] = 'virtual';
+    else if (!$prop['editable'])
+      $classes[] = 'readonly';
+    if ($prop['subscribed'])
+      $classes[] = 'subscribed';
+    if ($prop['subscribed'] === 2)
+      $classes[] = 'partial';
+    if ($prop['class'])
+      $classes[] = $prop['class'];
+
+    $content = '';
+    if (!$activeonly || $prop['active']) {
+      $label_id = 'cl:' . $id;
+      $content = html::div(join(' ', $classes),
+        html::span(array('class' => 'calname', 'id' => $label_id, 'title' => $title), $prop['editname'] ? Q($prop['editname']) : $prop['listname']) .
+        ($prop['virtual'] ? '' :
+          html::tag('input', array('type' => 'checkbox', 'name' => '_cal[]', 'value' => $id, 'checked' => $prop['active'], 'aria-labelledby' => $label_id), '') .
+          html::span('actions', 
+            ($prop['removable'] ? html::a(array('href' => '#', 'class' => 'remove', 'title' => $this->cal->gettext('removelist')), ' ') : '') .
+            html::a(array('href' => '#', 'class' => 'quickview', 'title' => $this->cal->gettext('quickview'), 'role' => 'checkbox', 'aria-checked' => 'false'), '') .
+            (isset($prop['subscribed']) ? html::a(array('href' => '#', 'class' => 'subscribed', 'title' => $this->cal->gettext('calendarsubscribe'), 'role' => 'checkbox', 'aria-checked' => $prop['subscribed'] ? 'true' : 'false'), ' ') : '')
+          ) .
+          html::span(array('class' => 'handle', 'style' => "background-color: #" . ($prop['color'] ?: 'f00')), '&nbsp;')
+        )
+      );
+    }
+
+    return $content;
   }
 
   /**
@@ -231,17 +332,17 @@ class calendar_ui
     $attrib['style'] .= 'display:none';
     
     $select_range = new html_select(array('name' => 'listrange', 'id' => 'agenda-listrange'));
-    $select_range->add(1 . ' ' . preg_replace('/\(.+\)/', '', $this->cal->gettext('days')), $days);
-    foreach (array(2,5,7,14,30,60,90) as $days)
-      $select_range->add($days . ' ' . preg_replace('/\(|\)/', '', $this->cal->gettext('days')), $days);
+    $select_range->add(1 . ' ' . preg_replace('/\(.+\)/', '', $this->cal->lib->gettext('days')), $days);
+    foreach (array(2,5,7,14,30,60,90,180,365) as $days)
+      $select_range->add($days . ' ' . preg_replace('/\(|\)/', '', $this->cal->lib->gettext('days')), $days);
     
     $html .= html::label('agenda-listrange', $this->cal->gettext('listrange'));
     $html .= $select_range->show($this->rc->config->get('calendar_agenda_range', $this->cal->defaults['calendar_agenda_range']));
     
     $select_sections = new html_select(array('name' => 'listsections', 'id' => 'agenda-listsections'));
     $select_sections->add('---', '');
-    foreach (array('day' => 'days', 'week' => 'weeks', 'month' => 'months', 'smart' => 'smartsections') as $val => $label)
-      $select_sections->add(preg_replace('/\(|\)/', '', ucfirst($this->cal->gettext($label))), $val);
+    foreach (array('day' => 'libcalendaring.days', 'week' => 'libcalendaring.weeks', 'month' => 'libcalendaring.months', 'smart' => 'calendar.smartsections') as $val => $label)
+      $select_sections->add(preg_replace('/\(|\)/', '', ucfirst($this->rc->gettext($label))), $val);
     
     $html .= html::span('spacer', '&nbsp;');
     $html .= html::label('agenda-listsections', $this->cal->gettext('listsections'));
@@ -260,7 +361,7 @@ class calendar_ui
     $select = new html_select($attrib);
 
     foreach ((array)$this->cal->driver->list_calendars() as $id => $prop) {
-      if (!$prop['readonly'])
+      if ($prop['editable'] || strpos($prop['rights'], 'i') !== false)
         $select->add($prop['name'], $id);
     }
 
@@ -274,7 +375,7 @@ class calendar_ui
   {
     $attrib['name'] = 'identity';
     $select         = new html_select($attrib);
-    $identities     = $this->rc->user->list_identities();
+    $identities     = $this->rc->user->list_emails();
 
     foreach ($identities as $ident) {
         $select->add(format_email_recipient($ident['email'], $ident['name']), $ident['identity_id']);
@@ -299,6 +400,20 @@ class calendar_ui
   }
 
   /**
+   * Render a HTML select box for status property
+   */
+  function status_select($attrib = array())
+  {
+    $attrib['name'] = 'status';
+    $select = new html_select($attrib);
+    $select->add('---', '');
+    $select->add($this->cal->gettext('status-confirmed'), 'CONFIRMED');
+    $select->add($this->cal->gettext('status-cancelled'), 'CANCELLED');
+    //$select->add($this->cal->gettext('tentative'), 'TENTATIVE');
+    return $select->show(null);
+  }
+
+  /**
    * Render a HTML select box for free/busy/out-of-office property
    */
   function freebusy_select($attrib = array())
@@ -307,7 +422,8 @@ class calendar_ui
     $select = new html_select($attrib);
     $select->add($this->cal->gettext('free'), 'free');
     $select->add($this->cal->gettext('busy'), 'busy');
-    $select->add($this->cal->gettext('outofoffice'), 'outofoffice');
+    // out-of-office is not supported by libkolabxml (#3220)
+    // $select->add($this->cal->gettext('outofoffice'), 'outofoffice');
     $select->add($this->cal->gettext('tentative'), 'tentative');
     return $select->show(null);
   }
@@ -377,161 +493,6 @@ class calendar_ui
        
     return html::div($attrib, html::div('message', html::span('ui-icon ui-icon-alert', '') . $this->cal->gettext('changerecurringeventwarning')) . html::div('savemode', $form));
   }
-  
-  /**
-   * Generate the form for recurrence settings
-   */
-  function recurrence_form($attrib = array())
-  {
-    switch ($attrib['part']) {
-      // frequency selector
-      case 'frequency':
-        $select = new html_select(array('name' => 'frequency', 'id' => 'edit-recurrence-frequency'));
-        $select->add($this->cal->gettext('never'), '');
-        $select->add($this->cal->gettext('daily'), 'DAILY');
-        $select->add($this->cal->gettext('weekly'), 'WEEKLY');
-        $select->add($this->cal->gettext('monthly'), 'MONTHLY');
-        $select->add($this->cal->gettext('yearly'), 'YEARLY');
-        $select->add($this->cal->gettext('rdate'), 'RDATE');
-        $html = html::label('edit-frequency', $this->cal->gettext('frequency')) . $select->show('');
-        break;
-
-      // daily recurrence
-      case 'daily':
-        $select = $this->interval_selector(array('name' => 'interval', 'class' => 'edit-recurrence-interval', 'id' => 'edit-recurrence-interval-daily'));
-        $html = html::div($attrib, html::label(null, $this->cal->gettext('every')) . $select->show(1) . html::span('label-after', $this->cal->gettext('days')));
-        break;
-
-      // weekly recurrence form
-      case 'weekly':
-        $select = $this->interval_selector(array('name' => 'interval', 'class' => 'edit-recurrence-interval', 'id' => 'edit-recurrence-interval-weekly'));
-        $html = html::div($attrib, html::label(null, $this->cal->gettext('every')) . $select->show(1) . html::span('label-after', $this->cal->gettext('weeks')));
-        // weekday selection
-        $daymap = array('sun','mon','tue','wed','thu','fri','sat');
-        $checkbox = new html_checkbox(array('name' => 'byday', 'class' => 'edit-recurrence-weekly-byday'));
-        $first = $this->rc->config->get('calendar_first_day', 1);
-        for ($weekdays = '', $j = $first; $j <= $first+6; $j++) {
-            $d = $j % 7;
-            $weekdays .= html::label(array('class' => 'weekday'), $checkbox->show('', array('value' => strtoupper(substr($daymap[$d], 0, 2)))) . $this->cal->gettext($daymap[$d])) . ' ';
-        }
-        $html .= html::div($attrib, html::label(null, $this->cal->gettext('bydays')) . $weekdays);
-        break;
-
-      // monthly recurrence form
-      case 'monthly':
-        $select = $this->interval_selector(array('name' => 'interval', 'class' => 'edit-recurrence-interval', 'id' => 'edit-recurrence-interval-monthly'));
-        $html = html::div($attrib, html::label(null, $this->cal->gettext('every')) . $select->show(1) . html::span('label-after', $this->cal->gettext('months')));
-
-        $checkbox = new html_checkbox(array('name' => 'bymonthday', 'class' => 'edit-recurrence-monthly-bymonthday'));
-        for ($monthdays = '', $d = 1; $d <= 31; $d++) {
-            $monthdays .= html::label(array('class' => 'monthday'), $checkbox->show('', array('value' => $d)) . $d);
-            $monthdays .= $d % 7 ? ' ' : html::br();
-        }
-
-        // rule selectors
-        $radio = new html_radiobutton(array('name' => 'repeatmode', 'class' => 'edit-recurrence-monthly-mode'));
-        $table = new html_table(array('cols' => 2, 'border' => 0, 'cellpadding' => 0, 'class' => 'formtable'));
-        $table->add('label', html::label(null, $radio->show('BYMONTHDAY', array('value' => 'BYMONTHDAY')) . ' ' . $this->cal->gettext('each')));
-        $table->add(null, $monthdays);
-        $table->add('label', html::label(null, $radio->show('', array('value' => 'BYDAY')) . ' ' . $this->cal->gettext('onevery')));
-        $table->add(null, $this->rrule_selectors($attrib['part']));
-        
-        $html .= html::div($attrib, $table->show());
-
-        break;
-
-      // annually recurrence form
-      case 'yearly':
-        $select = $this->interval_selector(array('name' => 'interval', 'class' => 'edit-recurrence-interval', 'id' => 'edit-recurrence-interval-yearly'));
-        $html = html::div($attrib, html::label(null, $this->cal->gettext('every')) . $select->show(1) . html::span('label-after', $this->cal->gettext('years')));
-        // month selector
-        $monthmap = array('','jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec');
-        $checkbox = new html_checkbox(array('name' => 'bymonth', 'class' => 'edit-recurrence-yearly-bymonth'));
-        for ($months = '', $m = 1; $m <= 12; $m++) {
-            $months .= html::label(array('class' => 'month'), $checkbox->show(null, array('value' => $m)) . $this->cal->gettext($monthmap[$m]));
-            $months .= $m % 4 ? ' ' : html::br();
-        }
-        $html .= html::div($attrib + array('id' => 'edit-recurrence-yearly-bymonthblock'), $months);
-        
-        // day rule selection
-        $html .= html::div($attrib, html::label(null, $this->cal->gettext('onevery')) . $this->rrule_selectors($attrib['part'], '---'));
-        break;
-
-      // end of recurrence form
-      case 'until':
-        $radio = new html_radiobutton(array('name' => 'repeat', 'class' => 'edit-recurrence-until'));
-        $select = $this->interval_selector(array('name' => 'times', 'id' => 'edit-recurrence-repeat-times'));
-        $input = new html_inputfield(array('name' => 'untildate', 'id' => 'edit-recurrence-enddate', 'size' => "10"));
-
-        $table = new html_table(array('cols' => 2, 'border' => 0, 'cellpadding' => 0, 'class' => 'formtable'));
-
-        $table->add('label', ucfirst($this->cal->gettext('recurrencend')));
-        $table->add(null, html::label(null, $radio->show('', array('value' => '', 'id' => 'edit-recurrence-repeat-forever')) . ' ' .
-          $this->cal->gettext('forever')));
-
-        $table->add('label', '');
-        $table->add(null, $radio->show('', array('value' => 'count', 'id' => 'edit-recurrence-repeat-count')) . ' ' .
-          $this->cal->gettext(array(
-            'name' => 'forntimes',
-            'vars' => array('nr' => $select->show(1)))
-          ));
-
-        $table->add('label', '');
-        $table->add(null, $radio->show('', array('value' => 'until', 'id' => 'edit-recurrence-repeat-until')) . ' ' .
-          $this->cal->gettext('untildate') . ' ' . $input->show(''));
-        $html = $table->show();
-        break;
-
-      case 'rdate':
-        $ul = html::tag('ul', array('id' => 'edit-recurrence-rdates'), '');
-        $input = new html_inputfield(array('name' => 'rdate', 'id' => 'edit-recurrence-rdate-input', 'size' => "10"));
-        $button = new html_inputfield(array('type' => 'button', 'class' => 'button add', 'value' => $this->cal->gettext('addrdate')));
-        $html .= html::div($attrib, $ul . html::div('inputform', $input->show() . $button->show()));
-        break;
-    }
-
-    return $html;
-  }
-
-  /**
-   * Input field for interval selection
-   */
-  private function interval_selector($attrib)
-  {
-    $select = new html_select($attrib);
-    $select->add(range(1,30), range(1,30));
-    return $select;
-  }
-  
-  /**
-   * Drop-down menus for recurrence rules like "each last sunday of"
-   */
-  private function rrule_selectors($part, $noselect = null)
-  {
-    // rule selectors
-    $select_prefix = new html_select(array('name' => 'bydayprefix', 'id' => "edit-recurrence-$part-prefix"));
-    if ($noselect) $select_prefix->add($noselect, '');
-    $select_prefix->add(array(
-        $this->cal->gettext('first'),
-        $this->cal->gettext('second'),
-        $this->cal->gettext('third'),
-        $this->cal->gettext('fourth'),
-        $this->cal->gettext('last')
-      ),
-      array(1, 2, 3, 4, -1));
-    
-    $select_wday = new html_select(array('name' => 'byday', 'id' => "edit-recurrence-$part-byday"));
-    if ($noselect) $select_wday->add($noselect, '');
-    
-    $daymap = array('sunday','monday','tuesday','wednesday','thursday','friday','saturday');
-    $first = $this->rc->config->get('calendar_first_day', 1);
-    for ($j = $first; $j <= $first+6; $j++) {
-      $d = $j % 7;
-      $select_wday->add($this->cal->gettext($daymap[$d]), strtoupper(substr($daymap[$d], 0, 2)));
-    }
-    
-    return $select_prefix->show() . '&nbsp;' . $select_wday->show();
-  }
 
   /**
    * Form for uploading and importing events
@@ -544,8 +505,14 @@ class calendar_ui
     // Get max filesize, enable upload progress bar
     $max_filesize = rcube_upload_init();
 
+    $accept = '.ics, text/calendar, text/x-vcalendar, application/ics';
+    if (class_exists('ZipArchive', false)) {
+      $accept .= ', .zip, application/zip';
+    }
+
     $input = new html_inputfield(array(
-      'type' => 'file', 'name' => '_data', 'size' => $attrib['uploadfieldsize']));
+      'type' => 'file', 'name' => '_data', 'size' => $attrib['uploadfieldsize'],
+      'accept' => $accept));
 
     $select = new html_select(array('name' => '_range', 'id' => 'event-import-range'));
     $select->add(array(
@@ -732,13 +699,29 @@ class calendar_ui
    */
   function attendees_list($attrib = array())
   {
-    $table = new html_table(array('cols' => 5, 'border' => 0, 'cellpadding' => 0, 'class' => 'rectable'));
+    // add "noreply" checkbox to attendees table only
+    $invitations = strpos($attrib['id'], 'attend') !== false;
+
+    $invite = new html_checkbox(array('value' => 1, 'id' => 'edit-attendees-invite'));
+    $table  = new html_table(array('cols' => 5 + intval($invitations), 'border' => 0, 'cellpadding' => 0, 'class' => 'rectable'));
+
     $table->add_header('role', $this->cal->gettext('role'));
-    $table->add_header('name', $this->cal->gettext('attendee'));
+    $table->add_header('name', $this->cal->gettext($attrib['coltitle'] ?: 'attendee'));
     $table->add_header('availability', $this->cal->gettext('availability'));
     $table->add_header('confirmstate', $this->cal->gettext('confirmstate'));
+    if ($invitations) {
+      $table->add_header(array('class' => 'invite', 'title' => $this->cal->gettext('sendinvitations')),
+        $invite->show(1) . html::label('edit-attendees-invite', $this->cal->gettext('sendinvitations')));
+    }
     $table->add_header('options', '');
-    
+
+    // hide invite column if disabled by config
+    $itip_notify = (int)$this->rc->config->get('calendar_itip_send_option', $this->cal->defaults['calendar_itip_send_option']);
+    if ($invitations && !($itip_notify & 2)) {
+        $css = sprintf('#%s td.invite, #%s th.invite { display:none !important }', $attrib['id'], $attrib['id']);
+        $this->rc->output->add_footer(html::tag('style', array('type' => 'text/css'), $css));
+    }
+
     return $table->show($attrib);
   }
 
@@ -747,17 +730,108 @@ class calendar_ui
    */
   function attendees_form($attrib = array())
   {
-    $input = new html_inputfield(array('name' => 'participant', 'id' => 'edit-attendee-name', 'size' => 30));
-    $checkbox = new html_checkbox(array('name' => 'invite', 'id' => 'edit-attendees-invite', 'value' => 1));
-    
+    $input    = new html_inputfield(array('name' => 'participant', 'id' => 'edit-attendee-name', 'size' => 30));
+    $textarea = new html_textarea(array('name' => 'comment', 'id' => 'edit-attendees-comment',
+        'rows' => 4, 'cols' => 55, 'title' => $this->cal->gettext('itipcommenttitle')));
+
     return html::div($attrib,
       html::div(null, $input->show() . " " .
         html::tag('input', array('type' => 'button', 'class' => 'button', 'id' => 'edit-attendee-add', 'value' => $this->cal->gettext('addattendee'))) . " " .
         html::tag('input', array('type' => 'button', 'class' => 'button', 'id' => 'edit-attendee-schedule', 'value' => $this->cal->gettext('scheduletime').'...'))) .
-      html::p('attendees-invitebox', html::label(null, $checkbox->show(1) . $this->cal->gettext('sendinvitations')))
+      html::p('attendees-commentbox', html::label(null, $this->cal->gettext('itipcomment') . $textarea->show()))
+    );
+  }
+
+  /**
+   *
+   */
+  function resources_form($attrib = array())
+  {
+    $input = new html_inputfield(array('name' => 'resource', 'id' => 'edit-resource-name', 'size' => 30));
+
+    return html::div($attrib,
+      html::div(null, $input->show() . " " .
+        html::tag('input', array('type' => 'button', 'class' => 'button', 'id' => 'edit-resource-add', 'value' => $this->cal->gettext('addresource'))) . " " .
+        html::tag('input', array('type' => 'button', 'class' => 'button', 'id' => 'edit-resource-find', 'value' => $this->cal->gettext('findresources').'...')))
       );
   }
-  
+
+  /**
+   *
+   */
+  function resources_list($attrib = array())
+  {
+    $attrib += array('id' => 'calendar-resources-list');
+
+    $this->rc->output->add_gui_object('resourceslist', $attrib['id']);
+
+    return html::tag('ul', $attrib, '', html::$common_attrib);
+  }
+
+  /**
+   *
+   */
+  public function resource_info($attrib = array())
+  {
+    $attrib += array('id' => 'calendar-resources-info');
+
+    $this->rc->output->add_gui_object('resourceinfo', $attrib['id']);
+    $this->rc->output->add_gui_object('resourceownerinfo', $attrib['id'] . '-owner');
+
+    // copy address book labels for owner details to client
+    $this->rc->output->add_label('name','firstname','surname','department','jobtitle','email','phone','address');
+
+    $table_attrib = array('id','class','style','width','summary','cellpadding','cellspacing','border');
+
+    return html::tag('table', $attrib,
+        html::tag('tbody', null, ''), $table_attrib) .
+
+      html::tag('table', array('id' => $attrib['id'] . '-owner', 'style' => 'display:none') + $attrib,
+        html::tag('thead', null,
+          html::tag('tr', null,
+            html::tag('td', array('colspan' => 2), Q($this->cal->gettext('resourceowner')))
+          )
+        ) .
+        html::tag('tbody', null, ''),
+        $table_attrib);
+  }
+
+  /**
+   *
+   */
+  public function resource_calendar($attrib = array())
+  {
+    $attrib += array('id' => 'calendar-resources-calendar');
+
+    $this->rc->output->add_gui_object('resourceinfocalendar', $attrib['id']);
+
+    return html::div($attrib, '');
+  }
+
+  /**
+   * GUI object 'searchform' for the resource finder dialog
+   *
+   * @param array Named parameters
+   * @return string HTML code for the gui object
+   */
+  function resources_search_form($attrib)
+  {
+    $attrib += array('command' => 'search-resource', 'id' => 'rcmcalresqsearchbox', 'autocomplete' => 'off');
+    $attrib['name'] = '_q';
+
+    $input_q = new html_inputfield($attrib);
+    $out = $input_q->show();
+
+    // add form tag around text field
+    $out = $this->rc->output->form_tag(array(
+      'name' => "rcmcalresoursqsearchform",
+      'onsubmit' => rcmail_output::JS_OBJECT_NAME . ".command('" . $attrib['command'] . "'); return false",
+      'style' => "display:inline"),
+      $out);
+
+    return $out;
+  }
+
   /**
    *
    */
@@ -780,21 +854,19 @@ class calendar_ui
   }
 
   /**
-   * Render event details in a table
+   * Table oultine for event changelog display
    */
-  function event_details_table($event, $title)
+  function event_changelog_table($attrib = array())
   {
-    $table = new html_table(array('cols' => 2, 'border' => 0, 'class' => 'calendar-eventdetails'));
-    $table->add('ititle', $title);
-    $table->add('title', Q($event['title']));
-    $table->add('label', $this->cal->gettext('date'));
-    $table->add('location', Q($this->cal->lib->event_date_text($event)));
-    if ($event['location']) {
-      $table->add('label', $this->cal->gettext('location'));
-      $table->add('location', Q($event['location']));
-    }
-    
-    return $table->show();
+    $table = new html_table(array('cols' => 5, 'border' => 0, 'cellspacing' => 0));
+    $table->add_header('diff', '');
+    $table->add_header('revision', $this->cal->gettext('revision'));
+    $table->add_header('date', $this->cal->gettext('date'));
+    $table->add_header('user', $this->cal->gettext('user'));
+    $table->add_header('operation', $this->cal->gettext('operation'));
+    $table->add_header('actions', '&nbsp;');
+
+    return $table->show($attrib);
   }
 
   /**
@@ -804,7 +876,7 @@ class calendar_ui
   {
     if ($this->cal->event) {
       return html::div($attrib,
-        $this->event_details_table($this->cal->event, $this->cal->gettext('itipinvitation')) .
+        $this->cal->itip->itip_object_details_table($this->cal->event, $this->cal->itip->gettext('itipinvitation')) .
         $this->cal->invitestatus
       );
     }
@@ -814,20 +886,11 @@ class calendar_ui
 
   function event_rsvp_buttons($attrib = array())
   {
-    $attrib += array('type' => 'button');
-    foreach (array('accepted','tentative','declined') as $method) {
-      $buttons .= html::tag('input', array(
-        'type' => $attrib['type'],
-        'name' => $attrib['iname'],
-        'class' => 'button',
-        'rel' => $method,
-        'value' => $this->cal->gettext('itip' . $method),
-      ));
-    }
-    
-    return html::div($attrib,
-      html::div('label', $this->cal->gettext('acceptinvitation')) .
-      html::div('rsvp-buttons', $buttons));
+    $actions = array('accepted','tentative','declined');
+    if ($attrib['delegate'] !== 'false')
+      $actions[] = 'delegated';
+
+    return $this->cal->itip->itip_rsvp_buttons($attrib, $actions);
   }
 
 }

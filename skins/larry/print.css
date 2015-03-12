@@ -1,7 +1,7 @@
 /*** Printing styles for Calendar plugin ***/
 
 body {
-	margin: 0;
+	margin: 0 0 1em 0;
 	color: #000;
 	background: #fff;
 }
@@ -54,22 +54,39 @@ body, td, th, div, p, h3, select, input, textarea {
 }
 
 #calendarlist {
-	list-style-type: square;
+	list-style: none;
 	margin: 2em 0;
 	padding-left: 1em;
+}
+
+#calendarlist ul {
+	float: left;
+	list-style: none;
+	padding-left: 0;
 }
 
 #calendarlist li {
 	float: left;
 	padding-left: 0;
-	padding-right: 3em;
+	padding-right: 0;
 	margin-left: 0;
 	font-weight: bold;
+}
+
+#calendarlist li div {
+	float: left;
+	padding-right: 3em;
+	padding-bottom: 1em;
 }
 
 #calendarlist input,
 #calendarlist .handle {
 	display: none;
+}
+
+#calendarlist li.x-invitations div {
+	color: #999;
+	font-style: italic;
 }
 
 .calwidth {
@@ -130,7 +147,7 @@ body, td, th, div, p, h3, select, input, textarea {
 	font-style: italic;
 }
 
-div.fc-event-location {
+.fc-event-location {
 	font-size: 90%;
 }
 
@@ -203,6 +220,9 @@ div.fc-event-location {
 	font-style: italic;
 }
 
+.fc-view-month .fc-event-hori .fc-event-inner {
+	background: #fff !important;
+}
 
 .fc-view-table col.fc-event-location {
 	width: 20%;

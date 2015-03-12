@@ -4,20 +4,35 @@
 <title><roundcube:object name="pagetitle" /></title>
 <roundcube:include file="/includes/links.html" />
 <script type="text/javascript" src="/functions.js"></script>
-<!--[if lte IE 7]><link rel="stylesheet" type="text/css" href="./plugins/calendar/skins/classic/iehacks.css" /><![endif]-->
+<!--[if lte IE 7]><link rel="stylesheet" type="text/css" href="plugins/calendar/skins/classic/iehacks.css" /><![endif]-->
 </head>
-<body class="calendarmain">
+<roundcube:if condition="env:extwin" /><body class="calendarmain extwin"><roundcube:else /><body class="calendarmain"><roundcube:endif />
 
 <roundcube:include file="/includes/taskbar.html" />
 <roundcube:include file="/includes/header.html" />
 
 <div id="main">
   <div id="calendarsidebar">
+    <div id="calendartoolbar">
+      <roundcube:button command="addevent" type="link" class="buttonPas addevent" classAct="button addevent" classSel="button addeventSel" title="calendar.new_event" content=" " />
+      <roundcube:button command="print" type="link" class="buttonPas print" classAct="button print" classSel="button printSel" title="calendar.print" content=" " />
+      <roundcube:button command="events-import" type="link" class="buttonPas import" classAct="button import" classSel="button importSel" title="calendar.importevents" content=" " />
+      <roundcube:button command="export" type="link" class="buttonPas export" classAct="button export" classSel="button exportSel" title="calendar.export" content=" " />
+      <roundcube:container name="toolbar" id="calendartoolbar" />
+    </div>
+
     <div id="datepicker"></div>
     <div id="calendars" style="visibility:hidden">
       <div class="boxtitle"><roundcube:label name="calendar.calendars" /></div>
+      <div class="listsearchbox">
+        <div class="searchbox">
+          <input type="text" name="q" id="calendarlistsearch" placeholder="<roundcube:label name='calendar.findcalendars' />" />
+          <a class="iconbutton searchicon"></a>
+          <roundcube:button command="reset-listsearch" id="calendarlistsearch-reset" class="reset searchreset" title="resetsearch" content="x" />
+        </div>
+      </div>
       <div class="boxlistcontent">
-      <roundcube:object name="plugin.calendar_list" id="calendarslist" />
+      <roundcube:object name="plugin.calendar_list" id="calendarslist" class="treelist" />
       </div>
       <div class="boxfooter">
         <roundcube:button command="calendar-create" type="link" title="calendar.createcalendar" class="buttonPas addgroup" classAct="button addgroup" content=" " />
@@ -34,7 +49,10 @@
 <div id="calendaroptionsmenu" class="popupmenu">
   <ul>
     <li><roundcube:button command="calendar-edit" label="calendar.edit" classAct="active" /></li>
+    <li><roundcube:button command="calendar-delete" label="delete" classAct="active" /></li>
+    <roundcube:if condition="env:calendar_driver == 'kolab'" />
     <li><roundcube:button command="calendar-remove" label="calendar.remove" classAct="active" /></li>
+    <roundcube:endif />
     <li><roundcube:button command="calendar-showurl" label="calendar.showurl" classAct="active" /></li>
     <roundcube:if condition="env:calendar_driver == 'kolab'" />
     <li class="separator_above"><roundcube:button command="folders" task="settings" type="link" label="managefolders" classAct="active" /></li>
@@ -66,6 +84,12 @@
     <h5 class="label"><roundcube:label name="calendar.tabattendees" /></h5>
     <div class="event-text"></div>
   </div>
+  <div class="event-line" id="event-partstat">
+    <label><roundcube:label name="calendar.mystatus" /></label>
+    <a href="#change" class="changersvp" title="<roundcube:label name='calendar.changepartstat' />">
+      <span class="event-text"></span>
+    </a>
+  </div>
   <div class="event-line" id="event-calendar">
     <label><roundcube:label name="calendar.calendar" /></label>
     <span class="event-text">Default</span>
@@ -94,7 +118,40 @@
   <roundcube:object name="plugin.event_rsvp_buttons" id="event-rsvp" style="display:none" />
 </div>
 
+<div id="eventoptionsmenu" class="popupmenu">
+  <ul>
+    <li><roundcube:button command="event-download" label="download" classAct="active" /></li>
+    <li><roundcube:button command="event-sendbymail" label="send" classAct="active" /></li>
+  </ul>
+</div>
+
 <roundcube:include file="/templates/eventedit.html" />
+
+<div id="eventresourcesdialog" class="uidialog">
+  <div id="resource-dialog-left">
+    <div id="resource-selection" class="">
+      <div id="resourcequicksearch">
+        <roundcube:object name="plugin.resources_searchform" id="resourcesearchbox" />
+        <roundcube:button command="reset-resource-search" id="resourcesearchreset" image="/images/icons/reset.gif" title="resetsearch" width="13" height="13" />
+      </div>
+      <div class="boxlistcontent">
+        <roundcube:object name="plugin.resources_list" id="resources-list" class="treelist" />
+      </div>
+    </div>
+  </div>
+
+  <div id="resource-dialog-right">
+    <div id="resource-info">
+      <h2 class="boxtitle"><roundcube:label name="calendar.resourcedetails" /></h2>
+      <roundcube:object name="plugin.resource_info" id="resource-details" />
+    </div>
+
+    <div id="resource-availability">
+      <h2 class="boxtitle"><roundcube:label name="calendar.resourceavailability" /></h2>
+      <roundcube:object name="plugin.resource_calendar" id="resource-freebusy-calendar" />
+    </div>
+  </div>
+</div>
 
 <div id="eventfreebusy" class="uidialog">
   <roundcube:object name="plugin.attendees_freebusy_table" id="attendees-freebusy-table" cellspacing="0" cellpadding="0" border="0" />
@@ -134,6 +191,7 @@
     <span class="attendee organizer"><roundcube:label name="calendar.roleorganizer" /></span>
     <span class="attendee req-participant"><roundcube:label name="calendar.rolerequired" /></span>
     <span class="attendee opt-participant"><roundcube:label name="calendar.roleoptional" /></span>
+    <span class="attendee non-participant"><roundcube:label name="calendar.rolenonparticipant" /></span>
     <span class="attendee chair"><roundcube:label name="calendar.rolechair" /></span>
   </div>
 </div>
@@ -157,14 +215,6 @@
     <p><roundcube:label name="calendar.caldavurldescription" html="yes" /></p>
     <textarea id="caldavurl" rows="2" readonly="readonly"></textarea>
   </div>
-</div>
-
-<div id="calendartoolbar">
-  <roundcube:button command="addevent" type="link" class="buttonPas addevent" classAct="button addevent" classSel="button addeventSel" title="calendar.new_event" content=" " />
-  <roundcube:button command="print" type="link" class="buttonPas print" classAct="button print" classSel="button printSel" title="calendar.print" content=" " />
-  <roundcube:button command="events-import" type="link" class="buttonPas import" classAct="button import" classSel="button importSel" title="calendar.importevents" content=" " />
-  <roundcube:button command="export" type="link" class="buttonPas export" classAct="button export" classSel="button exportSel" title="calendar.export" content=" " />
-  <roundcube:container name="toolbar" id="calendartoolbar" />
 </div>
 
 <div id="quicksearchbar">

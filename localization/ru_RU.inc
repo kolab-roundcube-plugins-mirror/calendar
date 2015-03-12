@@ -1,45 +1,33 @@
 <?php
 /**
- * RoundCube Calendar
+ * Localizations for Kolab Calendar plugin
  *
- * Plugin to add a calendar to RoundCube.
+ * Copyright (C) 2014, Kolab Systems AG
  *
- * @version 0.2 BETA 2
- * @author Lazlo Westerhof
- * @url http://rc-calendar.lazlo.me
- * @licence GNU GPL
- * @copyright (c) 2010 Lazlo Westerhof - Netherlands
- *
- **/
-
-$labels = array();
-
-// config
+ * For translation see https://www.transifex.com/projects/p/kolab/resource/calendar/
+ */
+$labels['default_view'] = 'Вид по умолчанию';
 $labels['time_format'] = 'Формат времени';
 $labels['timeslots'] = 'Промежутков в час';
 $labels['first_day'] = 'Первый день недели';
-$labels['default_view'] = 'Вид по умолчанию';
+$labels['first_hour'] = 'Показывать начиная с';
 $labels['workinghours'] = 'Рабочие часы';
 $labels['add_category'] = 'Добавить категорию';
 $labels['remove_category'] = 'Удалить категорию';
-$labels['defaultcalendar'] = 'Создать новое событие в';
+$labels['defaultcalendar'] = 'Создавать новое событие в';
 $labels['eventcoloring'] = 'Цвет события';
 $labels['coloringmode0'] = 'Согласно цвета календаря';
 $labels['coloringmode1'] = 'Согласно цвета категории';
-$labels['coloringmode2'] = 'Календарь для внешних, категория для внутренних цветов';
-$labels['coloringmode3'] = 'Категория для внешних, календарь для внутренних цветов';
-
-
-// calendar
+$labels['coloringmode2'] = 'Цвет календаря для рамки, цвет категории для фона';
+$labels['coloringmode3'] = 'Цвет категории для рамки, цвет календаря для фона';
+$labels['afternothing'] = 'Ничего не делать';
+$labels['aftertrash'] = 'Переместить в корзину';
+$labels['afterdelete'] = 'Удалить сообщение';
+$labels['afterflagdeleted'] = 'Пометить как удалённое';
+$labels['aftermoveto'] = 'Переместить в...';
+$labels['itipoptions'] = 'Приглашения на события';
+$labels['afteraction'] = 'После того, как приглашение или сообщение о его изменении обработано';
 $labels['calendar'] = 'Календарь';
-$labels['day'] = 'День';
-$labels['week'] = 'Неделя';
-$labels['month'] = 'Месяц';
-$labels['new_event'] = 'Новое событие';
-$labels['edit_event'] = 'Изменить событие';
-$labels['save'] = 'Сохранить';
-$labels['remove'] = 'Удалить';
-$labels['cancel'] = 'Завершить';
 $labels['calendars'] = 'Календари';
 $labels['category'] = 'Категория';
 $labels['categories'] = 'Категории';
@@ -47,70 +35,103 @@ $labels['createcalendar'] = 'Создать новый календарь';
 $labels['editcalendar'] = 'Редактировать свойства календаря';
 $labels['name'] = 'Имя';
 $labels['color'] = 'Цвет';
+$labels['day'] = 'День';
+$labels['week'] = 'Неделя';
+$labels['month'] = 'Месяц';
 $labels['agenda'] = 'Список';
 $labels['new'] = 'Новый';
+$labels['new_event'] = 'Новое событие';
+$labels['edit_event'] = 'Изменить событие';
 $labels['edit'] = 'Редактировать';
+$labels['save'] = 'Сохранить';
+$labels['removelist'] = 'Удалить из списка';
+$labels['cancel'] = 'Отмена';
 $labels['select'] = 'Выбрать';
 $labels['print'] = 'Распечатать';
 $labels['printtitle'] = 'Распечатать календарь';
-$labels['title'] = 'Название мероприятия';
+$labels['title'] = 'Сводка';
 $labels['description'] = 'Описание';
-$labels['all-day'] = 'целый день';
+$labels['all-day'] = 'весь день';
 $labels['export'] = 'Экспорт';
 $labels['exporttitle'] = 'Экспорт в iCalendar';
+$labels['exportrange'] = 'События начиная с';
+$labels['exportattachments'] = 'С вложениями';
+$labels['customdate'] = 'Специальная дата';
 $labels['location'] = 'Место';
+$labels['url'] = 'URL';
 $labels['date'] = 'Дата';
 $labels['start'] = 'Начало';
+$labels['starttime'] = 'Время начала';
 $labels['end'] = 'Конец';
+$labels['endtime'] = 'Время окончания';
+$labels['repeat'] = 'Повторить';
 $labels['selectdate'] = 'Выберите дату';
 $labels['freebusy'] = 'Показать как';
 $labels['free'] = 'Свободен';
 $labels['busy'] = 'Занят';
 $labels['outofoffice'] = 'Вне офиса';
-$labels['tentative'] = 'Предварительно';
+$labels['tentative'] = 'Неопределённо';
+$labels['mystatus'] = 'Мой статус';
+$labels['status'] = 'Статус';
+$labels['status-confirmed'] = 'Подтвеждённый';
+$labels['status-cancelled'] = 'Отмененные';
 $labels['priority'] = 'Приоритет';
 $labels['sensitivity'] = 'Секретность';
-$labels['public'] = 'Общедоступная';
-$labels['private'] = 'Личная';
-$labels['confidential'] = 'Конфиденциальная';
+$labels['public'] = 'общедоступная';
+$labels['private'] = 'личная';
+$labels['confidential'] = 'конфиденциальная';
+$labels['links'] = 'Ссылка';
 $labels['alarms'] = 'Напоминание';
-$labels['generated'] = 'generated at';
-$labels['printdescriptions'] = 'Распечатать описание';
+$labels['comment'] = 'Комментарий';
+$labels['created'] = 'Создана';
+$labels['changed'] = 'Изменена';
+$labels['unknown'] = 'Неизвестно';
+$labels['eventoptions'] = 'Опции';
+$labels['generated'] = 'создан';
+$labels['eventhistory'] = 'История';
+$labels['removelink'] = 'Удалить ссылку на письмо';
+$labels['printdescriptions'] = 'Печатать описания';
 $labels['parentcalendar'] = 'Вставить внутри';
-$labels['searchearlierdates'] = 'В« Искать для ранних событий';
-$labels['searchlaterdates'] = 'Искать для поздних событий В»';
+$labels['searchearlierdates'] = '« Искать события раньше';
+$labels['searchlaterdates'] = 'Искать события позже »';
 $labels['andnmore'] = '$nr больше...';
-$labels['showmore'] = 'Показать больше...';
 $labels['togglerole'] = 'Кликните для переключения роли';
 $labels['createfrommail'] = 'Сохранить как событие';
 $labels['importevents'] = 'Импортировать события';
-$labels['importrange'] = 'События с';
+$labels['importrange'] = 'События начиная с';
 $labels['onemonthback'] = '1 месяц назад';
-$labels['nmonthsback'] = '$nr месяцев назад';
+$labels['nmonthsback'] = '$nr месяца(ев) назад';
 $labels['showurl'] = 'Показать URL календаря';
-$labels['showurldescription'] = 'Используйте следующий адрес для доступа к Вашему календарю из других приложений. Вы можете скопировать и вставить это в любое приложение которое поддерживает формат iCal.';
-
-// agenda view
+$labels['showurldescription'] = 'Используйте следующий адрес для просмотра Вашего календаря из других приложений. Вы можете скопировать и вставить это в любое приложение которое поддерживает формат iCal.';
+$labels['caldavurldescription'] = 'Скопируйте этот адрес в клиент, <a href="http://en.wikipedia.org/wiki/CalDAV" target="_blank">поддерживающий CalDAV</a> (например, Evolution или Mozilla Thunderbird) для полной синхронизации данного календаря со своим компьютером или мобильным устройством.';
+$labels['findcalendars'] = 'Найти календари...';
+$labels['searchterms'] = 'Условия поиска';
+$labels['calsearchresults'] = 'Доступные календари';
+$labels['calendarsubscribe'] = 'Всегда показывать';
+$labels['nocalendarsfound'] = 'Календарей не найдено';
+$labels['nrcalendarsfound'] = '$nr календарей найдено';
+$labels['quickview'] = 'Просмотреть только этот календарь';
+$labels['invitationspending'] = 'Ожидающие приглашения';
+$labels['invitationsdeclined'] = 'Отклонённые приглашения';
+$labels['changepartstat'] = 'Изменить статус участника';
+$labels['rsvpcomment'] = 'Текст приглашения';
 $labels['listrange'] = 'Диапазон:';
-$labels['listsections'] = 'Разделитесь на:';
+$labels['listsections'] = 'Разделить на:';
 $labels['smartsections'] = 'Умные секции';
 $labels['until'] = 'до';
 $labels['today'] = 'Сегодня';
 $labels['tomorrow'] = 'Завтра';
 $labels['thisweek'] = 'Текущая неделя';
 $labels['nextweek'] = 'Следующая неделя';
+$labels['prevweek'] = 'Предыдущая неделя';
 $labels['thismonth'] = 'Этот месяц';
 $labels['nextmonth'] = 'Следующий месяц';
 $labels['weekofyear'] = 'Неделя';
-$labels['pastevents'] = 'Прошлое';
-$labels['futureevents'] = 'Будующее';
-
-// alarm/reminder settings
-$labels['showalarms'] = 'Показать уведомление';
+$labels['pastevents'] = 'Прошедшее';
+$labels['futureevents'] = 'Будущее';
+$labels['showalarms'] = 'Показывать напоминания';
 $labels['defaultalarmtype'] = 'Настройки напоминания по умолчанию';
 $labels['defaultalarmoffset'] = 'Время напоминания по умолчанию';
-
-// attendees
 $labels['attendee'] = 'Участник';
 $labels['role'] = 'Роль';
 $labels['availability'] = 'Доступность';
@@ -118,125 +139,137 @@ $labels['confirmstate'] = 'Статус';
 $labels['addattendee'] = 'Добавить участника';
 $labels['roleorganizer'] = 'Организатор';
 $labels['rolerequired'] = 'Обязательный';
-$labels['roleoptional'] = 'Опциональный';
-$labels['rolechair'] = 'Наблюдатель';
+$labels['roleoptional'] = 'Необязательный';
+$labels['rolechair'] = 'Место';
+$labels['rolenonparticipant'] = 'Absent';
+$labels['cutypeindividual'] = 'Индивидуум';
+$labels['cutypegroup'] = 'Группа';
+$labels['cutyperesource'] = 'Ресурс';
+$labels['cutyperoom'] = 'Комната';
 $labels['availfree'] = 'Свободен';
 $labels['availbusy'] = 'Занят';
 $labels['availunknown'] = 'Неизвестно';
 $labels['availtentative'] = 'Предварительно';
 $labels['availoutofoffice'] = 'Вне офиса';
+$labels['delegatedto'] = 'Поручено:';
+$labels['delegatedfrom'] = 'Поручено от:';
 $labels['scheduletime'] = 'Найти доступность';
-$labels['sendinvitations'] = 'Отправить приглашение';
+$labels['sendinvitations'] = 'Отправить приглашения';
 $labels['sendnotifications'] = 'Уведомить участников об изменениях';
 $labels['sendcancellation'] = 'Уведомить участников об отмене события';
-$labels['onlyworkinghours'] = 'Найти возможность в мои рабочие часы';
+$labels['onlyworkinghours'] = 'Найти доступность в мои рабочие часы';
 $labels['reqallattendees'] = 'Необходимые/все участники';
 $labels['prevslot'] = 'Предыдущее время';
 $labels['nextslot'] = 'Следующее время';
+$labels['suggestedslot'] = 'Предлагаемое время';
 $labels['noslotfound'] = 'Невозможно найти свободное время';
 $labels['invitationsubject'] = 'Вы приглашены на "$title"';
-$labels['invitationmailbody'] = "*\$title*\n\nКогда: \$date\n\nПриглашенные: \$attendees\n\nПожалуйста найдите вложения в iCalendar файл со всеми деталями события которое Вы можете импортировать в вашу программу календаря.";
-$labels['invitationattendlinks'] = "В случае, если Ваш почтовый клиент не поддерживает запросы iTip, Вы можете использовать ссылку, чтобы принять или отклонить это приглашение:\n\$url";
+$labels['invitationmailbody'] = "*\$title*\n\nКогда: \$date\n\nПриглашенные: \$attendees\n\nВо вложении вы найдёте файл iCalendar со всеми деталями события, который Вы можете импортировать в Вашу программу-ежедневник.";
+$labels['invitationattendlinks'] = "В случае, если Ваш почтовый клиент не поддерживает запросы iTip, Вы можете использовать ссылку данную ниже, чтобы принять или отклонить это приглашение:\n\$url";
 $labels['eventupdatesubject'] = '"$title" было обновлено';
-$labels['eventupdatesubjectempty'] = 'Событие, которое касается Вас было обновлено';
-$labels['eventupdatemailbody'] = "*\$title*\n\nКогда: \$date\n\nПриглашенные: \$attendees\n\nПожалуйста найдите вложения в iCalendar файл со всеми деталями события которое Вы можете импортировать в вашу программу календаря.";
+$labels['eventupdatesubjectempty'] = 'Событие, которое касается Вас, было обновлено';
+$labels['eventupdatemailbody'] = "*\$title*\n\nКогда: \$date\n\nПриглашенные: \$attendees\n\nВо вложении вы найдёте файл iCalendar со всеми изменениями в событии, который Вы можете импортировать в Вашу программу-ежедневник.";
 $labels['eventcancelsubject'] = '"$title" было отменено';
-$labels['eventcancelmailbody'] = "*\$title*\n\nКогда: \$date\n\nПриглашенные: \$attendees\n\nЭто событие отменено \$organizer.\n\nПожалуйста посмотрите вложение в iCalendar файл которое обновит детали события.";
-
-// invitation handling
-$labels['itipinvitation'] = 'Приглашение на';
-$labels['itipupdate'] = 'Обновление';
-$labels['itipcancellation'] = 'Отмененный:';
-$labels['itipreply'] = 'Ответить';
-$labels['itipaccepted'] = 'Принять';
-$labels['itiptentative'] = 'Может быть';
-$labels['itipdeclined'] = 'Отклонить';
-$labels['itipsubjectaccepted'] = '"$title" принято $name';
-$labels['itipsubjecttentative'] = '"$title" предварительно принято $name';
-$labels['itipsubjectdeclined'] = '"$title" отклонено $name';
-$labels['itipmailbodyaccepted'] = "\$sender принял приглашение на следующее событие:\n\n*\$title*\n\nКогда: \$date\n\nПриглашенные: \$attendees";
-$labels['itipmailbodytentative'] = "\$sender предварительно принял приглашение на следующее событие:\n\n*\$title*\n\nКогда: \$date\n\nПриглашенные: \$attendees";
-$labels['itipmailbodydeclined'] = "\$sender отклонил приглашение на следующее событие:\n\n*\$title*\n\nКогда: \$date\n\nПриглашенные: \$attendees";
+$labels['eventcancelmailbody'] = "*\$title*\n\nКогда: \$date\n\nПриглашенные: \$attendees\n\nЭто событие отменено \$organizer.\n\nВо вложении вы найдёте файл iCalendar со всеми изменениями в событии.";
+$labels['itipobjectnotfound'] = 'Событие, упомянутое в этом сообщении, не найдено в вашем календаре.';
+$labels['itipmailbodyaccepted'] = "\$sender принял(а) приглашение на следующее событие:\n\n*\$title*\n\nКогда: \$date\n\nПриглашенные: \$attendees";
+$labels['itipmailbodytentative'] = "\$sender предварительно принял(а) приглашение на следующее событие:\n\n*\$title*\n\nКогда: \$date\n\nПриглашенные: \$attendees";
+$labels['itipmailbodydeclined'] = "\$sender отклонил(а) приглашение на следующее событие:\n\n*\$title*\n\nКогда: \$date\n\nПриглашенные: \$attendees";
+$labels['itipmailbodycancel'] = "\$sender отклонил ваше участие в событии:\n\n*\$title*\n\nДата: \$date";
+$labels['itipmailbodydelegated'] = "\$sender перепоручил(а) учестие в событии:\n\n*\$title*\n\nДата: \$date";
+$labels['itipmailbodydelegatedto'] = "\$sender перепоручил(а) Вам участие в событии:\n\n*\$title*\n\nДата: \$date";
 $labels['itipdeclineevent'] = 'Вы хотите отклонить приглашение на это событие?';
-$labels['importtocalendar'] = 'Сохранить в мой календарь';
-$labels['removefromcalendar'] = 'Удалить из моего календаря';
-$labels['updateattendeestatus'] = 'Обновить статус участника';
-$labels['acceptinvitation'] = 'Вы принимаете это приглашение?';
-$labels['youhaveaccepted'] = 'Вы приняли это приглашение';
-$labels['youhavetentative'] = 'Вы предварительно приняли это приглашение';
-$labels['youhavedeclined'] = 'Вы отклонили это приглашение';
-$labels['notanattendee'] = 'Вы не в списке этого события';
+$labels['declinedeleteconfirm'] = 'Хотите ли вы так же удалить это отклонённое событие из вашего календаря?';
+$labels['itipcomment'] = 'Комментарий к приглашению/извещению';
+$labels['itipcommenttitle'] = 'Этот комментарий будет прикреплён к приглашению/оповещению, отправленному участникам';
+$labels['notanattendee'] = 'Вы не в списке участников этого события';
 $labels['eventcancelled'] = 'Это событие отменено';
 $labels['saveincalendar'] = 'сохранить в';
-
-// event dialog tabs
+$labels['updatemycopy'] = 'Обновить в моём календаре';
+$labels['savetocalendar'] = 'Сохранить в календарь';
+$labels['openpreview'] = 'Проверить календарь';
+$labels['noearlierevents'] = 'Нет предыдущих событий';
+$labels['nolaterevents'] = 'Нет последующих событий';
+$labels['resource'] = 'Ресурс';
+$labels['addresource'] = 'Зарезервировать ресурс';
+$labels['findresources'] = 'Найти ресурсы';
+$labels['resourcedetails'] = 'Подробнее';
+$labels['resourceavailability'] = 'Доступность';
+$labels['resourceowner'] = 'Владелец';
+$labels['resourceadded'] = 'Ресурс добавлен в ваше событие';
 $labels['tabsummary'] = 'Сводка';
 $labels['tabrecurrence'] = 'Повторение';
 $labels['tabattendees'] = 'Участники';
+$labels['tabresources'] = 'Ресурсы';
 $labels['tabattachments'] = 'Вложения';
 $labels['tabsharing'] = 'Совместное использование';
-
-// messages
+$labels['deleteobjectconfirm'] = 'Вы действительно хотите удалить это событие?';
 $labels['deleteventconfirm'] = 'Вы действительно хотите удалить это событие?';
 $labels['deletecalendarconfirm'] = 'Вы действительно хотите удалить этот календарь со всеми его событиями?';
+$labels['deletecalendarconfirmrecursive'] = 'Вы действительно хотите удалить этот календарь со всеми его событиями и вложенными календарями?';
 $labels['savingdata'] = 'Сохранение данных...';
 $labels['errorsaving'] = 'Ошибка сохранения изменений.';
-$labels['operationfailed'] = 'Ошибка запрошенной операции.';
+$labels['operationfailed'] = 'Не удалось выполнить запрошенную операцию.';
 $labels['invalideventdates'] = 'Неверная дата! Пожалуйста проверьте данные.';
 $labels['invalidcalendarproperties'] = 'Неверные свойства календаря! Пожалуйста введите допустимые данные.';
-$labels['searchnoresults'] = 'Событие не найдено в выбранном календаре.';
-$labels['successremoval'] = 'Это событие успешно удалено.';
-$labels['successrestore'] = 'Это событие успешно восстановлено.';
-$labels['errornotifying'] = 'Ошибка в отправке уведомления участникам событий';
-$labels['errorimportingevent'] = 'Ошибка при импорте события';
-$labels['newerversionexists'] = 'Новая версия этого события уже существует! Отменено.';
+$labels['searchnoresults'] = 'Событие не найдено в выбранных календарях.';
+$labels['successremoval'] = 'Событие успешно удалено.';
+$labels['successrestore'] = 'Событие успешно восстановлено.';
+$labels['errornotifying'] = 'Не удалось отправить уведомления участникам событий';
+$labels['errorimportingevent'] = 'Не удалось импортировать событие';
+$labels['importwarningexists'] = 'Копия этого события уже есть в вашем календаре.';
+$labels['newerversionexists'] = 'Обновлённая версия этого события уже существует! Отменено.';
 $labels['nowritecalendarfound'] = 'Не найден календарь для записи этого события';
-$labels['importedsuccessfully'] = 'Это событие успешно добавлено в \'$calendar\'';
-$labels['attendeupdateesuccess'] = 'Успешно обновлен статус участников';
-$labels['itipresponseerror'] = 'Невозможно послать ответ на это приглашение';
+$labels['importedsuccessfully'] = 'Событие успешно добавлено в \'$calendar\'';
+$labels['updatedsuccessfully'] = 'Событие успешно обновлено в \'$calendar\'';
+$labels['attendeupdateesuccess'] = 'Успешно обновлен статус участника';
+$labels['itipsendsuccess'] = 'Приглашания отправлены участникам.';
+$labels['itipresponseerror'] = 'Не удалось послать ответ на это приглашение';
 $labels['itipinvalidrequest'] = 'Это приглашение больше не действительно';
 $labels['sentresponseto'] = 'Успешно отправлен ответ на приглашение на $mailto';
-$labels['localchangeswarning'] = 'Вы собираетесь внести изменения, которые будут только отражены на Вашем личном календаре';
-$labels['importsuccess'] = 'Успешно импортированы $nr событий';
+$labels['localchangeswarning'] = 'Вы собираетесь внести изменения, которые отразятся только на Вашем личном календаре и не будут отправлены организатору события.';
+$labels['importsuccess'] = 'Успешно импортировано $nr событий';
 $labels['importnone'] = 'Не найдено событий для импорта';
 $labels['importerror'] = 'Ошибка при импорте';
 $labels['aclnorights'] = 'Вы не имеете прав администратора для этого календаря.';
-
-// recurrence form
-$labels['repeat'] = 'Повторить';
-$labels['frequency'] = 'Повторить';
-$labels['never'] = 'никогда';
-$labels['daily'] = 'ежедневно';
-$labels['weekly'] = 'еженедельно';
-$labels['monthly'] = 'ежемесячно';
-$labels['yearly'] = 'ежегодно';
-$labels['every'] = 'Каждый';
-$labels['days'] = 'дней';
-$labels['weeks'] = 'недели';
-$labels['months'] = 'месяцы';
-$labels['years'] = 'годы в:';
-$labels['bydays'] = 'На';
-$labels['untildate'] = 'до числа';
-$labels['each'] = 'Каждый';
-$labels['onevery'] = 'На каждом';
-$labels['onsamedate'] = 'В ту же самую дату';
-$labels['forever'] = 'всегда';
-$labels['recurrencend'] = 'продолжительность';
-$labels['forntimes'] = '$nr дней';
-$labels['first'] = 'первое';
-$labels['second'] = 'второе';
-$labels['third'] = 'третье';
-$labels['fourth'] = 'четвертое';
-$labels['last'] = 'последнее';
-$labels['dayofmonth'] = 'День месяца';
-
 $labels['changeeventconfirm'] = 'Изменить событие';
 $labels['removeeventconfirm'] = 'Удалить событие';
 $labels['changerecurringeventwarning'] = 'Это - повторяющееся событие. Хотели бы Вы редактировать только текущее событие, это и все будущие повторения, все события или сохранять его как новое событие?';
 $labels['removerecurringeventwarning'] = 'Это - повторяющееся событие. Хотели бы Вы удалить только текущее событие, это и все будущие события или все эти события?';
+$labels['removerecurringallonly'] = 'Это - повторяющееся событие. Как участник, Вы можете удалить всё событие вместе с всеми повторениями.';
 $labels['currentevent'] = 'Текущее';
 $labels['futurevents'] = 'Будущие';
 $labels['allevents'] = 'Все';
 $labels['saveasnew'] = 'Сохранить как новое';
-
+$labels['birthdays'] = 'Дни рождения';
+$labels['birthdayscalendar'] = 'Календарь Дней Рождения';
+$labels['displaybirthdayscalendar'] = 'Показывать календарь Дней Рождения';
+$labels['birthdayscalendarsources'] = 'Из этих адресных книг';
+$labels['birthdayeventtitle'] = 'День рождения $name';
+$labels['birthdayage'] = 'Возраст $age';
+$labels['eventchangelog'] = 'История изменений';
+$labels['eventdiff'] = 'Изменения с ревизии $rev';
+$labels['revision'] = 'Ревизия';
+$labels['user'] = 'Пользователь';
+$labels['operation'] = 'Действие';
+$labels['actionappend'] = 'Сохранено';
+$labels['actionmove'] = 'Перемещено';
+$labels['actiondelete'] = 'Удалено';
+$labels['compare'] = 'Сравнить';
+$labels['showrevision'] = 'Показать эту версию';
+$labels['restore'] = 'Восстановить эту версию';
+$labels['eventnotfound'] = 'Не удалось загрузить информацию о мероприятиях';
+$labels['eventchangelognotavailable'] = 'История изменений для этого события недоступна';
+$labels['eventdiffnotavailable'] = 'Невозможно провести сравнение выбранных ревизий ';
+$labels['eventrestoreconfirm'] = 'Вы уверенны, что хотите восстановить это событие из ревизии $rev? Оно заменит текущее событие старой версией. ';
+$labels['arialabelminical'] = 'Выбор даты';
+$labels['arialabelcalendarview'] = 'Вид календаря';
+$labels['arialabelsearchform'] = 'Форма поиска событий';
+$labels['arialabelquicksearchbox'] = 'Поиск событий';
+$labels['arialabelcalsearchform'] = 'Форма поиска календарей';
+$labels['calendaractions'] = 'Действия с календарями';
+$labels['arialabeleventattendees'] = 'Участники события';
+$labels['arialabeleventresources'] = 'Ресурсы события';
+$labels['arialabelresourcesearchform'] = 'Форма поиска ресурсов';
+$labels['arialabelresourceselection'] = 'Доступные ресурсы';
 ?>

@@ -1,8 +1,10 @@
 /**
  * Print view for the Calendar plugin
  *
- * @version @package_version@
  * @author Thomas Bruederli <bruederli@kolabsys.com>
+ *
+ * @licstart  The following is the entire license notice for the
+ * JavaScript code in this file.
  *
  * Copyright (C) 2011, Kolab Systems AG <contact@kolabsys.com>
  *
@@ -18,6 +20,9 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @licend  The above is the entire license notice
+ * for the JavaScript code in this file.
  */
 
 
@@ -38,6 +43,9 @@ window.rcmail && rcmail.addEventListener('init', function(evt) {
   var src, event_sources = [];
   var add_url = (rcmail.env.search ? '&q='+escape(rcmail.env.search) : '');
   for (var id in rcmail.env.calendars) {
+    if (!rcmail.env.calendars[id].active)
+      continue;
+
     source = $.extend({
       url: "./?_task=calendar&_action=load_events&source=" + escape(id) + add_url,
       className: 'fc-event-cal-'+id,
@@ -120,8 +128,8 @@ window.rcmail && rcmail.addEventListener('init', function(evt) {
     },
     // event rendering
     eventRender: function(event, element, view) {
-      if (view.name != 'month') {
-        var cont = element.find('div.fc-event-title');
+      if (view.name != 'month' && view.name != 'table') {
+        var cont = element.find('.fc-event-title');
         if (event.location) {
           cont.after('<div class="fc-event-location">@&nbsp;' + Q(event.location) + '</div>');
           cont = cont.next();
@@ -131,9 +139,9 @@ window.rcmail && rcmail.addEventListener('init', function(evt) {
         }
 /* TODO: create icons black on white
         if (event.recurrence)
-          element.find('div.fc-event-time').append('<i class="fc-icon-recurring"></i>');
+          element.find('.fc-event-time').append('<i class="fc-icon-recurring"></i>');
         if (event.alarms)
-          element.find('div.fc-event-time').append('<i class="fc-icon-alarms"></i>');
+          element.find('.fc-event-time').append('<i class="fc-icon-alarms"></i>');
 */
       }
       if (view.name == 'table' && event.description && showdesc) {

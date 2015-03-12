@@ -1,12 +1,14 @@
 /**
  * Base Javascript class for the Calendar plugin
  *
- * @version @package_version@
  * @author Lazlo Westerhof <hello@lazlo.me>
  * @author Thomas Bruederli <bruederli@kolabsys.com>
  *
+ * @licstart  The following is the entire license notice for the
+ * JavaScript code in this page.
+ *
  * Copyright (C) 2010, Lazlo Westerhof <hello@lazlo.me>
- * Copyright (C) 2013, Kolab Systems AG <contact@kolabsys.com>
+ * Copyright (C) 2013-2015, Kolab Systems AG <contact@kolabsys.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -20,6 +22,9 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @licend  The above is the entire license notice
+ * for the JavaScript code in this page.
  */
 
 // Basic setup for Roundcube calendar client class
@@ -31,6 +36,7 @@ function rcube_calendar(settings)
     // member vars
     this.ui;
     this.ui_loaded = false;
+    this.selected_attachment = null;
 
     // private vars
     var me = this;
@@ -42,13 +48,13 @@ function rcube_calendar(settings)
         // load calendar UI (scripts and edit dialog template)
         if (!this.ui_loaded) {
           $.when(
-            $.getScript('./plugins/calendar/calendar_ui.js'),
-            $.getScript('./plugins/calendar/lib/js/fullcalendar.js'),
+            $.getScript(rcmail.assets_path('plugins/calendar/calendar_ui.js')),
+            $.getScript(rcmail.assets_path('plugins/calendar/lib/js/fullcalendar.js')),
             $.get(rcmail.url('calendar/inlineui'), function(html){ $(document.body).append(html); }, 'html')
           ).then(function() {
             // disable attendees feature (autocompletion and stuff is not initialized)
             for (var c in rcmail.env.calendars)
-              rcmail.env.calendars[c].attendees = false;
+              rcmail.env.calendars[c].attendees = rcmail.env.calendars[c].resources = false;
             
             me.ui_loaded = true;
             me.ui = new rcube_calendar_ui(me.settings);
@@ -72,56 +78,25 @@ function rcube_calendar(settings)
     {
       if (event.title) {
         this.ui.add_event(event);
-        rcmail.message_list.blur();
+        if (rcmail.message_list)
+          rcmail.message_list.blur();
       }
     };
+
+    // handler for attachment-save-calendar commands
+    this.save_to_calendar = function(p)
+    {
+      // TODO: show dialog to select the calendar for importing
+      if (this.selected_attachment && window.rcube_libcalendaring) {
+        rcmail.http_post('calendar/mailimportattach', {
+            _uid: rcmail.env.uid,
+            _mbox: rcmail.env.mailbox,
+            _part: this.selected_attachment,
+            // _calendar: $('#calendar-attachment-saveto').val(),
+          }, rcmail.set_busy(true, 'itip.savingdata'));
+      }
+    }
 }
-
-// static methods
-rcube_calendar.add_event_from_mail = function(mime_id, status)
-{
-  // ask user to delete the declined event from the local calendar (#1670)
-  var del = false;
-  if (rcmail.env.rsvp_saved && status == 'declined') {
-    del = confirm(rcmail.gettext('calendar.declinedeleteconfirm'));
-  }
-
-  var lock = rcmail.set_busy(true, 'calendar.savingdata');
-  rcmail.http_post('calendar/mailimportevent', {
-      '_uid': rcmail.env.uid,
-      '_mbox': rcmail.env.mailbox,
-      '_part': mime_id,
-      '_calendar': $('#calendar-saveto').val(),
-      '_status': status,
-      '_del': del?1:0
-    }, lock);
-
-  return false;
-};
-
-rcube_calendar.remove_event_from_mail = function(uid, title)
-{
-  if (confirm(rcmail.gettext('calendar.deleteventconfirm'))) {
-    var lock = rcmail.set_busy(true, 'calendar.savingdata');
-    rcmail.http_post('calendar/event', {
-        e:{ uid:uid },
-        action: 'remove'
-      }, lock);
-  }
-};
-
-rcube_calendar.fetch_event_rsvp_status = function(event)
-{
-/*
-  var id = event.uid.replace(rcmail.identifier_expr, '');
-  $('#import-'+id+', #rsvp-'+id+', div.rsvp-status').hide();
-  $('#loading-'+id).show();
-*/
-  rcmail.http_post('calendar/event', {
-    e:event,
-    action:'rsvp-status'
-  });
-};
 
 
 /* calendar plugin initialization (for non-calendar tasks) */
@@ -129,33 +104,10 @@ window.rcmail && rcmail.addEventListener('init', function(evt) {
   if (rcmail.task != 'calendar') {
     var cal = new rcube_calendar($.extend(rcmail.env.calendar_settings, rcmail.env.libcal_settings));
 
-    rcmail.addEventListener('plugin.update_event_rsvp_status', function(p){
-      rcmail.env.rsvp_saved = p.saved;
-
-      if (p.html) {
-        // append/replace rsvp status display
-        $('#loading-'+p.id).next('.rsvp-status').remove();
-        $('#loading-'+p.id).hide().after(p.html);
-      }
-      else {
-        $('#loading-'+p.id).hide();
-      }
-
-      // enable/disable rsvp buttons
-      $('.rsvp-buttons input.button').prop('disabled', false)
-        .filter('.'+String(p.status).toLowerCase()).prop('disabled', p.latest);
-
-      // show rsvp/import buttons with or without calendar selector
-      if (!p.select)
-        $('#rsvp-'+p.id+' .calendar-select').remove();
-      $('#'+p.action+'-'+p.id).show().append(p.select);
-    });
-
-    rcmail.addEventListener('plugin.fetch_event_rsvp_status', rcube_calendar.fetch_event_rsvp_status);
-    
     // register create-from-mail command to message_commands array
     if (rcmail.env.task == 'mail') {
       rcmail.register_command('calendar-create-from-mail', function() { cal.create_from_mail() });
+      rcmail.register_command('attachment-save-calendar', function() { cal.save_to_calendar() });
       rcmail.addEventListener('plugin.mail2event_dialog', function(p){ cal.mail2event_dialog(p) });
       rcmail.addEventListener('plugin.unlock_saving', function(p){ cal.ui && cal.ui.unlock_saving(); });
       
@@ -163,17 +115,17 @@ window.rcmail && rcmail.addEventListener('init', function(evt) {
         rcmail.env.message_commands.push('calendar-create-from-mail');
         rcmail.add_element($('<a>'));
       }
-      else
+      else {
         rcmail.enable_command('calendar-create-from-mail', true);
-
-      // add contextmenu item
-      if (window.rcm_contextmenu_register_command) {
-        rcm_contextmenu_register_command(
-          'calendar-create-from-mail',
-          function(cmd,el){ cal.create_from_mail() },
-          'calendar.createfrommail',
-          'moveto');
       }
+
+      rcmail.addEventListener('beforemenu-open', function(p) {
+        if (p.menu == 'attachmentmenu') {
+          cal.selected_attachment = p.id;
+          var mimetype = rcmail.env.attachments[p.id];
+          rcmail.enable_command('attachment-save-calendar', mimetype == 'text/calendar' || mimetype == 'text/x-vcalendar' || mimetype == 'application/ics');
+        }
+      });
     }
   }
 
