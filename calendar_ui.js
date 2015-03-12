@@ -2754,12 +2754,16 @@ function rcube_calendar_ui(settings)
               base_date.setYear(minical.data('year'));
             base_date.setHours(12);
             base_date.setDate(base_date.getDate() - ((base_date.getDay() + 6) % 7) + datepicker_settings.firstDay);
-            var day_off = base_date.getDay() - datepicker_settings.firstDay;
-            var base_kw = iso8601Week(base_date);
-            var target_kw = parseInt(cell.html());
-            var diff = (target_kw - base_kw) * 7 * DAY_MS;
+            var base_kw = iso8601Week(base_date),
+              target_kw = parseInt(cell.html()),
+              wdiff = target_kw - base_kw;
+            if (wdiff > 10)  // year jump
+              base_date.setYear(base_date.getFullYear() - 1);
+            else if (wdiff < -10)
+              base_date.setYear(base_date.getFullYear() + 1);
             // select monday of the chosen calendar week
-            var date = new Date(base_date.getTime() - day_off * DAY_MS + diff);
+            var day_off = base_date.getDay() - datepicker_settings.firstDay,
+              date = new Date(base_date.getTime() - day_off * DAY_MS + wdiff * 7 * DAY_MS);
             fc.fullCalendar('gotoDate', date).fullCalendar('setDate', date).fullCalendar('changeView', 'agendaWeek');
             minical.datepicker('setDate', date);
           }
