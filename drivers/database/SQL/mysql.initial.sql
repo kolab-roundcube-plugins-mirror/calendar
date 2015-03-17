@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS `events` (
   `calendar_id` int(11) UNSIGNED NOT NULL DEFAULT '0',
   `recurrence_id` int(11) UNSIGNED NOT NULL DEFAULT '0',
   `uid` varchar(255) NOT NULL DEFAULT '',
-  `instance` varchar(16) NOT NULL DEFAULT ''
+  `instance` varchar(16) NOT NULL DEFAULT '',
   `isexception` tinyint(1) NOT NULL DEFAULT '0',
   `created` datetime NOT NULL DEFAULT '1000-01-01 00:00:00',
   `changed` datetime NOT NULL DEFAULT '1000-01-01 00:00:00',
