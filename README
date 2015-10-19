@@ -46,7 +46,7 @@ driver.
 1. Get the source from git
 
   $ cd /tmp
-  $ git clone git://git.kolab.org/git/roundcubemail-plugins-kolab
+  $ git clone https://git.kolab.org/diffusion/RPK/roundcubemail-plugins-kolab.git
   $ cd /<path-to-roundcube>/plugins
   $ cp -r /tmp/roundcubemail-plugins-kolab/plugins/calendar .
   $ cp -r /tmp/roundcubemail-plugins-kolab/plugins/libcalendaring .
@@ -75,4 +75,4 @@ Add 'calendar' to the list of active plugins:
 
 
 
-[1] http://git.kolab.org/roundcubemail-plugins-kolab/
+[1] https://git.kolab.org/diffusion/RPK/

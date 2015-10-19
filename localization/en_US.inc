@@ -276,21 +276,14 @@ $labels['birthdayeventtitle'] = '$name\'s Birthday';
 $labels['birthdayage'] = 'Age $age';
 
 // history dialog
-$labels['eventchangelog'] = 'Change History';
-$labels['eventdiff'] = 'Changes from revisions $rev';
-$labels['revision'] = 'Revision';
-$labels['user'] = 'User';
-$labels['operation'] = 'Action';
-$labels['actionappend'] = 'Saved';
-$labels['actionmove'] = 'Moved';
-$labels['actiondelete'] = 'Deleted';
-$labels['compare'] = 'Compare';
-$labels['showrevision'] = 'Show this version';
-$labels['restore'] = 'Restore this version';
-$labels['eventnotfound'] = 'Failed to load event data';
-$labels['eventchangelognotavailable'] = 'Change history is not available for this event';
-$labels['eventdiffnotavailable'] = 'No comparison possible for the selected revisions';
-$labels['eventrestoreconfirm'] = 'Do you really want to restore revision $rev of this event? This will replace the current event with the old version.';
+$labels['objectchangelog'] = 'Change History';
+$labels['objectdiff'] = 'Changes from $rev1 to $rev2';
+$labels['objectnotfound'] = 'Failed to load event data';
+$labels['objectchangelognotavailable'] = 'Change history is not available for this event';
+$labels['objectdiffnotavailable'] = 'No comparison possible for the selected revisions';
+$labels['revisionrestoreconfirm'] = 'Do you really want to restore revision $rev of this event? This will replace the current event with the old version.';
+$labels['objectrestoresuccess'] = 'Revision $rev successfully restored';
+$labels['objectrestoreerror'] = 'Failed to restore the old revision';
 
 
 // (hidden) titles and labels for accessibility annotations

@@ -251,14 +251,16 @@ class kolab_calendar extends kolab_storage_folder_api
   public function list_events($start, $end, $search = null, $virtual = 1, $query = array(), $filter_query = null)
   {
     // convert to DateTime for comparisons
+    // #5190: make the range a little bit wider
+    // to workaround possible timezone differences
     try {
-      $start = new DateTime('@'.$start);
+      $start = new DateTime('@' . ($start - 12 * 3600));
     }
     catch (Exception $e) {
       $start = new DateTime('@0');
     }
     try {
-      $end = new DateTime('@'.$end);
+      $end = new DateTime('@' . ($end + 12 * 3600));
     }
     catch (Exception $e) {
       $end = new DateTime('today +10 years');

@@ -837,72 +837,72 @@ a.miniColors-trigger {
 	text-decoration: none;
 }
 
-#eventhistory .loading {
+.changelog-table .loading {
 	color: #666;
 	margin: 1em 0;
 	padding: 1px 0 2px 24px;
 	background: url(images/loading_blue.gif) top left no-repeat;
 }
 
-#eventhistory .compare-button {
+.changelog-dialog .compare-button {
 	margin: 4px 0;
 }
 
-#event-changelog-table tbody td {
+.changelog-table tbody td {
 	padding: 4px 7px;
 	vertical-align: middle;
 }
 
-#event-changelog-table tbody tr:last-child td {
+.changelog-table tbody tr:last-child td {
 	border-bottom: 0;
 }
 
-#event-changelog-table tbody tr.undisclosed td.date,
-#event-changelog-table tbody tr.undisclosed td.user {
+.changelog-table tbody tr.undisclosed td.date,
+.changelog-table tbody tr.undisclosed td.user {
 	font-style: italic;
 }
 
-#event-changelog-table .diff {
+.changelog-table .diff {
 	width: 4em;
 	padding: 2px;
 }
 
-#event-changelog-table .revision {
-	width: 7em;
+.changelog-table .revision {
+	width: 6em;
 }
 
-#event-changelog-table .date {
+.changelog-table .date {
 	width: 11em;
 }
 
-#event-changelog-table .user {
+.changelog-table .user {
 	width: auto;
 }
 
-#event-changelog-table .operation {
+.changelog-table .operation {
 	width: 15%;
 }
 
-#event-changelog-table .actions {
+.changelog-table .actions {
 	width: 50px;
 	text-align: right;
 	padding: 4px;
 }
 
-#event-changelog-table td a.iconbutton.restore,
-#event-changelog-table td a.iconbutton.preview {
+.changelog-table td a.iconbutton.restore,
+.changelog-table td a.iconbutton.preview {
 	width: 16px;
 	margin-right: 2px;
 	background-image: url(images/calendars.png);
 	background-position: -1px -147px;
 }
 
-#event-changelog-table td a.iconbutton.restore {
+.changelog-table td a.iconbutton.restore {
 	background-image: url(images/calendars.png);
 	background-position: -1px -167px;
 }
 
-#event-changelog-table tr.first td a.iconbutton {
+.changelog-table tr.first td a.iconbutton {
 	opacity: 0.3;
 	cursor: default;
 }

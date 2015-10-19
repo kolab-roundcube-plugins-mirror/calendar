@@ -71,8 +71,7 @@ class kolab_driver extends calendar_driver
     }
 
     // get configuration for the Bonnie API
-    if ($bonnie_config = $this->cal->rc->config->get('kolab_bonnie_api', false))
-      $this->bonnie_api = new kolab_bonnie_api($bonnie_config);
+    $this->bonnie_api = libkolab::get_bonnie_api();
 
     // calendar uses fully encoded identifiers
     kolab_storage::$encode_ids = true;
@@ -294,10 +293,10 @@ class kolab_driver extends calendar_driver
       'list'      => $this->calendars,
       'calendars' => $calendars,
       'filter'    => $filter,
-      'editable' => ($filter & self::FILTER_WRITEABLE),
+      'editable'  => ($filter & self::FILTER_WRITEABLE),
       'insert'    => ($filter & self::FILTER_INSERTABLE),
       'active'    => ($filter & self::FILTER_ACTIVE),
-      'personal'  => ($filter & self::FILTER_PERSONAL),
+      'personal'  => ($filter & self::FILTER_PERSONAL)
     ));
 
     if ($plugin['abort']) {
@@ -315,6 +314,12 @@ class kolab_driver extends calendar_driver
         continue;
       }
       if (($filter & self::FILTER_ACTIVE) && !$cal->is_active()) {
+        continue;
+      }
+      if (($filter & self::FILTER_PRIVATE) && $cal->subtype != 'private') {
+        continue;
+      }
+      if (($filter & self::FILTER_CONFIDENTIAL) && $cal->subtype != 'confidential') {
         continue;
       }
       if (($filter & self::FILTER_PERSONAL) && $cal->get_namespace() != 'personal') {
@@ -1620,7 +1625,13 @@ class kolab_driver extends calendar_driver
     if (!($storage = $this->get_calendar($event['calendar'])))
       return false;
 
-    $event = $storage->get_event($event['id']);
+    // get old revision of event
+    if ($event['rev']) {
+      $event = $this->get_event_revison($event, $event['rev'], true);
+    }
+    else {
+      $event = $storage->get_event($event['id']);
+    }
 
     if ($event && !empty($event['_attachments'])) {
       foreach ($event['_attachments'] as $att) {
@@ -1641,6 +1652,29 @@ class kolab_driver extends calendar_driver
   {
     if (!($cal = $this->get_calendar($event['calendar'])))
       return false;
+
+    // get old revision of event
+    if ($event['rev']) {
+      if (empty($this->bonnie_api)) {
+        return false;
+      }
+
+      $cid = substr($id, 4);
+
+      // call Bonnie API and get the raw mime message
+      list($uid, $mailbox, $msguid) = $this->_resolve_event_identity($event);
+      if ($msg_raw = $this->bonnie_api->rawdata('event', $uid, $event['rev'], $mailbox, $msguid)) {
+        // parse the message and find the part with the matching content-id
+        $message = rcube_mime::parse_message($msg_raw);
+        foreach ((array)$message->parts as $part) {
+          if ($part->headers['content-id'] && trim($part->headers['content-id'], '<>') == $cid) {
+            return $part->body;
+          }
+        }
+      }
+
+      return false;
+    }
 
     return $cal->get_attachment_body($id, $event);
   }
@@ -2002,9 +2036,9 @@ class kolab_driver extends calendar_driver
       return false;
     }
 
-    list($uid, $mailbox) = $this->_resolve_event_identity($event);
+    list($uid, $mailbox, $msguid) = $this->_resolve_event_identity($event);
 
-    $result = $this->bonnie_api->changelog('event', $uid, $mailbox);
+    $result = $this->bonnie_api->changelog('event', $uid, $mailbox, $msguid);
     if (is_array($result) && $result['uid'] == $uid) {
       return $result['changes'];
     }
@@ -2016,23 +2050,28 @@ class kolab_driver extends calendar_driver
    * Get a list of property changes beteen two revisions of an event
    *
    * @param array  $event Hash array with event properties
-   * @param mixed  $rev   Revisions: "from:to"
+   * @param mixed  $rev1  Old Revision
+   * @param mixed  $rev2  New Revision
    *
    * @return array List of property changes, each as a hash array
    * @see calendar_driver::get_event_diff()
    */
-  public function get_event_diff($event, $rev)
+  public function get_event_diff($event, $rev1, $rev2)
   {
     if (empty($this->bonnie_api)) {
       return false;
     }
 
-    list($uid, $mailbox) = $this->_resolve_event_identity($event);
+    list($uid, $mailbox, $msguid) = $this->_resolve_event_identity($event);
+
+    // get diff for the requested recurrence instance
+    $instance_id = $event['id'] != $uid ? substr($event['id'], strlen($uid) + 1) : null;
 
     // call Bonnie API
-    $result = $this->bonnie_api->diff('event', $uid, $rev, $mailbox);
+    $result = $this->bonnie_api->diff('event', $uid, $rev1, $rev2, $mailbox, $msguid, $instance_id);
     if (is_array($result) && $result['uid'] == $uid) {
-      $result['rev'] = $rev;
+      $result['rev1'] = $rev1;
+      $result['rev2'] = $rev2;
 
       $keymap = array(
         'dtstart'  => 'start',
@@ -2138,26 +2177,49 @@ class kolab_driver extends calendar_driver
    * @return array Event object as hash array
    * @see calendar_driver::get_event_revison()
    */
-  public function get_event_revison($event, $rev)
+  public function get_event_revison($event, $rev, $internal = false)
   {
     if (empty($this->bonnie_api)) {
       return false;
     }
 
+    $eventid = $event['id'];
     $calid = $event['calendar'];
-    list($uid, $mailbox) = $this->_resolve_event_identity($event);
+    list($uid, $mailbox, $msguid) = $this->_resolve_event_identity($event);
 
     // call Bonnie API
-    $result = $this->bonnie_api->get('event', $uid, $rev, $mailbox);
+    $result = $this->bonnie_api->get('event', $uid, $rev, $mailbox, $msguid);
     if (is_array($result) && $result['uid'] == $uid && !empty($result['xml'])) {
       $format = kolab_format::factory('event');
       $format->load($result['xml']);
       $event = $format->to_array();
+      $format->get_attachments($event, true);
+
+      // get the right instance from a recurring event
+      if ($eventid != $event['uid']) {
+        $instance_id = substr($eventid, strlen($event['uid']) + 1);
+
+        // check for recurrence exception first
+        if ($instance = $format->get_instance($instance_id)) {
+          $event = $instance;
+        }
+        else {
+          // not a exception, compute recurrence...
+          $event['_formatobj'] = $format;
+          $recurrence_date = rcube_utils::anytodatetime($instance_id, $event['start']->getTimezone());
+          foreach ($this->get_recurring_events($event, $event['start'], $recurrence_date) as $instance) {
+            if ($instance['id'] == $eventid) {
+              $event = $instance;
+              break;
+            }
+          }
+        }
+      }
 
       if ($format->is_valid()) {
         $event['calendar'] = $calid;
         $event['rev'] = $result['rev'];
-        return self::to_rcube_event($event);
+        return $internal ? $event : self::to_rcube_event($event);
       }
     }
 
@@ -2165,24 +2227,76 @@ class kolab_driver extends calendar_driver
   }
 
   /**
+   * Command the backend to restore a certain revision of an event.
+   * This shall replace the current event with an older version.
+   *
+   * @param mixed  UID string or hash array with event properties:
+   *        id: Event identifier
+   *  calendar: Calendar identifier
+   * @param mixed  $rev Revision number
+   *
+   * @return boolean True on success, False on failure
+   */
+  public function restore_event_revision($event, $rev)
+  {
+    if (empty($this->bonnie_api)) {
+      return false;
+    }
+
+    list($uid, $mailbox, $msguid) = $this->_resolve_event_identity($event);
+    $calendar = $this->get_calendar($event['calendar']);
+    $success = false;
+
+    if ($calendar && $calendar->storage && $calendar->editable) {
+      if ($raw_msg = $this->bonnie_api->rawdata('event', $uid, $rev, $mailbox)) {
+        $imap = $this->rc->get_storage();
+
+        // insert $raw_msg as new message
+        if ($imap->save_message($calendar->storage->name, $raw_msg, null, false)) {
+          $success = true;
+
+          // delete old revision from imap and cache
+          $imap->delete_message($msguid, $calendar->storage->name);
+          $calendar->storage->cache->set($msguid, false);
+        }
+      }
+    }
+
+    return $success;
+  }
+
+  /**
    * Helper method to resolved the given event identifier into uid and folder
    *
-   * @return array (uid,folder) tuple
+   * @return array (uid,folder,msguid) tuple
    */
   private function _resolve_event_identity($event)
   {
-    $mailbox = null;
+    $mailbox = $msguid = null;
     if (is_array($event)) {
-      $uid = $event['id'] ?: $event['uid'];
+      $uid = $event['uid'] ?: $event['id'];
       if (($cal = $this->get_calendar($event['calendar'])) && !($cal instanceof kolab_invitation_calendar)) {
         $mailbox = $cal->get_mailbox_id();
+
+        // get event object from storage in order to get the real object uid an msguid
+        if ($ev = $cal->get_event($event['id'])) {
+          $msguid = $ev['_msguid'];
+          $uid = $ev['uid'];
+        }
       }
     }
     else {
       $uid = $event;
+
+      // get event object from storage in order to get the real object uid an msguid
+      if ($ev = $this->get_event($event)) {
+        $mailbox = $ev['_mailbox'];
+        $msguid = $ev['_msguid'];
+        $uid = $ev['uid'];
+      }
     }
 
-    return array($uid, $mailbox);
+    return array($uid, $mailbox, $msguid);
   }
 
   /**

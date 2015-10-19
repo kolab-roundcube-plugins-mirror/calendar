@@ -96,7 +96,7 @@ class calendar_ui
     $this->cal->register_handler('plugin.angenda_options', array($this, 'angenda_options'));
     $this->cal->register_handler('plugin.events_import_form', array($this, 'events_import_form'));
     $this->cal->register_handler('plugin.events_export_form', array($this, 'events_export_form'));
-    $this->cal->register_handler('plugin.event_changelog_table', array($this, 'event_changelog_table'));
+    $this->cal->register_handler('plugin.object_changelog_table', array('libkolab', 'object_changelog_table'));
     $this->cal->register_handler('plugin.searchform', array($this->rc->output, 'search_form'));  // use generic method from rcube_template
   }
 
@@ -121,6 +121,7 @@ class calendar_ui
     // include kolab folderlist widget if available
     if (in_array('libkolab', $this->cal->api->loaded_plugins())) {
         $this->cal->api->include_script('libkolab/js/folderlist.js');
+        $this->cal->api->include_script('libkolab/js/audittrail.js');
     }
 
     jqueryui::miniColors();
@@ -850,22 +851,6 @@ class calendar_ui
       )
     );
     
-    return $table->show($attrib);
-  }
-
-  /**
-   * Table oultine for event changelog display
-   */
-  function event_changelog_table($attrib = array())
-  {
-    $table = new html_table(array('cols' => 5, 'border' => 0, 'cellspacing' => 0));
-    $table->add_header('diff', '');
-    $table->add_header('revision', $this->cal->gettext('revision'));
-    $table->add_header('date', $this->cal->gettext('date'));
-    $table->add_header('user', $this->cal->gettext('user'));
-    $table->add_header('operation', $this->cal->gettext('operation'));
-    $table->add_header('actions', '&nbsp;');
-
     return $table->show($attrib);
   }
 

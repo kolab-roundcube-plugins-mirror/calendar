@@ -197,7 +197,7 @@ class kolab_invitation_calendar
   {
     // find the actual folder this event resides in
     if (!empty($event['_folder_id'])) {
-      $cal = $this->cal->get_calendar($event['_folder_id']);
+      $cal = $this->cal->driver->get_calendar($event['_folder_id']);
     }
     else {
       $cal = null;
