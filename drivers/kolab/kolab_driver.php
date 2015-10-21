@@ -2388,7 +2388,7 @@ class kolab_driver extends calendar_driver
     
     if ($action != 'form-new') {
       $form['sharing'] = array(
-          'name'    => Q($this->cal->gettext('tabsharing')),
+          'name'    => rcube::Q($this->cal->gettext('tabsharing')),
           'content' => html::tag('iframe', array(
             'src' => $this->cal->rc->url(array('_action' => 'calendar-acl', 'id' => $calendar['id'], 'framed' => 1)),
             'width' => '100%',
@@ -2414,7 +2414,7 @@ class kolab_driver extends calendar_driver
         foreach ($tab['fieldsets'] as $fieldset) {
           $subcontent = $this->get_form_part($fieldset);
           if ($subcontent) {
-            $content .= html::tag('fieldset', null, html::tag('legend', null, Q($fieldset['name'])) . $subcontent) ."\n";
+            $content .= html::tag('fieldset', null, html::tag('legend', null, rcube::Q($fieldset['name'])) . $subcontent) ."\n";
           }
         }
       }
@@ -2423,7 +2423,7 @@ class kolab_driver extends calendar_driver
       }
 
       if ($content) {
-        $this->form_html .= html::tag('fieldset', null, html::tag('legend', null, Q($tab['name'])) . $content) ."\n";
+        $this->form_html .= html::tag('fieldset', null, html::tag('legend', null, rcube::Q($tab['name'])) . $content) ."\n";
       }
     }
 
@@ -2450,9 +2450,9 @@ class kolab_driver extends calendar_driver
     if (is_array($form['content']) && !empty($form['content'])) {
       $table = new html_table(array('cols' => 2));
       foreach ($form['content'] as $col => $colprop) {
-        $label = !empty($colprop['label']) ? $colprop['label'] : rcube_label($col);
+        $label = !empty($colprop['label']) ? $colprop['label'] : $this->rc->gettext($col);
 
-        $table->add('title', html::label($colprop['id'], Q($label)));
+        $table->add('title', html::label($colprop['id'], rcube::Q($label)));
         $table->add(null, $colprop['value']);
       }
       $content = $table->show();

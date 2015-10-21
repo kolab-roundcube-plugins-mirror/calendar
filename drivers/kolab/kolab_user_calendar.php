@@ -318,7 +318,7 @@ class kolab_user_calendar extends kolab_calendar
       'X-OUT-OF-OFFICE' => $this->cal->gettext('availoutofoffice'),
     );
 
-    // console('_fetch_freebusy', kolab_storage::get_freebusy_url($this->userdata['mail']), $fbdata);
+    // rcmail::console('_fetch_freebusy', kolab_storage::get_freebusy_url($this->userdata['mail']), $fbdata);
 
     // parse free-busy information
     $count = 0;
