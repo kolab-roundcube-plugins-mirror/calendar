@@ -51,7 +51,7 @@
     <li><roundcube:button command="calendar-edit" label="calendar.edit" classAct="active" /></li>
     <li><roundcube:button command="calendar-delete" label="delete" classAct="active" /></li>
     <roundcube:if condition="env:calendar_driver == 'kolab'" />
-    <li><roundcube:button command="calendar-remove" label="calendar.remove" classAct="active" /></li>
+    <li><roundcube:button command="calendar-remove" label="calendar.removelist" classAct="active" /></li>
     <roundcube:endif />
     <li><roundcube:button command="calendar-showurl" label="calendar.showurl" classAct="active" /></li>
     <roundcube:if condition="env:calendar_driver == 'kolab'" />
@@ -62,6 +62,7 @@
 
 <div id="eventshow" class="uidialog">
   <h1 id="event-title">Event Title</h1>
+  <div id="event-status-badge"><span></span></div>
   <div class="event-section" id="event-location">Location</div>
   <div class="event-section" id="event-date">From-To</div>
   <div class="event-section" id="event-description">
@@ -122,6 +123,7 @@
   <ul>
     <li><roundcube:button command="event-download" label="download" classAct="active" /></li>
     <li><roundcube:button command="event-sendbymail" label="send" classAct="active" /></li>
+    <li><roundcube:button command="event-copy" label="copy" classAct="active" /></li>
   </ul>
 </div>
 

@@ -152,7 +152,6 @@ $labels['invitationattendlinks'] = "In het geval dat uw email programma geen iTi
 $labels['eventupdatesubject'] = '"$title" is gewijzigd';
 $labels['eventupdatesubjectempty'] = 'Een afspraak is gewijzigd';
 $labels['eventupdatemailbody'] = "*\$title*\n\nWanneer: \$date\n\nGenodigden: \$attendees\n\nBijgevoegd vindt u een iCalendar bestand met de gewijzigde details omtrent de afspraak die u kunt importeren in uw kalender programma.";
-$labels['eventcancelsubject'] = '"$title" is geannuleerd';
 $labels['eventcancelmailbody'] = "*\$title*\n\nWanneer: \$date\n\nGenodigden: \$attendees\n\nDeze afspraak is geannuleerd door \$organizer.\n\nBijgevoegd vindt u een iCalendar bestand met de gewijzigde details omtrent de afspraak";
 $labels['itipobjectnotfound'] = 'De afspraak waaraan door dit bericht wordt gereferreerd is niet gevonden in uw kalender.';
 $labels['itipmailbodyaccepted'] = "\$sender heeft de uitnodiging geaccepteerd voor de volgende afspraak:\n\n*\$title*\n\nWanneer: \$date\n\nGenodigden: \$attendees";

@@ -1,0 +1,87 @@
+<roundcube:object name="doctype" value="html5" />
+<html>
+<head>
+<title><roundcube:object name="pagetitle" /></title>
+<roundcube:include file="/includes/links.html" />
+<!--[if lte IE 7]><link rel="stylesheet" type="text/css" href="/this/iehacks.css" /><![endif]-->
+</head>
+<body class="calendarmain dialog">
+
+<div id="mainscreen">
+	<div id="calendarsidebar">
+		<h2 id="aria-label-minical" class="voice"><roundcube:label name="calendar.arialabelminical" /></h2>
+		<div id="datepicker" class="uibox" role="presentation"></div>
+
+		<div id="calendars" class="uibox listbox" style="visibility:hidden" role="navigation" aria-labelledby="aria-label-calendarlist">
+			<h2 class="boxtitle" id="aria-label-calendarlist"><roundcube:label name="calendar.calendars" />
+				<a href="#calendars" class="iconbutton search" title="<roundcube:label name='calendar.findcalendars' />" tabindex="0"><roundcube:label name='calendar.findcalendars' /></a>
+			</h2>
+			<div class="listsearchbox">
+				<div class="searchbox" role="search" aria-labelledby="aria-label-calsearchform" aria-controls="calendarslist">
+					<h3 id="aria-label-calsearchform" class="voice"><roundcube:label name="calendar.arialabelcalsearchform" /></h3>
+					<label for="calendarlistsearch" class="voice"><roundcube:label name="calendar.searchterms" /></label>
+					<input type="text" name="q" id="calendarlistsearch" placeholder="<roundcube:label name='calendar.findcalendars' />" />
+					<a class="iconbutton searchicon"></a>
+					<roundcube:button command="reset-listsearch" id="calendarlistsearch-reset" class="iconbutton reset" title="resetsearch" label="resetsearch" />
+				</div>
+			</div>
+			<div class="scroller">
+				<roundcube:object name="plugin.calendar_list" id="calendarslist" class="treelist listing" />
+			</div>
+		</div>
+	</div>
+
+	<h2 id="aria-label-calendarview" class="voice"><roundcube:label name="calendar.arialabelcalendarview" /></h2>
+	<div id="calendar" role="main" aria-labelledby="aria-label-calendarview">
+		<roundcube:object name="plugin.angenda_options" class="boxfooter" id="agendaoptions" />
+	</div>
+</div>
+
+<div id="timezonedisplay"><roundcube:var name="env:timezone" /></div>
+
+<roundcube:include file="/templates/eventshow.html" />
+<roundcube:include file="/templates/eventedit.html" />
+
+<roundcube:object name="plugin.calendar_css" />
+
+<script type="text/javascript">
+
+// UI startup
+var UI = new rcube_mail_ui();
+
+$(document).ready(function(e) {
+	UI.init();
+
+	// animation to unfold list search box
+	$('#calendars .boxtitle a.search').click(function(e){
+		var title = $('#calendars .boxtitle'),
+			box = $('#calendars .listsearchbox'),
+			dir = box.is(':visible') ? -1 : 1;
+
+		box.slideToggle({
+			duration: 160,
+			progress: function(animation, progress) {
+				if (dir < 0) progress = 1 - progress;
+				$('#calendars .scroller').css('top', (title.outerHeight() + 34 * progress) + 'px');
+			},
+			complete: function() {
+				box.toggleClass('expanded');
+				if (box.is(':visible')) {
+					box.find('input[type=text]').focus();
+				}
+				else {
+					$('#calendarlistsearch-reset').click();
+				}
+				// TODO: save state in localStorage
+			}
+		});
+
+		return false;
+	});
+
+});
+
+</script>
+
+</body>
+</html>

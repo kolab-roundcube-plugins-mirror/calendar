@@ -8,6 +8,7 @@
  */
 $labels['default_view'] = 'Standardansicht';
 $labels['time_format'] = 'Zeitformatierung';
+$labels['timeslots'] = 'Zeitfenster pro Stunde';
 $labels['first_day'] = 'Erster Wochentag';
 $labels['first_hour'] = 'Erste angezeigte Stunde';
 $labels['workinghours'] = 'Arbeitszeiten';
@@ -174,9 +175,9 @@ $labels['itipobjectnotfound'] = 'Der Termin auf den sich diese Nachricht bezieht
 $labels['itipmailbodyaccepted'] = "\$sender hat die Einladung zum folgenden Termin angenommen:\n\n*\$title*\n\nWann: \$date\n\nTeilnehmer: \$attendees";
 $labels['itipmailbodytentative'] = "\$sender hat die Einladung mit Vorbehalt zum folgenden Termin angenommen:\n\n*\$title*\n\nWann: \$date\n\nTeilnehmer: \$attendees";
 $labels['itipmailbodydeclined'] = "\$sender hat die Einladung zum folgenden Termin abgelehnt:\n\n*\$title*\n\nWann: \$date\n\nTeilnehmer: \$attendees";
-$labels['itipmailbodycancel'] = "\$sender hat Ihre Teilnahme bei der folgenden Veranstaltung zurückgewiesen:\n\n*\$title*\n\nam: \$date";
+$labels['itipmailbodycancel'] = "\$sender hat Ihre Teilnahme bei der folgenden Veranstaltung zurückgewiesen:\n\n*\$title*\n\nWann: \$date";
 $labels['itipmailbodydelegated'] = "\$sender hat die Teilnahme an folgendem Event delegiert:\n\n*\$title*\n\nWhen: \$date";
-$labels['itipmailbodydelegatedto'] = "\$sender hat die Teilnahme an folgendem Event an Sie delegiert:\n\n*\$title*\n\nWhen: \$date";
+$labels['itipmailbodydelegatedto'] = "\$sender hat die Teilnahme an folgendem Event an Sie delegiert:\n\n*\$title*\n\nWann: \$date";
 $labels['itipdeclineevent'] = 'Möchten Sie die Einladung zu diesem Termin ablehnen?';
 $labels['declinedeleteconfirm'] = 'Soll der abgelehnte Termin zusätzlich aus dem Kalender gelöscht werden?';
 $labels['itipcomment'] = 'Kommentar zur Einladungs-/Benachrichtigungsnachricht';

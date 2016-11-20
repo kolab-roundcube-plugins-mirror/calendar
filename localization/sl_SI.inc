@@ -169,7 +169,6 @@ $labels['invitationattendlinks'] = "V kolikor vaš email klient ne podpira iTip 
 $labels['eventupdatesubject'] = '"$title" je bil posodobljen';
 $labels['eventupdatesubjectempty'] = 'Dogodek, ki vas zadeva je bil posodobljen';
 $labels['eventupdatemailbody'] = "*\$title*\n\nWhen: \$date\n\nInvitees: \$attendees\n\nProsim preglejte pripeto iCalendar datoteko s posodobljenimi informacijami o dogodku. Datoteko lahko uvozite v vašo koledar aplikacijo.";
-$labels['eventcancelsubject'] = '"$title" je bil preklican';
 $labels['eventcancelmailbody'] = "*\$title*\n\nWhen: \$date\n\nInvitees: \$attendees\n\nDogodek je bil preklican s strani \$organizer.\n\nProsim preglejte pripeto iCalendar datoteko s posodobljenimi informacijami o dogodku.";
 $labels['itipobjectnotfound'] = 'Dogodek, na katerega se nanaša to sporočilo, ni bil najden v vašem koledarju.';
 $labels['itipmailbodyaccepted'] = "\$sender je sprejel vabilo na dogodek:\n\n*\$title*\n\nWhen: \$date\n\nInvitees: \$attendees";

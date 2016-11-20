@@ -147,7 +147,6 @@ $labels['invitationattendlinks'] = "Amennyiben a levelezőben nem lát elfogadó
 $labels['eventupdatesubject'] = '$title - módosítva';
 $labels['eventupdatesubjectempty'] = 'Egy Önt érintő esemény módosítva lett';
 $labels['eventupdatemailbody'] = "Módosítás érkezett '\$title' eseményre vonatkozóan.\n\nIdőpont: \$date\nSzervező: \$organizer\nRésztvevők: \$attendees\n\n\nMellékletben egy frissített iCalendar naptárbejegyzés, mely tetszőleges naptárprogramba importálható.";
-$labels['eventcancelsubject'] = '$title - lemondva';
 $labels['eventcancelmailbody'] = "'\$title' eseményre \$organizer szervező visszavonta a meghívást.\n\nIdőpont: \$date\nRésztvevők: \$attendees\n\n\nMellékletben egy frissített iCalendar naptárbejegyzés, mely tetszőleges naptárprogramba importálható.";
 $labels['itipobjectnotfound'] = 'Az üzenetben hivatkozott esemény nem található a naptárban.';
 $labels['itipmailbodyaccepted'] = "\$sender elfogadta a meghívást '\$title' eseményre.\n\nIdőpont: \$date\nRésztvevők: \$attendees";

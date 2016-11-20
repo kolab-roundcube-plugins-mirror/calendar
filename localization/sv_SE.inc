@@ -169,7 +169,6 @@ $labels['invitationattendlinks'] = "Om din e-postklient inte stöder iTip-förfr
 $labels['eventupdatesubject'] = '"$title" har uppdaterats';
 $labels['eventupdatesubjectempty'] = 'En händelse som berör dig har uppdaterats';
 $labels['eventupdatemailbody'] = "*\$title*\n\nNär: \$date\n\nInbjudna: \$attendees\n\nHärmed bifogas en iCalendar-fil med uppdaterad information som du kan importera till din kalenderapplikation.";
-$labels['eventcancelsubject'] = '"$title" har ställts in';
 $labels['eventcancelmailbody'] = "*\$title*\n\nNär: \$date\n\nInbjudna: \$attendees\n\nHändelsen har ställts in av \$organizer.\n\nHärmed bifogas en iCalendar-fil med uppdaterad information om händelsen.";
 $labels['itipobjectnotfound'] = 'Den händelse som avses i detta meddelande hittades inte i din kalender.';
 $labels['itipmailbodyaccepted'] = "\$sender har accepterat inbjudan till följande händelse:\n\n*\$title*\n\nNär: \$date\n\nInbjudna: \$attendees";

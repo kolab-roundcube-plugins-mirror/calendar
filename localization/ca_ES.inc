@@ -169,7 +169,6 @@ $labels['invitationattendlinks'] = "En cas que el vostre client de correu electr
 $labels['eventupdatesubject'] = '"$title" ha estat actualitzat';
 $labels['eventupdatesubjectempty'] = 'Un esdeveniment que us afecta ha estat actualitzat';
 $labels['eventupdatemailbody'] = "*\$title*\n\nQuan: \$date\n\nConvidats: \$attendees\n\nSi us plau cerqueu el fitxer iCalendar adjunt dins dels detalls actualitzats de l'esdeveniment per poder-lo importar a la vostra aplicació de calendari.";
-$labels['eventcancelsubject'] = '"$title" ha estat cancel·lat';
 $labels['eventcancelmailbody'] = "*\$title*\n\nQuan: \$date\n\nConvidats: \$attendees\n\nL'esdeveniment ha estat cancel·lat per \$organizer.\n\nSi us plau cerqueu el fitxer iCalendar adjunt amb els detalls actualitzats de l'esdeveniment.";
 $labels['itipobjectnotfound'] = 'L\'esdeveniment que fa referència aquest missatge no s\'ha trobat al vostre calendari.';
 $labels['itipmailbodyaccepted'] = "\$sender ha acceptat la invitació al següent esdeveniment:\n\n*\$title*\n\nQuan: \$date\n\nConvidats: \$attendees";

@@ -169,7 +169,6 @@ $labels['invitationattendlinks'] = "Hvis dit e-postprogram ikke understøtter iT
 $labels['eventupdatesubject'] = '"$title" er blevet opdateret';
 $labels['eventupdatesubjectempty'] = 'Et arrangement der vedrører dig er blevet opdateret';
 $labels['eventupdatemailbody'] = "*\$title*\n\nTidspunkt: \$date\n\nInviterede: \$attendees\n\nBemærk venligst vedhæftede iCalendar-fil med alle detaljer om arrangementet, som du kan importere til dit kalenderprogram.";
-$labels['eventcancelsubject'] = '"$title" er blevet aflyst';
 $labels['eventcancelmailbody'] = "*\$title*\n\nTidspunkt: \$date\n\nInviterede: \$attendees\n\nDette arrangement er blevet aflyst af \$organizer.\n\nBemærk venligst vedhæftede iCalendard-fil med de opdaterede detaljer om arrangementet.";
 $labels['itipobjectnotfound'] = 'Begivenheden som denne besked henviser til, blev ikke fundet i din kalender.';
 $labels['itipmailbodyaccepted'] = "\$sender har accepteret invitationen til det følgende arrangement:\n\n*\$title*\n\nTidspunkt: \$date\n\nInviterede: \$attendees";

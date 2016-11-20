@@ -373,6 +373,7 @@ pre {
 	right: 4px;
 }
 
+#eventedit.uidialog,
 .calendarmain div.uidialog {
 	display: none;
 }
@@ -547,24 +548,56 @@ a.miniColors-trigger {
 	margin: 0 -0.2em;
 }
 
-#eventshow.status-cancelled {
-	background: url(images/badge_cancelled.png) top right no-repeat;
+#event-status-badge {
+	width: 100px;
+	height: 100px;
+	position: absolute;
+	top: 0;
+	right: 0;
+	overflow: hidden;
 }
 
-#eventshow.sensitivity-private {
-	background: url(images/badge_private.png) top right no-repeat;
+#event-status-badge span {
+	display: none;
+	text-transform: uppercase;
+	width: 150px;
+	height: 20px;
+	line-height: 20px;
+	position: absolute;
+	left: -20px;
+	top: 35px;
+	padding-left: 10px;
+	text-align: center;
+	font-weight: bold;
+	font-size: 12px;
+	color: #fff;
+	box-shadow: 1px 1px 2px #ccc, -1px -1px 2px #ccc;
+	-webkit-transform: rotate(45deg);
+	-moz-transform: rotate(45deg);
+	-ms-transform: rotate(45deg);
+	-o-transform: rotate(45deg);
+	transform: rotate(45deg);
 }
 
-#eventshow.sensitivity-confidential {
-	background: url(images/badge_confidential.png) top right no-repeat;
+#eventshow.status-cancelled #event-status-badge span {
+	background: url(images/badge.png) 26px -24px no-repeat #cc0000;
+	display: block;
 }
 
-.sensitivity-private #event-title {
-	margin-right: 50px;
+#eventshow.sensitivity-private #event-status-badge span {
+	background: url(images/badge.png) 40px -52px no-repeat #0066ff;
+	display: block;
 }
 
-.sensitivity-confidential #event-title {
-	margin-right: 60px;
+#eventshow.sensitivity-confidential #event-status-badge span {
+	background: url(images/badge.png) 20px 2px no-repeat #cc0000;
+	display: block;
+}
+
+#eventshow.status-cancelled #event-title,
+#eventshow.sensitivity-private #event-title,
+#eventshow.sensitivity-confidential #event-title {
+	margin-right: 80px;
 }
 
 #eventshow div.event-line {

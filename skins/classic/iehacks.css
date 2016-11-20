@@ -44,14 +44,6 @@ html #calendartoolbar a.buttonPas {
 	width: 102%;
 }
 
-#eventshow.sensitivity-private {
-	background-image: url(images/badge_private.gif);
-}
-
-#eventshow.sensitivity-confidential {
-	background-image: url(images/badge_confidential.gif);
-}
-
 .fc-day-content {
 	cursor: default;
 }

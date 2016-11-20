@@ -149,7 +149,7 @@ $config['calendar_itip_smtp_user'] = 'smtpauth';
 $config['calendar_itip_smtp_pass'] = '123456';
 
 // show virtual invitation calendars (Kolab driver only)
-$config['kolab_invitation_calendars'] = true;
+$config['kolab_invitation_calendars'] = false;
 
 // Base URL to build fully qualified URIs to access calendars via CALDAV
 // The following replacement variables are supported:

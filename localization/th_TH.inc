@@ -155,7 +155,6 @@ $labels['invitationsubject'] = 'คุณได้รับเชิญไปย
 $labels['invitationattendlinks'] = "ในกรณีที่โปรแกรมอีเมล์ของคุณไม่รองรับ 'การร้องขอ iTip' คุณสามารถใช้ลิงค์ต่อไปนี้ในการตอบรับหรือปฎิเสธจดหมายเชิญฉบับนี้ :\n\$url";
 $labels['eventupdatesubject'] = '"$title" ได้รับการปรับปรุงสถานะ';
 $labels['eventupdatesubjectempty'] = 'เหตุการณ์ที่คุณเป็นห่วงได้ถูกปรับปรุงสถานะแล้ว';
-$labels['eventcancelsubject'] = '"$title" ถูกยกเลิก';
 $labels['eventcancelmailbody'] = "*\$title*\n\nเมื่อ: \$date\n\nInvitees: \$attendees\n\n เหตุการณ์ได้ถูกยกเลิกโดย \$organizer.\n\n ไฟล์ iCalendar ที่แนบมาด้วย ได้รับการปรับปรุงรายละเอียดเรียบร้อยแล้ว";
 $labels['itipobjectnotfound'] = 'เหตุการณ์ที่อ้างถึงโดยข้อความนี้ไม่ถูกตรวจพบในปฎิทินของคุณ';
 $labels['itipmailbodyaccepted'] = "\$sender ได้ตอบรับคำเชิญสำหรับเหตุการณ์ต่อไปนี้:\n\n*\$title*\n\nเมื่อ: \$date\n\nInvitees: \$attendees";
