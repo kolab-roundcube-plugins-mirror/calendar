@@ -39,6 +39,9 @@ following plugins installed:
 INSTALLATION
 ------------
 
+The preferred and automated way to install the calendar with all requirements
+is via the Roundcube plugin repository: https://plugins.roundcube.net
+
 For a manual installation of the calendar plugin (and its dependencies),
 execute the following steps. This will set it up with the database backend
 driver.
@@ -51,17 +54,26 @@ driver.
   $ cp -r /tmp/roundcubemail-plugins-kolab/plugins/calendar .
   $ cp -r /tmp/roundcubemail-plugins-kolab/plugins/libcalendaring .
 
-2. Create calendar plugin configuration
+2. Install the dependencies with Composer
+
+(This has to be done from the Roundcube root directory)
+
+  $ cd /<path-to-roundcube>
+  $ php composer.phar require sabre/vobject 3.3.3
+
+Download the composer.phar script from https://getcomposer.org
+
+3. Create calendar plugin configuration
 
   $ cd calendar/
   $ cp config.inc.php.dist config.inc.php
   $ edit config.inc.php
 
-3. Initialize the calendar database tables
+4. Initialize the calendar database tables
 
   $ mysql roundcubemail < drivers/database/SQL/mysql.initial.sql
 
-4. Enable the calendar plugin
+5. Enable the calendar plugin
 
   $ cd ../../
   $ edit config/config.inc.php
