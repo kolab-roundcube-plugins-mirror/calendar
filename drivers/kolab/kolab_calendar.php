@@ -763,25 +763,11 @@ class kolab_calendar extends kolab_storage_folder_api
   private function _from_driver_event($event, $old = array())
   {
     // set current user as ORGANIZER
-    if ($identity = $this->cal->rc->user->list_emails(true)) {
-      $event['attendees'] = (array) $event['attendees'];
-      $found = false;
+    $identity = $this->cal->rc->user->list_emails(true);
+    if (empty($event['attendees']) && $identity['email'])
+      $event['attendees'] = array(array('role' => 'ORGANIZER', 'name' => $identity['name'], 'email' => $identity['email']));
 
-      // there can be only resources on attendees list (T1484)
-      // let's check the existence of an organizer
-      foreach ($event['attendees'] as $attendee) {
-        if ($attendee['role'] == 'ORGANIZER') {
-          $found = true;
-          break;
-        }
-      }
-
-      if (!$found) {
-        $event['attendees'][] = array('role' => 'ORGANIZER', 'name' => $identity['name'], 'email' => $identity['email']);
-      }
-
-      $event['_owner'] = $identity['email'];
-    }
+    $event['_owner'] = $identity['email'];
 
     // remove EXDATE values if RDATE is given
     if (!empty($event['recurrence']['RDATE'])) {
@@ -805,6 +791,7 @@ class kolab_calendar extends kolab_storage_folder_api
           $event['attachments'], $event['deleted_attachments'], $event['recurrence_id']);
       });
     }
+
 
     // remove some internal properties which should not be saved
     unset($event['_savemode'], $event['_fromcalendar'], $event['_identity'], $event['_folder_id'],

@@ -115,7 +115,6 @@ body.calendarmain #mainscreen {
 	width: 6px;
 	top: 40px !important;
 	bottom: 0;
-	height: auto;
 	background: url(images/toggle.gif) -1px 48% no-repeat transparent;
 }
 
@@ -1247,44 +1246,44 @@ td.topalign {
 	background: url(images/loading_blue.gif) center no-repeat;
 }
 
-#schedule-freebusy-times td div.unknown,
+#schedule-freebusy-times td.unknown,
 .availability img.availabilityicon.unknown {
 	background: #ddd;
 }
 
-#schedule-freebusy-times td div.free,
+#schedule-freebusy-times td.free,
 .availability img.availabilityicon.free {
 	background: #abd640;
 }
 
-#schedule-freebusy-times td div.busy,
+#schedule-freebusy-times td.busy,
 .availability img.availabilityicon.busy {
 	background: #e26569;
 }
 
-#schedule-freebusy-times td div.tentative,
+#schedule-freebusy-times td.tentative,
 .availability img.availabilityicon.tentative {
 	background: #8383fc;
 }
 
-#schedule-freebusy-times td div.out-of-office,
+#schedule-freebusy-times td.out-of-office,
 .availability img.availabilityicon.out-of-office {
 	background: #fbaa68;
 }
 
-#schedule-freebusy-times td div.all-busy,
-#schedule-freebusy-times td div.all-tentative,
-#schedule-freebusy-times td div.all-out-of-office {
+#schedule-freebusy-times td.all-busy,
+#schedule-freebusy-times td.all-tentative,
+#schedule-freebusy-times td.all-out-of-office {
 	background-image: url(images/freebusy-colors.png);
 	background-position: top right;
 	background-repeat: no-repeat;
 }
 
-#schedule-freebusy-times td div.all-tentative {
+#schedule-freebusy-times td.all-tentative {
 	background-position: right -40px;
 }
 
-#schedule-freebusy-times td div.all-out-of-office {
+#schedule-freebusy-times td.all-out-of-office {
 	background-position: right -80px;
 }
 
@@ -1412,8 +1411,7 @@ td.topalign {
 .attendees-list .spacer,
 #schedule-freebusy-times tr.spacer td {
 	background: 0;
-	padding: 0;
-	height: 10px;
+	font-size: 50%;
 }
 
 #schedule-freebusy-times {
@@ -1424,15 +1422,6 @@ td.topalign {
 #schedule-freebusy-times td {
 	padding: 4px;
 	border: 1px solid #ccc;
-}
-
-#schedule-freebusy-times tbody td {
-	padding: 0;
-	height: 20px;
-}
-
-#schedule-freebusy-times tbody td div {
-	height: 100%;
 }
 
 #attendees-freebusy-table div.timesheader,
@@ -1450,10 +1439,6 @@ td.topalign {
 
 #schedule-freebusy-times tr.times td {
 	cursor: pointer;
-}
-
-#schedule-freebusy-times #fbrowall td {
-	border-bottom: none;
 }
 
 #schedule-event-time {

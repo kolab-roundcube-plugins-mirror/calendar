@@ -1975,8 +1975,8 @@ class calendar extends rcube_plugin
   private function write_preprocess(&$event, $action)
   {
     // convert dates into DateTime objects in user's current timezone
-    $event['start']  = new DateTime($event['start'], $this->timezone);
-    $event['end']    = new DateTime($event['end'], $this->timezone);
+    $event['start'] = new DateTime($event['start'], $this->timezone);
+    $event['end'] = new DateTime($event['end'], $this->timezone);
     $event['allday'] = (bool)$event['allday'];
 
     // start/end is all we need for 'move' action (#1480)
@@ -2026,7 +2026,7 @@ class calendar extends rcube_plugin
       foreach ((array)$event['attendees'] as $i => $attendee) {
         if ($attendee['role'] == 'ORGANIZER')
           $organizer = $i;
-        if ($attendee['email'] && in_array(strtolower($attendee['email']), $emails))
+        if ($attendee['email'] == in_array(strtolower($attendee['email']), $emails))
           $owner = $i;
         if (!isset($attendee['rsvp']))
           $event['attendees'][$i]['rsvp'] = true;
@@ -2189,7 +2189,6 @@ class calendar extends rcube_plugin
     
     // if the backend has free-busy information
     $fblist = $this->driver->get_freebusy_list($email, $start, $end);
-
     if (is_array($fblist)) {
       $status = 'FREE';
       
@@ -2239,26 +2238,13 @@ class calendar extends rcube_plugin
       $dts = new DateTime('@'.$start);
       $dts->setTimezone($this->timezone);
     }
-
+    
     $fblist = $this->driver->get_freebusy_list($email, $start, $end);
-    $slots  = '';
-
-    // prepare freebusy list before use (for better performance)
-    if (is_array($fblist)) {
-      foreach ($fblist as $idx => $slot) {
-        list($from, $to, ) = $slot;
-
-        // check for possible all-day times
-        if (gmdate('His', $from) == '000000' && gmdate('His', $to) == '235959') {
-          // shift into the user's timezone for sane matching
-          $fblist[$idx][0] -= $this->gmt_offset;
-          $fblist[$idx][1] -= $this->gmt_offset;
-        }
-      }
-    }
-
+    $slots = array();
+    
     // build a list from $start till $end with blocks representing the fb-status
     for ($s = 0, $t = $start; $t <= $end; $s++) {
+      $status = self::FREEBUSY_UNKNOWN;
       $t_end = $t + $interval * 60;
       $dt = new DateTime('@'.$t);
       $dt->setTimezone($this->timezone);
@@ -2266,9 +2252,15 @@ class calendar extends rcube_plugin
       // determine attendee's status
       if (is_array($fblist)) {
         $status = self::FREEBUSY_FREE;
-
         foreach ($fblist as $slot) {
           list($from, $to, $type) = $slot;
+
+          // check for possible all-day times
+          if (gmdate('His', $from) == '000000' && gmdate('His', $to) == '235959') {
+              // shift into the user's timezone for sane matching
+              $from -= $this->gmt_offset;
+              $to   -= $this->gmt_offset;
+          }
 
           if ($from < $t_end && $to > $t) {
             $status = isset($type) ? $type : self::FREEBUSY_BUSY;
@@ -2277,12 +2269,9 @@ class calendar extends rcube_plugin
           }
         }
       }
-      else {
-        $status = self::FREEBUSY_UNKNOWN;
-      }
-
-      // use most compact format, assume $status is one digit/character
-      $slots .= $status;
+      
+      $slots[$s] = $status;
+      $times[$s] = $dt->format($strformat);
       $t = $t_end;
     }
     
@@ -2298,6 +2287,7 @@ class calendar extends rcube_plugin
       'end'   => $dte->format('c'),
       'interval' => $interval,
       'slots' => $slots,
+      'times' => $times,
     ));
     exit;
   }
