@@ -47,11 +47,12 @@ class calendar_ui
       
     // add taskbar button
     $this->cal->add_button(array(
-      'command' => 'calendar',
-      'class'   => 'button-calendar',
-      'classsel' => 'button-calendar button-selected',
+      'command'    => 'calendar',
+      'class'      => 'button-calendar',
+      'classsel'   => 'button-calendar button-selected',
       'innerclass' => 'button-inner',
-      'label'   => 'calendar.calendar',
+      'label'      => 'calendar.calendar',
+      'type'       => 'link'
       ), 'taskbar');
     
     // load basic client script
@@ -177,7 +178,7 @@ class calendar_ui
   {
     $color = $prop['color'];
     $class = 'cal-' . asciiwords($id, true);
-    $css .= "li .$class, #eventshow .$class { color: #$color }\n";
+    $css .= "li .$class, #eventshow .$class { color: #$color; }\n";
 
     if ($mode != 1) {
       if ($mode == 3) {
@@ -189,7 +190,7 @@ class calendar_ui
         $css .= ".fc-event-$class, ";
         $css .= ".fc-event-$class .fc-event-inner {";
       }
-      if (!$attrib['printmode'])
+      if (!$prop['printmode'])
         $css .= " background-color: #$color;";
       if ($mode % 2 == 0)
       $css .= " border-color: #$color;";
@@ -586,7 +587,7 @@ class calendar_ui
 
     $checkbox = new html_checkbox(array('name' => 'attachments', 'id' => 'event-export-attachments', 'value' => 1));
     $html .= html::div('form-section',
-      html::label('event-export-range', $this->cal->gettext('exportattachments')) .
+      html::label('event-export-attachments', $this->cal->gettext('exportattachments')) .
       $checkbox->show(1)
     );
 
@@ -608,7 +609,7 @@ class calendar_ui
       $attrib['id'] = 'rcmUploadForm';
 
     // Get max filesize, enable upload progress bar
-    $max_filesize =$this->rc->upload_init();
+    $max_filesize = $this->rc->upload_init();
 
     $button = new html_inputfield(array('type' => 'button'));
     $input = new html_inputfield(array(
@@ -617,7 +618,7 @@ class calendar_ui
 
     return html::div($attrib,
       html::div(null, $input->show()) .
-      html::div('formbuttons', $button->show($this->rc->gettext('upload'), array('class' => 'button mainaction',
+      html::div('buttons', $button->show($this->rc->gettext('upload'), array('class' => 'button mainaction',
         'onclick' => rcmail_output::JS_OBJECT_NAME . ".upload_file(this.form)"))) .
       html::div('hint', $this->rc->gettext(array('name' => 'maxuploadsize', 'vars' => array('size' => $max_filesize))))
     );

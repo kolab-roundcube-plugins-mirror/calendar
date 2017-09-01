@@ -532,17 +532,18 @@ abstract class calendar_driver
   /**
    * Get a list of property changes beteen two revisions of an event
    *
-   * @param array  $event Hash array with event properties:
+   * @param array $event Hash array with event properties:
    *         id: Event identifier
    *   calendar: Calendar identifier
-   * @param mixed  $rev   Revisions: "from:to"
+   * @param mixed $rev1 Old Revision
+   * @param mixed $rev2 New Revision
    *
    * @return array List of property changes, each as a hash array:
    *    property: Revision number
    *         old: Old property value
    *         new: Updated property value
    */
-  public function get_event_diff($event, $rev)
+  public function get_event_diff($event, $rev1, $rev2)
   {
     return false;
   }

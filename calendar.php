@@ -319,7 +319,6 @@ class calendar extends rcube_plugin
     $this->rc->output->set_env('timezone', $this->timezone->getName());
     $this->rc->output->set_env('calendar_driver', $this->rc->config->get('calendar_driver'), false);
     $this->rc->output->set_env('calendar_resources', (bool)$this->rc->config->get('calendar_resources_driver'));
-    $this->rc->output->set_env('mscolors', jqueryui::get_color_values());
     $this->rc->output->set_env('identities-selector', $this->ui->identity_select(array('id' => 'edit-identities-list', 'aria-label' => $this->gettext('roleorganizer'))));
 
     $view = rcube_utils::get_input_value('view', rcube_utils::INPUT_GPC);
@@ -477,40 +476,42 @@ class calendar extends rcube_plugin
     // loading driver is expensive, don't do it if not needed
     $this->load_driver();
 
-    if (!isset($no_override['calendar_default_alarm_type'])) {
+    if (!isset($no_override['calendar_default_alarm_type']) || !isset($no_override['calendar_default_alarm_offset'])) {
       if (!$p['current']) {
         $p['blocks']['view']['content'] = true;
         return $p;
       }
 
-      $field_id = 'rcmfd_alarm';
-      $select_type = new html_select(array('name' => '_alarm_type', 'id' => $field_id));
-      $select_type->add($this->gettext('none'), '');
-      foreach ($this->driver->alarm_types as $type)
-        $select_type->add($this->rc->gettext(strtolower("alarm{$type}option"), 'libcalendaring'), $type);
+      $alarm_type = $alarm_offset = '';
+
+      if (!isset($no_override['calendar_default_alarm_type'])) {
+        $field_id    = 'rcmfd_alarm';
+        $select_type = new html_select(array('name' => '_alarm_type', 'id' => $field_id));
+        $select_type->add($this->gettext('none'), '');
+
+        foreach ($this->driver->alarm_types as $type) {
+          $select_type->add($this->rc->gettext(strtolower("alarm{$type}option"), 'libcalendaring'), $type);
+        }
+
+        $alarm_type = $select_type->show($this->rc->config->get('calendar_default_alarm_type', ''));
+      }
+
+      if (!isset($no_override['calendar_default_alarm_offset'])) {
+        $field_id      = 'rcmfd_alarm';
+        $input_value   = new html_inputfield(array('name' => '_alarm_value', 'id' => $field_id . 'value', 'size' => 3));
+        $select_offset = new html_select(array('name' => '_alarm_offset', 'id' => $field_id . 'offset'));
+
+        foreach (array('-M','-H','-D','+M','+H','+D') as $trigger) {
+          $select_offset->add($this->rc->gettext('trigger' . $trigger, 'libcalendaring'), $trigger);
+        }
+
+        $preset = libcalendaring::parse_alarm_value($this->rc->config->get('calendar_default_alarm_offset', '-15M'));
+        $alarm_offset = $input_value->show($preset[0]) . ' ' . $select_offset->show($preset[1]);
+      }
 
       $p['blocks']['view']['options']['alarmtype'] = array(
         'title' => html::label($field_id, rcube::Q($this->gettext('defaultalarmtype'))),
-        'content' => $select_type->show($this->rc->config->get('calendar_default_alarm_type', '')),
-      );
-    }
-
-    if (!isset($no_override['calendar_default_alarm_offset'])) {
-      if (!$p['current']) {
-        $p['blocks']['view']['content'] = true;
-        return $p;
-      }
-
-      $field_id = 'rcmfd_alarm';
-      $input_value = new html_inputfield(array('name' => '_alarm_value', 'id' => $field_id . 'value', 'size' => 3));
-      $select_offset = new html_select(array('name' => '_alarm_offset', 'id' => $field_id . 'offset'));
-      foreach (array('-M','-H','-D','+M','+H','+D') as $trigger)
-        $select_offset->add($this->rc->gettext('trigger' . $trigger, 'libcalendaring'), $trigger);
-
-      $preset = libcalendaring::parse_alarm_value($this->rc->config->get('calendar_default_alarm_offset', '-15M'));
-      $p['blocks']['view']['options']['alarmoffset'] = array(
-        'title' => html::label($field_id . 'value', rcube::Q($this->gettext('defaultalarmoffset'))),
-        'content' => $input_value->show($preset[0]) . ' ' . $select_offset->show($preset[1]),
+        'content' => $alarm_type . ' ' . $alarm_offset,
       );
     }
 
@@ -1465,7 +1466,7 @@ class calendar extends rcube_plugin
   {
     // Upload progress update
     if (!empty($_GET['_progress'])) {
-      rcube_upload_progress();
+      $this->rc->upload_progress();
     }
 
     @set_time_limit(0);
@@ -1531,11 +1532,11 @@ class calendar extends rcube_plugin
     }
     else {
       if ($err == UPLOAD_ERR_INI_SIZE || $err == UPLOAD_ERR_FORM_SIZE) {
-        $msg = $this->gettext(array('name' => 'filesizeerror', 'vars' => array(
-            'size' => show_bytes(parse_bytes(ini_get('upload_max_filesize'))))));
+        $msg = $this->rc->gettext(array('name' => 'filesizeerror', 'vars' => array(
+            'size' => $this->rc->show_bytes(parse_bytes(ini_get('upload_max_filesize'))))));
       }
       else {
-        $msg = $this->gettext('fileuploaderror');
+        $msg = $this->rc->gettext('fileuploaderror');
       }
 
       $this->rc->output->command('plugin.import_error', array('message' => $msg));
@@ -1778,11 +1779,11 @@ class calendar extends rcube_plugin
 
     // convert link URIs references into structs
     if (array_key_exists('links', $event)) {
-      foreach ((array)$event['links'] as $i => $link) {
-        if (strpos($link, 'imap://') === 0 && ($msgref = $this->driver->get_message_reference($link))) {
-          $event['links'][$i] = $msgref;
+        foreach ((array) $event['links'] as $i => $link) {
+            if (strpos($link, 'imap://') === 0 && ($msgref = $this->driver->get_message_reference($link))) {
+                $event['links'][$i] = $msgref;
+            }
         }
-      }
     }
 
     // check for organizer in attendees list
@@ -2202,7 +2203,7 @@ class calendar extends rcube_plugin
     }
     
     // let this information be cached for 5min
-    send_future_expire_header(300);
+    $this->rc->output->future_expire_header(300);
     
     echo $status;
     exit;
@@ -2289,7 +2290,7 @@ class calendar extends rcube_plugin
     $dte->setTimezone($this->timezone);
     
     // let this information be cached for 5min
-    send_future_expire_header(300);
+    $this->rc->output->future_expire_header(300);
     
     echo rcube_output::json_serialize(array(
       'email' => $email,
@@ -3381,7 +3382,12 @@ class calendar extends rcube_plugin
         $tmp_path = tempnam($this->rc->config->get('temp_dir'), 'rcmAttmntCal');
         file_put_contents($tmp_path, $this->get_ical()->export(array($event), '', false, array($this->driver, 'get_attachment_body')));
 
-        $args['attachments'][] = array('path' => $tmp_path, 'name' => $filename . '.ics', 'mimetype' => 'text/calendar');
+        $args['attachments'][] = array(
+          'path'     => $tmp_path,
+          'name'     => $filename . '.ics',
+          'mimetype' => 'text/calendar',
+          'size'     => filesize($tmp_path),
+        );
         $args['param']['subject'] = $event['title'];
       }
     }

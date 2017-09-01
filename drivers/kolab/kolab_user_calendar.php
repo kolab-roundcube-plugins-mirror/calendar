@@ -5,7 +5,7 @@
  *
  * @author Thomas Bruederli <bruederli@kolabsys.com>
  *
- * Copyright (C) 2014-2015, Kolab Systems AG <contact@kolabsys.com>
+ * Copyright (C) 2014-2016, Kolab Systems AG <contact@kolabsys.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -45,8 +45,12 @@ class kolab_user_calendar extends kolab_calendar
       $this->userdata = $user_or_folder;
       $this->storage = new kolab_storage_folder_user($this->userdata['kolabtargetfolder'], '', $this->userdata);
     }
+    else if ($user_or_folder instanceof kolab_storage_folder_user) {
+      $this->storage  = $user_or_folder;
+      $this->userdata = $this->storage->ldaprec;
+    }
     else {  // get user record from LDAP
-      $this->storage = new kolab_storage_folder_user($user_or_folder);
+      $this->storage  = new kolab_storage_folder_user($user_or_folder);
       $this->userdata = $this->storage->ldaprec;
     }
 
@@ -57,7 +61,7 @@ class kolab_user_calendar extends kolab_calendar
       // ID is derrived from the user's kolabtargetfolder attribute
       $this->id = kolab_storage::folder_id($this->userdata['kolabtargetfolder'], true);
       $this->imap_folder = $this->userdata['kolabtargetfolder'];
-      $this->name = $this->storage->get_name();
+      $this->name = $this->storage->name;
       $this->parent = '';  // user calendars are top level
 
       // user-specific alarms settings win
@@ -66,7 +70,6 @@ class kolab_user_calendar extends kolab_calendar
         $this->alarms = $prefs[$this->id]['showalarms'];
     }
   }
-
 
   /**
    * Getter for a nice and human readable name for this calendar
@@ -78,17 +81,17 @@ class kolab_user_calendar extends kolab_calendar
     return $this->userdata['displayname'] ?: ($this->userdata['name'] ?: $this->userdata['mail']);
   }
 
-
   /**
    * Getter for the IMAP folder owner
    *
+   * @param bool Return a fully qualified owner name (unused)
+   *
    * @return string Name of the folder owner
    */
-  public function get_owner()
+  public function get_owner($fully_qualified = false)
   {
     return $this->userdata['mail'];
   }
-
 
   /**
    *
@@ -97,7 +100,6 @@ class kolab_user_calendar extends kolab_calendar
   {
     return trim($this->userdata['displayname'] . '; ' . $this->userdata['mail'], '; ');
   }
-
 
   /**
    * Getter for the name of the namespace to which the IMAP folder belongs
@@ -108,7 +110,6 @@ class kolab_user_calendar extends kolab_calendar
   {
     return 'other user';
   }
-
 
   /**
    * Getter for the top-end calendar folder name (not the entire path)
@@ -123,7 +124,7 @@ class kolab_user_calendar extends kolab_calendar
   /**
    * Return color to display this calendar
    */
-  public function get_color()
+  public function get_color($default = null)
   {
     // calendar color is stored in local user prefs
     $prefs = $this->cal->rc->config->get('kolab_calendars', array());
@@ -131,7 +132,7 @@ class kolab_user_calendar extends kolab_calendar
     if (!empty($prefs[$this->id]) && !empty($prefs[$this->id]['color']))
       return $prefs[$this->id]['color'];
 
-    return 'cc0000';
+    return $default ?: 'cc0000';
   }
 
   /**
@@ -163,7 +164,6 @@ class kolab_user_calendar extends kolab_calendar
     // let kolab_driver save props in local prefs
     return $prop['id'];
   }
-
 
   /**
    * Getter for a single event object
@@ -197,9 +197,11 @@ class kolab_user_calendar extends kolab_calendar
    * @param  string  Search query (optional)
    * @param  boolean Include virtual events (optional)
    * @param  array   Additional parameters to query storage
+   * @param  array   Additional query to filter events
+   *
    * @return array A list of event records
    */
-  public function list_events($start, $end, $search = null, $virtual = 1, $query = array())
+  public function list_events($start, $end, $search = null, $virtual = 1, $query = array(), $filter_query = null)
   {
     // convert to DateTime for comparisons
     try {
@@ -260,9 +262,10 @@ class kolab_user_calendar extends kolab_calendar
    *
    * @param  integer Date range start (unix timestamp)
    * @param  integer Date range end (unix timestamp)
+   * @param  array   Additional query to filter events
    * @return integer Count
    */
-  public function count_events($start, $end = null)
+  public function count_events($start, $end = null, $filter_query = null)
   {
     // not implemented
     return 0;
@@ -319,7 +322,7 @@ class kolab_user_calendar extends kolab_calendar
       'X-OUT-OF-OFFICE' => $this->cal->gettext('availoutofoffice'),
     );
 
-    // rcmail::console('_fetch_freebusy', kolab_storage::get_freebusy_url($this->userdata['mail']), $fbdata);
+    // rcube::console('_fetch_freebusy', kolab_storage::get_freebusy_url($this->userdata['mail']), $fbdata);
 
     // parse free-busy information
     $count = 0;
@@ -371,7 +374,6 @@ class kolab_user_calendar extends kolab_calendar
     return sprintf('%s/%s', $event['start']->format('U'), is_object($event['end']) ? $event['end']->format('U') : '0');
   }
 
-
   /**
    * Create a new event record
    *
@@ -390,7 +392,6 @@ class kolab_user_calendar extends kolab_calendar
    * @see calendar_driver::new_event()
    * @return boolean True on success, False on error
    */
-
   public function update_event($event, $exception_id = null)
   {
     return false;

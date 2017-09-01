@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Localizations for Kolab Calendar plugin
  *
@@ -7,10 +6,6 @@
  *
  * For translation see https://www.transifex.com/projects/p/kolab/resource/calendar/
  */
-
-$labels = array();
-
-// preferences
 $labels['default_view'] = 'Вид по умолчанию';
 $labels['time_format'] = 'Формат времени';
 $labels['timeslots'] = 'Промежутков в час';
@@ -32,8 +27,6 @@ $labels['afterflagdeleted'] = 'Пометить как удалённое';
 $labels['aftermoveto'] = 'Переместить в...';
 $labels['itipoptions'] = 'Приглашения на события';
 $labels['afteraction'] = 'После того, как приглашение или сообщение о его изменении обработано';
-
-// calendar
 $labels['calendar'] = 'Календарь';
 $labels['calendars'] = 'Календари';
 $labels['category'] = 'Категория';
@@ -122,8 +115,6 @@ $labels['invitationspending'] = 'Ожидающие приглашения';
 $labels['invitationsdeclined'] = 'Отклонённые приглашения';
 $labels['changepartstat'] = 'Изменить статус участника';
 $labels['rsvpcomment'] = 'Текст приглашения';
-
-// agenda view
 $labels['listrange'] = 'Диапазон:';
 $labels['listsections'] = 'Разделить на:';
 $labels['smartsections'] = 'Умные секции';
@@ -138,13 +129,9 @@ $labels['nextmonth'] = 'Следующий месяц';
 $labels['weekofyear'] = 'Неделя';
 $labels['pastevents'] = 'Прошедшее';
 $labels['futureevents'] = 'Будущее';
-
-// alarm/reminder settings
 $labels['showalarms'] = 'Показывать напоминания';
 $labels['defaultalarmtype'] = 'Настройки напоминания по умолчанию';
 $labels['defaultalarmoffset'] = 'Время напоминания по умолчанию';
-
-// attendees
 $labels['attendee'] = 'Участник';
 $labels['role'] = 'Роль';
 $labels['availability'] = 'Доступность';
@@ -184,22 +171,17 @@ $labels['eventupdatesubjectempty'] = 'Событие, которое касае�
 $labels['eventupdatemailbody'] = "*\$title*\n\nКогда: \$date\n\nПриглашенные: \$attendees\n\nВо вложении вы найдёте файл iCalendar со всеми изменениями в событии, который Вы можете импортировать в Вашу программу-ежедневник.";
 $labels['eventcancelsubject'] = '"$title" было отменено';
 $labels['eventcancelmailbody'] = "*\$title*\n\nКогда: \$date\n\nПриглашенные: \$attendees\n\nЭто событие отменено \$organizer.\n\nВо вложении вы найдёте файл iCalendar со всеми изменениями в событии.";
-
-// invitation handling (overrides labels from libcalendaring)
 $labels['itipobjectnotfound'] = 'Событие, упомянутое в этом сообщении, не найдено в вашем календаре.';
-
 $labels['itipmailbodyaccepted'] = "\$sender принял(а) приглашение на следующее событие:\n\n*\$title*\n\nКогда: \$date\n\nПриглашенные: \$attendees";
 $labels['itipmailbodytentative'] = "\$sender предварительно принял(а) приглашение на следующее событие:\n\n*\$title*\n\nКогда: \$date\n\nПриглашенные: \$attendees";
 $labels['itipmailbodydeclined'] = "\$sender отклонил(а) приглашение на следующее событие:\n\n*\$title*\n\nКогда: \$date\n\nПриглашенные: \$attendees";
 $labels['itipmailbodycancel'] = "\$sender отклонил ваше участие в событии:\n\n*\$title*\n\nДата: \$date";
 $labels['itipmailbodydelegated'] = "\$sender перепоручил(а) учестие в событии:\n\n*\$title*\n\nДата: \$date";
 $labels['itipmailbodydelegatedto'] = "\$sender перепоручил(а) Вам участие в событии:\n\n*\$title*\n\nДата: \$date";
-
 $labels['itipdeclineevent'] = 'Вы хотите отклонить приглашение на это событие?';
 $labels['declinedeleteconfirm'] = 'Хотите ли вы так же удалить это отклонённое событие из вашего календаря?';
 $labels['itipcomment'] = 'Комментарий к приглашению/извещению';
 $labels['itipcommenttitle'] = 'Этот комментарий будет прикреплён к приглашению/оповещению, отправленному участникам';
-
 $labels['notanattendee'] = 'Вы не в списке участников этого события';
 $labels['eventcancelled'] = 'Это событие отменено';
 $labels['saveincalendar'] = 'сохранить в';
@@ -208,8 +190,6 @@ $labels['savetocalendar'] = 'Сохранить в календарь';
 $labels['openpreview'] = 'Проверить календарь';
 $labels['noearlierevents'] = 'Нет предыдущих событий';
 $labels['nolaterevents'] = 'Нет последующих событий';
-
-// resources
 $labels['resource'] = 'Ресурс';
 $labels['addresource'] = 'Зарезервировать ресурс';
 $labels['findresources'] = 'Найти ресурсы';
@@ -217,16 +197,12 @@ $labels['resourcedetails'] = 'Подробнее';
 $labels['resourceavailability'] = 'Доступность';
 $labels['resourceowner'] = 'Владелец';
 $labels['resourceadded'] = 'Ресурс добавлен в ваше событие';
-
-// event dialog tabs
 $labels['tabsummary'] = 'Сводка';
 $labels['tabrecurrence'] = 'Повторение';
 $labels['tabattendees'] = 'Участники';
 $labels['tabresources'] = 'Ресурсы';
 $labels['tabattachments'] = 'Вложения';
 $labels['tabsharing'] = 'Совместное использование';
-
-// messages
 $labels['deleteobjectconfirm'] = 'Вы действительно хотите удалить это событие?';
 $labels['deleteventconfirm'] = 'Вы действительно хотите удалить это событие?';
 $labels['deletecalendarconfirm'] = 'Вы действительно хотите удалить этот календарь со всеми его событиями?';
@@ -256,7 +232,6 @@ $labels['importsuccess'] = 'Успешно импортировано $nr соб
 $labels['importnone'] = 'Не найдено событий для импорта';
 $labels['importerror'] = 'Ошибка при импорте';
 $labels['aclnorights'] = 'Вы не имеете прав администратора для этого календаря.';
-
 $labels['changeeventconfirm'] = 'Изменить событие';
 $labels['removeeventconfirm'] = 'Удалить событие';
 $labels['changerecurringeventwarning'] = 'Это - повторяющееся событие. Хотели бы Вы редактировать только текущее событие, это и все будущие повторения, все события или сохранять его как новое событие?';
@@ -266,16 +241,12 @@ $labels['currentevent'] = 'Текущее';
 $labels['futurevents'] = 'Будущие';
 $labels['allevents'] = 'Все';
 $labels['saveasnew'] = 'Сохранить как новое';
-
-// birthdays calendar
 $labels['birthdays'] = 'Дни рождения';
 $labels['birthdayscalendar'] = 'Календарь Дней Рождения';
 $labels['displaybirthdayscalendar'] = 'Показывать календарь Дней Рождения';
 $labels['birthdayscalendarsources'] = 'Из этих адресных книг';
 $labels['birthdayeventtitle'] = 'День рождения $name';
 $labels['birthdayage'] = 'Возраст $age';
-
-// history dialog
 $labels['objectchangelog'] = 'История изменений';
 $labels['objectdiff'] = 'Изменения с $rev1 до $rev2';
 $labels['objectnotfound'] = 'Не удалось загрузить информацию о мероприятиях';
@@ -284,9 +255,6 @@ $labels['objectdiffnotavailable'] = 'Невозможно провести ср�
 $labels['revisionrestoreconfirm'] = 'Вы уверенны, что хотите восстановить это событие из ревизии $rev? Оно заменит текущее событие старой версией. ';
 $labels['objectrestoresuccess'] = 'Ревизия $rev успешно восстановлена';
 $labels['objectrestoreerror'] = 'Не удалось восстановить старую ревизию';
-
-
-// (hidden) titles and labels for accessibility annotations
 $labels['arialabelminical'] = 'Выбор даты';
 $labels['arialabelcalendarview'] = 'Вид календаря';
 $labels['arialabelsearchform'] = 'Форма поиска событий';
@@ -297,5 +265,4 @@ $labels['arialabeleventattendees'] = 'Участники события';
 $labels['arialabeleventresources'] = 'Ресурсы события';
 $labels['arialabelresourcesearchform'] = 'Форма поиска ресурсов';
 $labels['arialabelresourceselection'] = 'Доступные ресурсы';
-
 ?>
