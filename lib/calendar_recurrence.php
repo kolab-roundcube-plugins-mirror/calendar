@@ -75,7 +75,7 @@ class calendar_recurrence extends libcalendaring_recurrence
       }
 
       $next['recurrence_date'] = clone $next_start;
-      $next['_instance'] = libcalendaring::recurrence_instance_identifier($next);
+      $next['_instance'] = libcalendaring::recurrence_instance_identifier($next, $this->event['allday']);
 
       unset($next['_formatobj']);
 

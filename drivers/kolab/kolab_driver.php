@@ -57,11 +57,12 @@ class kolab_driver extends calendar_driver
     require_once(dirname(__FILE__) . '/kolab_invitation_calendar.php');
 
     $this->cal = $cal;
-    $this->rc  = $cal->rc;
-
+    $this->rc = $cal->rc;
+    $this->_read_calendars();
+    
     $this->cal->register_action('push-freebusy', array($this, 'push_freebusy'));
     $this->cal->register_action('calendar-acl', array($this, 'calendar_acl'));
-
+    
     $this->freebusy_trigger = $this->rc->config->get('calendar_freebusy_trigger', false);
 
     if (kolab_storage::$version == '2.0') {
@@ -88,11 +89,11 @@ class kolab_driver extends calendar_driver
 
     // get all folders that have "event" type, sorted by namespace/name
     $folders = kolab_storage::sort_folders(kolab_storage::get_folders('event') + kolab_storage::get_user_folders('event', true));
-
     $this->calendars = array();
+
     foreach ($folders as $folder) {
       if ($folder instanceof kolab_storage_folder_user) {
-        $calendar = new kolab_user_calendar($folder, $this->cal);
+        $calendar = new kolab_user_calendar($folder->name, $this->cal);
         $calendar->subscriptions = count($folder->children) > 0;
       }
       else {
@@ -119,12 +120,10 @@ class kolab_driver extends calendar_driver
    */
   public function list_calendars($filter = 0, &$tree = null)
   {
-    $this->_read_calendars();
-
     // attempt to create a default calendar for this user
     if (!$this->has_writeable) {
       if ($this->create_calendar(array('name' => 'Calendar', 'color' => 'cc0000'))) {
-        unset($this->calendars);
+         unset($this->calendars);
         $this->_read_calendars();
       }
     }
@@ -163,8 +162,8 @@ class kolab_driver extends calendar_driver
       // special handling for user or virtual folders
       if ($cal instanceof kolab_storage_folder_user) {
         $calendars[$cal->id] = array(
-          'id'       => $cal->id,
-          'name'     => $fullname,
+          'id' => $cal->id,
+          'name' => kolab_storage::object_name($fullname),
           'listname' => $listname,
           'editname' => $cal->get_foldername(),
           'color'    => $cal->get_color(),
@@ -288,8 +287,6 @@ class kolab_driver extends calendar_driver
    */
   protected function filter_calendars($filter)
   {
-    $this->_read_calendars();
-
     $calendars = array();
 
     $plugin = $this->rc->plugins->exec_hook('calendar_list_filter', array(
@@ -346,19 +343,14 @@ class kolab_driver extends calendar_driver
    */
   public function get_calendar($id)
   {
-    $this->_read_calendars();
-
     // create calendar object if necesary
-    if (!$this->calendars[$id]) {
-      if (in_array($id, array(self::INVITATIONS_CALENDAR_PENDING, self::INVITATIONS_CALENDAR_DECLINED))) {
-        $this->calendars[$id] = new kolab_invitation_calendar($id, $this->cal);
-      }
-      else if ($id !== self::BIRTHDAY_CALENDAR_ID) {
-        $calendar = kolab_calendar::factory($id, $this->cal);
-        if ($calendar->ready) {
-          $this->calendars[$calendar->id] = $calendar;
-        }
-      }
+    if (!$this->calendars[$id] && in_array($id, array(self::INVITATIONS_CALENDAR_PENDING, self::INVITATIONS_CALENDAR_DECLINED))) {
+      $this->calendars[$id] = new kolab_invitation_calendar($id, $this->cal);
+    }
+    else if (!$this->calendars[$id] && $id !== self::BIRTHDAY_CALENDAR_ID) {
+      $calendar = kolab_calendar::factory($id, $this->cal);
+      if ($calendar->ready)
+        $this->calendars[$calendar->id] = $calendar;
     }
 
     return $this->calendars[$id];
@@ -603,12 +595,8 @@ class kolab_driver extends calendar_driver
 
     $event = self::from_rcube_event($event);
 
-    if (!$event['calendar']) {
-      $this->_read_calendars();
-      $event['calendar'] = reset(array_keys($this->calendars));
-    }
-
-    if ($storage = $this->get_calendar($event['calendar'])) {
+    $cid = $event['calendar'] ? $event['calendar'] : reset(array_keys($this->calendars));
+    if ($storage = $this->get_calendar($cid)) {
       // if this is a recurrence instance, append as exception to an already existing object for this UID
       if (!empty($event['recurrence_date']) && ($master = $storage->get_event($event['uid']))) {
         self::add_exception($master, $event);
@@ -900,7 +888,7 @@ class kolab_driver extends calendar_driver
           break;
       }
     }
-
+    
     if ($success && $this->freebusy_trigger)
       $this->rc->output->command('plugin.ping_url', array('action' => 'calendar/push-freebusy', 'source' => $storage->id));
 
@@ -1027,7 +1015,7 @@ class kolab_driver extends calendar_driver
 
         // copy attachment metadata to new event
         $event = self::from_rcube_event($event, $master);
-
+  
         // remove recurrence exceptions on re-scheduling
         if ($reschedule) {
           unset($event['recurrence']['EXCEPTIONS'], $event['exceptions'], $master['recurrence']['EXDATE']);
@@ -1141,21 +1129,21 @@ class kolab_driver extends calendar_driver
         // use start date from master but try to be smart on time or duration changes
         $old_start_date = $old['start']->format('Y-m-d');
         $old_start_time = $old['allday'] ? '' : $old['start']->format('H:i');
-        $old_duration = $old['end']->format('U') - $old['start']->format('U');
-        
+        $old_duration   = self::event_duration($old['start'], $old['end'], $old['allday']);
+
         $new_start_date = $event['start']->format('Y-m-d');
         $new_start_time = $event['allday'] ? '' : $event['start']->format('H:i');
-        $new_duration = $event['end']->format('U') - $event['start']->format('U');
-        
+        $new_duration   = self::event_duration($event['start'], $event['end'], $event['allday']);
+
         $diff = $old_start_date != $new_start_date || $old_start_time != $new_start_time || $old_duration != $new_duration;
         $date_shift = $old['start']->diff($event['start']);
-        
+
         // shifted or resized
         if ($diff && ($old_start_date == $new_start_date || $old_duration == $new_duration)) {
           $event['start'] = $master['start']->add($date_shift);
           $event['end'] = clone $event['start'];
-          $event['end']->add(new DateInterval('PT'.$new_duration.'S'));
-          
+          $event['end']->add(new DateInterval($new_duration));
+
           // remove fixed weekday, will be re-set to the new weekday in kolab_calendar::update_event()
           if ($old_start_date != $new_start_date) {
             if (strlen($event['recurrence']['BYDAY']) == 2)
@@ -1173,6 +1161,7 @@ class kolab_driver extends calendar_driver
         // when saving an instance in 'all' mode, copy recurrence exceptions over
         if ($old['recurrence_id']) {
           $event['recurrence']['EXCEPTIONS'] = $master['recurrence']['EXCEPTIONS'];
+          $event['recurrence']['EXDATE']     = $master['recurrence']['EXDATE'];
         }
         else if ($master['_instance']) {
           $event['_instance'] = $master['_instance'];
@@ -1225,8 +1214,21 @@ class kolab_driver extends calendar_driver
 
     if ($success && $this->freebusy_trigger)
       $this->rc->output->command('plugin.ping_url', array('action' => 'calendar/push-freebusy', 'source' => $storage->id));
-    
+
     return $success;
+  }
+
+  /**
+   * Calculate event duration, returns string in DateInterval format
+   */
+  protected static function event_duration($start, $end, $allday = false)
+  {
+    if ($allday) {
+      $diff = $start->diff($end);
+      return 'P' . $diff->days . 'D';
+    }
+
+    return 'PT' . ($end->format('U') - $start->format('U')) . 'S';
   }
 
   /**
@@ -1361,7 +1363,7 @@ class kolab_driver extends calendar_driver
     }
 
     if (!$event['_instance'] && is_a($event['recurrence_date'], 'DateTime')) {
-      $event['_instance'] = libcalendaring::recurrence_instance_identifier($event);
+      $event['_instance'] = libcalendaring::recurrence_instance_identifier($event, $master['allday']);
     }
 
     if (!is_array($master['exceptions']) && is_array($master['recurrence']['EXCEPTIONS'])) {
@@ -1466,10 +1468,8 @@ class kolab_driver extends calendar_driver
   {
     if ($calendars && is_string($calendars))
       $calendars = explode(',', $calendars);
-    else if (!$calendars) {
-      $this->_read_calendars();
+    else if (!$calendars)
       $calendars = array_keys($this->calendars);
-    }
 
     $query = array();
     if ($modifiedsince)
@@ -1514,10 +1514,8 @@ class kolab_driver extends calendar_driver
 
       if ($calendars && is_string($calendars))
         $calendars = explode(',', $calendars);
-      else if (!$calendars) {
-        $this->_read_calendars();
+      else if (!$calendars)
         $calendars = array_keys($this->calendars);
-      }
 
       foreach ($calendars as $cid) {
         if ($storage = $this->get_calendar($cid)) {
@@ -1555,9 +1553,6 @@ class kolab_driver extends calendar_driver
     
     $candidates = array();
     $query = array(array('tags', '=', 'x-has-alarms'));
-
-    $this->_read_calendars();
-
     foreach ($this->calendars as $cid => $calendar) {
       // skip calendars with alarms disabled
       if (!$calendar->alarms || ($calendars && !in_array($cid, $calendars)))
@@ -2314,8 +2309,6 @@ class kolab_driver extends calendar_driver
       return parent::calendar_form($action, $calendar, $formfields);
     }
 
-    $this->_read_calendars();
-
     if ($calendar['id'] && ($cal = $this->calendars[$calendar['id']])) {
       $folder = $cal->get_realname(); // UTF7
       $color  = $cal->get_color();
@@ -2449,7 +2442,7 @@ class kolab_driver extends calendar_driver
     if (is_array($form['content']) && !empty($form['content'])) {
       $table = new html_table(array('cols' => 2));
       foreach ($form['content'] as $col => $colprop) {
-        $label = !empty($colprop['label']) ? $colprop['label'] : $this->cal->gettext($col);
+        $label = !empty($colprop['label']) ? $colprop['label'] : $this->rc->gettext($col);
 
         $table->add('title', html::label($colprop['id'], rcube::Q($label)));
         $table->add(null, $colprop['value']);

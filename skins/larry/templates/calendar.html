@@ -164,7 +164,6 @@
 	<ul id="eventoptionsmenu-menu" class="toolbarmenu" role="menu" aria-labelledby="aria-label-eventoptions">
 		<li role="menuitem"><roundcube:button command="event-download" label="download" classAct="active" /></li>
 		<li role="menuitem"><roundcube:button command="event-sendbymail" label="send" classAct="active" /></li>
-		<li role="menuitem"><roundcube:button command="event-copy" label="copy" classAct="active" /></li>
 		<roundcube:if condition="env:calendar_driver == 'kolab' && config:kolab_bonnie_api" />
 		<li role="menuitem"><roundcube:button command="event-history" type="link" label="calendar.eventhistory" classAct="active" /></li>
 		<roundcube:endif />
