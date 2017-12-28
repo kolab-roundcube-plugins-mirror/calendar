@@ -69,31 +69,18 @@ body.calendarmain #mainscreen {
 #datepicker .ui-datepicker-activerange a {
 	color: #185d7a;
 	background: #d9f1fb;
-	background: -moz-linear-gradient(top, #d9f1fb 0%, #c5e3ee 100%);
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#d9f1fb), color-stop(100%,#c5e3ee));
-	background: -o-linear-gradient(top, #d9f1fb 0%, #c5e3ee 100%);
-	background: -ms-linear-gradient(top, #d9f1fb 0%, #c5e3ee 100%);
-	background: linear-gradient(top, #d9f1fb 0%, #c5e3ee 100%);
-	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#d9f1fb', endColorstr='#c5e3ee', GradientType=0);
 }
 
 #datepicker .ui-datepicker-days-cell-over a.ui-state-default {
 	color: #fff;
 	border-color: #2fa0c0;
 	background: rgba(73,180,210,0.6);
-	text-shadow: 0px 1px 1px #666;
 	filter: none;
 }
 
 #datepicker .ui-datepicker-activerange a.ui-state-active {
 	color: #fff;
 	background: #00acd4;
-	background: -moz-linear-gradient(top, #00acd4 0%, #008fc7 100%);
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#00acd4), color-stop(100%,#008fc7));
-	background: -o-linear-gradient(top, #00acd4 0%, #008fc7 100%);
-	background: -ms-linear-gradient(top, #00acd4 0%, #008fc7 100%);
-	background: linear-gradient(top, #00acd4 0%, #008fc7 100%);
-	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#00acd4', endColorstr='#008fc7', GradientType=0);
 }
 
 #datepicker td.ui-datepicker-week-col {
@@ -253,17 +240,14 @@ pre {
 #calendars .treelist li span.handle {
 	display: inline-block;
 	position: absolute;
-	top: 8px;
+	top: 7px;
 	right: 6px;
 	padding: 0;
-	width: 10px;
-	height: 10px;
-	border-radius: 7px;
+	width: 11px;
+	height: 11px;
+	border-radius: 8px;
 	font-size: 0.8em;
-	border: 1px solid rgba(0, 0, 0, 0.5);
-	-webkit-box-shadow: inset 0px 0 1px 1px rgba(0, 0, 0, 0.3);
-	-moz-box-shadow: inset 0px 0 1px 1px rgba(0, 0, 0, 0.3);
-	box-shadow: inset 0px 0 1px 1px rgba(0, 0, 0, 0.3);
+	border: 1px solid rgba(0, 0, 0, 0.4);
 }
 
 #calendars .treelist div span.actions {
@@ -281,15 +265,9 @@ pre {
 #calendars .treelist div:hover span.actions {
 	top: 1px;
 	right: 21px;
-	border: 1px solid #c6c6c6;
+	border: 1px solid #ababab;
 	border-radius: 4px;
-	background: #f7f7f7;
-	background: -moz-linear-gradient(top, #f9f9f9 0%, #e6e6e6 100%);
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f9f9f9), color-stop(100%,#e6e6e6));
-	background: -o-linear-gradient(top, #f9f9f9 0%, #e6e6e6 100%);
-	background: -ms-linear-gradient(top, #f9f9f9 0%, #e6e6e6 100%);
-	background: linear-gradient(top, #f9f9f9 0%, #e6e6e6 100%);
-	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#f9f9f9', endColorstr='#e6e6e6', GradientType=0);
+	background: #f1f1f1;
 }
 
 #calendars .treelist li a.subscribed {
@@ -431,13 +409,6 @@ pre {
 	min-width: 1.3em;
 	padding: 2px 4px;
 	background: #005d76;
-	background: -moz-linear-gradient(top, #005d76 0%, #004558 100%);
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#005d76), color-stop(100%,#004558));
-	background: -o-linear-gradient(top, #005d76 0%, #004558 100%);
-	background: -ms-linear-gradient(top, #005d76 0%, #004558 100%);
-	background: linear-gradient(to bottom, #005d76 0%, #004558 100%);
-	-webkit-box-shadow: inset 0 1px 1px 0 #002635;
-	box-shadow: inset 0 1px 1px 0 #002635;
 	border-radius: 10px;
 	color: #fff;
 	text-align: center;
@@ -454,7 +425,8 @@ pre {
 
 #calendars .searchresults .boxtitle {
 	background: none;
-	padding: 2px 8px 2px 8px;
+	padding: 2px 8px;
+	border-radius: 0;
 }
 
 #calendars .searchresults .listing li {
@@ -539,8 +511,13 @@ body.calendarmain #searchmenulink {
 	width: 15px;
 }
 
+#eventedit.uidialog,
 .calendarmain div.uidialog {
 	display: none;
+}
+
+#calendarform {
+	overflow: visible;
 }
 
 #user {
@@ -625,7 +602,6 @@ a.miniColors-trigger {
 	color: #333;
 	font-weight: bold;
 	padding: 4px 4px 3px 30px;
-	text-shadow: 0px 1px 1px #fff;
 	text-decoration: none;
 	white-space: nowrap;
 	line-height: 20px;
@@ -641,7 +617,7 @@ a.miniColors-trigger {
 	border-top: 2px solid #fafafa;
 }
 
-#edit-attachments-form .formbuttons {
+#edit-attachments-form .buttons {
 	margin: 0.5em 0;
 }
 
@@ -682,7 +658,7 @@ a.miniColors-trigger {
 }
 
 .event-attendees span.attendee {
-	padding-right: 18px;
+	padding: 1px 18px 1px 0;
 	margin-right: 0.5em;
 	background: url(images/attendee-status.png) right 0 no-repeat;
 }
@@ -733,11 +709,6 @@ a.miniColors-trigger {
 	font-size: 11px;
 	font-weight: bold;
 	background: #d6eaf3;
-	background: -moz-linear-gradient(left, #e3f2f6 0, #d6eaf3 14px, #d6eaf3 100%);
-	background: -webkit-gradient(linear, left top, right top, color-stop(0,#e3f2f6), color-stop(8%,#d6eaf3), color-stop(100%,#d6eaf3));
-	background: -o-linear-gradient(left, #e3f2f6 0, #d6eaf3 14px, #d6eaf3 100%);
-	background: -ms-linear-gradient(left, #e3f2f6 0, #d6eaf3 14px ,#d6eaf3 100%);
-	background: linear-gradient(left, #e3f2f6 0, #d6eaf3 14px, #d6eaf3 100%);
 	border: 0;
 	border-bottom: 1px solid #ccc;
 	height: 18px;
@@ -825,6 +796,9 @@ a.miniColors-trigger {
 .calendarmain .eventdialog div.event-line {
 	margin-top: 0.1em;
 	margin-bottom: 0.3em;
+	white-space: nowrap;
+	overflow-x: hidden;
+	text-overflow: ellipsis;
 }
 
 .calendarmain .eventdialog div.event-line a.iconbutton {
@@ -834,6 +808,15 @@ a.miniColors-trigger {
 
 .calendarmain .eventdialog div.event-line span.event-text + label {
 	margin-left: 2em;
+}
+
+#event-description .event-text,
+#event-attendees .event-text {
+	padding-top: 0.4em;
+}
+
+.eventdialog .spacer {
+	font-size: 4px;
 }
 
 .eventdialog .event-text-old,
@@ -990,16 +973,6 @@ div.form-section,
 	padding-right: 0.5em;
 }
 
-.calendarmain .eventdialog #event-url .event-text {
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-}
-
-#event-links .attachmentslist {
-	display: inline-block;
-}
-
 #event-links label,
 #edit-event-links label {
 	float: left;
@@ -1138,7 +1111,7 @@ td.topalign {
 
 #eventedit .edit-attendees-table th.invite,
 #eventedit .edit-attendees-table td.invite {
-	width: 44px;
+	width: 50px;
 	padding: 2px;
 }
 
@@ -1238,6 +1211,7 @@ td.topalign {
 	height: 14px;
 	border-radius: 4px;
 	-moz-border-radius: 4px;
+	vertical-align: middle;
 }
 
 .availability img.availabilityicon.loading {
@@ -1295,10 +1269,6 @@ td.topalign {
 	white-space: nowrap;
 }
 
-#edit-attendees-legend img.availabilityicon {
-	vertical-align: middle;
-}
-
 .edit-attendees-table tbody td.confirmstate {
 	overflow: hidden;
 	white-space: nowrap;
@@ -1312,22 +1282,27 @@ td.topalign {
 }
 
 .edit-attendees-table td.confirmstate span.needs-action {
+	height: 14px;
 }
 
 .edit-attendees-table td.confirmstate span.accepted {
 	background-position: 5px -20px;
+	height: 14px;
 }
 
 .edit-attendees-table td.confirmstate span.declined {
 	background-position: 5px -40px;
+	height: 14px;
 }
 
 .edit-attendees-table td.confirmstate span.tentative {
 	background-position: 5px -60px;
+	height: 14px;
 }
 
 .edit-attendees-table td.confirmstate span.delegated {
 	background-position: 5px -180px;
+	height: 14px;
 }
 
 #attendees-freebusy-table {
@@ -1564,12 +1539,7 @@ a.dropdown-link:after {
 	border-top-color: #ddd;
 	border-bottom-color: #bbb;
 	border-radius: 0 0 4px 4px;
-	background: #ebebeb;
-	background: -moz-linear-gradient(top, #ebebeb 0%, #c6c6c6 100%);
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ebebeb), color-stop(100%,#c6c6c6));
-	background: -o-linear-gradient(top, #ebebeb 0%, #c6c6c6 100%);
-	background: -ms-linear-gradient(top, #ebebeb 0%, #c6c6c6 100%);
-	background: linear-gradient(top, #ebebeb 0%, #c6c6c6 100%);
+	background: #eaeaea;
 }
 
 #agendaoptions label {
@@ -1713,10 +1683,6 @@ a.dropdown-link:after {
 	overflow: hidden;
 	border: 0;
 	border-radius: 4px;
-	box-shadow: 0 0 2px #999;
-	-o-box-shadow: 0 0 2px #999;
-	-webkit-box-shadow: 0 0 2px #999;
-	-moz-box-shadow: 0 0 2px #999;
 }
 
 .calendarmain .fc-content {
@@ -1748,39 +1714,23 @@ a.dropdown-link:after {
 .calendarmain .fc-button.fc-state-default,
 .calendarmain .fc-button.fc-state-hover {
 	background-color: #f5f5f5;
-	background-image: -moz-linear-gradient(top, #ffffff, #e6e6e6);
-	background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffffff), to(#e6e6e6));
-	background-image: -webkit-linear-gradient(top, #ffffff, #e6e6e6);
-	background-image: -o-linear-gradient(top, #ffffff, #e6e6e6);
-	background-image: linear-gradient(to bottom, #ffffff, #e6e6e6);
-	background-position: 0 0;
 }
 
 .calendarmain #calendar .fc-button,
 .calendarmain #calendar .fc-button.fc-state-default,
 .calendarmain #calendar .fc-button.fc-state-hover {
-	margin: 0 0 0 0;
-	height: 20px;
-	line-height: 20px;
-	color: #505050;
-	text-shadow: 0px 1px 1px #fff;
-	border: 1px solid #e6e6e6;
-	background: #d8d8d8;
-	background: -moz-linear-gradient(top, #d8d8d8 0%, #bababa 100%);
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#d8d8d8), color-stop(100%,#bababa));
-	background: -o-linear-gradient(top, #d8d8d8 0%, #bababa 100%);
-	background: -ms-linear-gradient(top, #d8d8d8 0%, #bababa 100%);
-	background: linear-gradient(top, #d8d8d8 0%, #bababa 100%);
-	box-shadow: 0 1px 1px 0 #999;
-	-o-box-shadow: 0 1px 1px 0 #999;
-	-webkit-box-shadow: 0 1px 1px 0 #999;
-	-moz-box-shadow: 0 1px 1px 0 #999;
+	margin: -2px 0 0 0;
+	height: 24px;
+	line-height: 24px;
+	color: #333;
+	border: 1px solid #ababab;
+	background: #f1f1f1;
 	text-decoration: none;
+	text-shadow: none;
 }
 
 .calendarmain #calendar .fc-button.fc-state-disabled {
-	color: #999;
-	background: #d8d8d8;
+	color: #666;
 }
 
 .calendarmain .fc-button.fc-state-active,
@@ -1788,12 +1738,8 @@ a.dropdown-link:after {
 .calendarmain #calendar .fc-button.fc-state-active,
 .calendarmain #calendar .fc-button.fc-state-down {
 	color: #333;
-	background: #bababa;
-	background: -moz-linear-gradient(top, #bababa 0%, #d8d8d8 100%);
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#bababa), color-stop(100%,#d8d8d8));
-	background: -o-linear-gradient(top, #bababa 0%, #d8d8d8 100%);
-	background: -ms-linear-gradient(top, #bababa 0%, #d8d8d8 100%);
-	background: linear-gradient(top, #bababa 0%, #d8d8d8 100%);
+	background: #f1f1f1;
+	box-shadow: none;
 }
 
 .calendarmain #calendar .fc-header .fc-button {
@@ -2050,6 +1996,15 @@ div.fc-event-location {
 	background-color: rgba(233,198,14, 0.12);
 }
 
+.fc-widget-header,
+.fc-widget-content {
+	border-color: #bbd3da !important;
+}
+
+.fc-widget-header .fc-agenda-divider-inner {
+	background: #cad2d9 !important;
+}
+
 .fc-widget-header {
 	background-color: #d6eaf3;
 	color: #004458;
@@ -2094,15 +2049,15 @@ div.fc-event-location {
 }
 
 .calendarmain .fc-view-table tr.fc-event td {
-	border-color: #ddd;
-	padding: 4px 7px;
+	border-color: #bbd3da;
+	padding: 6px 8px;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
 .calendarmain .fc-view-table tr.fc-event td.fc-event-handle {
-	padding: 5px 0 2px 7px;
+	padding: 6px 0 2px 7px;
 	width: 12px;
 }
 
@@ -2125,9 +2080,6 @@ div.fc-event-location {
 	font-size: 10px;
 	border-radius: 8px;
 	border: 1px solid rgba(0, 0, 0, 0.4);
-	-webkit-box-shadow: inset 0px 0 1px 1px rgba(0, 0, 0, 0.3);
-	-moz-box-shadow: inset 0px 0 1px 1px rgba(0, 0, 0, 0.3);
-	box-shadow: inset 0px 0 1px 1px rgba(0, 0, 0, 0.3);
 }
 
 .calendarmain .fc-view-table col.fc-event-location {

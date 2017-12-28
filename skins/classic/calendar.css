@@ -373,6 +373,7 @@ pre {
 	right: 4px;
 }
 
+#eventedit.uidialog,
 .calendarmain div.uidialog {
 	display: none;
 }

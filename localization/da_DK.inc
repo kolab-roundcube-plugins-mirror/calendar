@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Localizations for Kolab Calendar plugin
  *
@@ -7,10 +6,6 @@
  *
  * For translation see https://www.transifex.com/projects/p/kolab/resource/calendar/
  */
-
-$labels = array();
-
-// preferences
 $labels['default_view'] = 'Standardvisning';
 $labels['time_format'] = 'Tidsformat';
 $labels['timeslots'] = 'Tidsblokke per time';
@@ -32,8 +27,6 @@ $labels['afterflagdeleted'] = 'Markér som slettet';
 $labels['aftermoveto'] = 'Flyt til ...';
 $labels['itipoptions'] = 'Begivenhedsinvitationer';
 $labels['afteraction'] = 'Efter en invitation eller opdateringsbesked er behandlet';
-
-// calendar
 $labels['calendar'] = 'Kalender';
 $labels['calendars'] = 'Kalendere';
 $labels['category'] = 'Kategori';
@@ -122,8 +115,6 @@ $labels['invitationspending'] = 'Afventende invitationer';
 $labels['invitationsdeclined'] = 'Afviste invitationer';
 $labels['changepartstat'] = 'Skift deltagerstatus';
 $labels['rsvpcomment'] = 'Invitationstekst';
-
-// agenda view
 $labels['listrange'] = 'Interval som skal vises:';
 $labels['listsections'] = 'Del op i:';
 $labels['smartsections'] = 'Smarte sektioner';
@@ -138,13 +129,9 @@ $labels['nextmonth'] = 'Næste måned';
 $labels['weekofyear'] = 'Uge';
 $labels['pastevents'] = 'Tidligere';
 $labels['futureevents'] = 'Fremtid';
-
-// alarm/reminder settings
 $labels['showalarms'] = 'Vis påmindelser';
 $labels['defaultalarmtype'] = 'Standardindstilling for påmindelse';
 $labels['defaultalarmoffset'] = 'Standardtidspunkt for påmindelse';
-
-// attendees
 $labels['attendee'] = 'Deltager';
 $labels['role'] = 'Rolle';
 $labels['availability'] = 'Tilg.';
@@ -184,22 +171,17 @@ $labels['eventupdatesubjectempty'] = 'Et arrangement der vedrører dig er blevet
 $labels['eventupdatemailbody'] = "*\$title*\n\nTidspunkt: \$date\n\nInviterede: \$attendees\n\nBemærk venligst vedhæftede iCalendar-fil med alle detaljer om arrangementet, som du kan importere til dit kalenderprogram.";
 $labels['eventcancelsubject'] = '"$title" er blevet annulleret';
 $labels['eventcancelmailbody'] = "*\$title*\n\nTidspunkt: \$date\n\nInviterede: \$attendees\n\nDette arrangement er blevet aflyst af \$organizer.\n\nBemærk venligst vedhæftede iCalendard-fil med de opdaterede detaljer om arrangementet.";
-
-// invitation handling (overrides labels from libcalendaring)
 $labels['itipobjectnotfound'] = 'Begivenheden som denne besked henviser til, blev ikke fundet i din kalender.';
-
 $labels['itipmailbodyaccepted'] = "\$sender har accepteret invitationen til det følgende arrangement:\n\n*\$title*\n\nTidspunkt: \$date\n\nInviterede: \$attendees";
 $labels['itipmailbodytentative'] = "\$sender har forsøgsvist accepteret invitationen til det følgende arrangement:\n\n*\$title*\n\nTidspunkt: \$date\n\nInviterede: \$attendees";
 $labels['itipmailbodydeclined'] = "\$sender har afvist invitationen til det følgende arrangement:\n\n*\$title*\n\nTidspunkt: \$date\n\nInviterede: \$attendees";
 $labels['itipmailbodycancel'] = "\$sender har afvist din deltagelse i følgende begivenhed:\n\n*\$title*\n\nTidspunkt: \$date";
 $labels['itipmailbodydelegated'] = "\$sender har delegeret deltagelsen i følgende begivenhed:\n\n*\$title*\n\nTidspunkt: \$date";
 $labels['itipmailbodydelegatedto'] = "\$sender har delegeret deltagelsen i følgende begivenhed til dig:\n\n*\$title*\n\nTidspunkt: \$date";
-
 $labels['itipdeclineevent'] = 'Sikker på at du vil afvise dette arrangement?';
 $labels['declinedeleteconfirm'] = 'Vil du også slette dette afviste arrangement fra din kalender?';
 $labels['itipcomment'] = 'Invitation/notification comment';
 $labels['itipcommenttitle'] = 'Denne kommentar vil blive føjet til den besked med invitation/notifikation, der sendes til deltagerne';
-
 $labels['notanattendee'] = 'Du er ikke opført som deltager for dette arrangement';
 $labels['eventcancelled'] = 'Arrangementet er blevet aflyst';
 $labels['saveincalendar'] = 'gem i';
@@ -208,8 +190,6 @@ $labels['savetocalendar'] = 'Gem til kalender';
 $labels['openpreview'] = 'Tjek kalender';
 $labels['noearlierevents'] = 'Ingen tidligere begivenheder';
 $labels['nolaterevents'] = 'Ingen senere begivenheder';
-
-// resources
 $labels['resource'] = 'Ressource';
 $labels['addresource'] = 'Booking af ressource';
 $labels['findresources'] = 'Find ressourcer';
@@ -217,16 +197,12 @@ $labels['resourcedetails'] = 'Detaljer';
 $labels['resourceavailability'] = 'Tilgængelighed';
 $labels['resourceowner'] = 'Ejer';
 $labels['resourceadded'] = 'Ressourcen til føjet til din begivenhed';
-
-// event dialog tabs
 $labels['tabsummary'] = 'Resumé';
 $labels['tabrecurrence'] = 'Gentagelse';
 $labels['tabattendees'] = 'Deltagere';
 $labels['tabresources'] = 'Ressourcer';
 $labels['tabattachments'] = 'Vedhæftninger';
 $labels['tabsharing'] = 'Deling';
-
-// messages
 $labels['deleteobjectconfirm'] = 'Sikker på at du vil slette dette arrangement?';
 $labels['deleteventconfirm'] = 'Sikker på at du vil slette dette arrangement?';
 $labels['deletecalendarconfirm'] = 'Sikker på at du vil slette denne kalender med alle dets arrangementer?';
@@ -256,7 +232,6 @@ $labels['importsuccess'] = 'Gennemførte import af $nr arrangementer';
 $labels['importnone'] = 'Fandt ingen arrangementer som kunne importeres';
 $labels['importerror'] = 'Der opstod en fejl under import';
 $labels['aclnorights'] = 'Du har ikke administratorrettigheder for denne kalender.';
-
 $labels['changeeventconfirm'] = 'Tilpas arrangement';
 $labels['removeeventconfirm'] = 'Slet begivenhed';
 $labels['changerecurringeventwarning'] = 'Dette er et tilbagevendende arrangement. Ønsker du kun at redige det aktuelle arrangement, dette og alle fremtidige forekomster, alle forekomster eller gemme det som et nyt arrangement?';
@@ -266,16 +241,12 @@ $labels['currentevent'] = 'Nuværende';
 $labels['futurevents'] = 'Fremtid';
 $labels['allevents'] = 'Alle';
 $labels['saveasnew'] = 'Gem som ny';
-
-// birthdays calendar
 $labels['birthdays'] = 'Fødselsdage';
 $labels['birthdayscalendar'] = 'Fødselsdagskalender';
 $labels['displaybirthdayscalendar'] = 'Vis fødselsdagskalender';
 $labels['birthdayscalendarsources'] = 'Fra disse adressebøger';
 $labels['birthdayeventtitle'] = '$name har fødselsdag';
 $labels['birthdayage'] = '$age år';
-
-// history dialog
 $labels['objectchangelog'] = 'Ændringshistorik';
 $labels['objectdiff'] = 'Ændringer fra $rev1 til $rev2';
 $labels['objectnotfound'] = 'Kunne ikke indlæse begivenhedsdata';
@@ -284,9 +255,6 @@ $labels['objectdiffnotavailable'] = 'Det er ikke muligt at sammenligne de valgte
 $labels['revisionrestoreconfirm'] = 'Sikker på at du vil genskabe revision $rev af denne begivenhed? Dette vil erstatte den nuværende begivenhed med den tidligere version.';
 $labels['objectrestoresuccess'] = 'Revision $rev blev genskabt';
 $labels['objectrestoreerror'] = 'Mislykkedes med at genskabe den gamle revision';
-
-
-// (hidden) titles and labels for accessibility annotations
 $labels['arialabelminical'] = 'Valg af kalenderdato';
 $labels['arialabelcalendarview'] = 'Kalendervisning';
 $labels['arialabelsearchform'] = 'Søgeformular for begivenheder';
@@ -297,5 +265,4 @@ $labels['arialabeleventattendees'] = 'Deltagerliste for begivenhed';
 $labels['arialabeleventresources'] = 'Ressourceliste for begivenhed';
 $labels['arialabelresourcesearchform'] = 'Søgeformular for ressourcer';
 $labels['arialabelresourceselection'] = 'Tilgængelige ressourcer';
-
 ?>

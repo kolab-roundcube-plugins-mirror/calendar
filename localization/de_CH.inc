@@ -179,6 +179,7 @@ $labels['itipmailbodycancel'] = "\$sender hat ihre Teilnahme bei der folgenden V
 $labels['itipmailbodydelegated'] = "\$sender hat die Teilnahme an folgendem Event delegiert:\n\n*\$title*\n\nWann: \$date";
 $labels['itipmailbodydelegatedto'] = "\$sender hat die Teilnahme an folgendem Event an Sie delegiert:\n\n*\$title*\n\nWann: \$date";
 $labels['itipdeclineevent'] = 'Möchten Sie die Einladung zu diesem Termin ablehnen?';
+$labels['declinedeleteconfirm'] = 'Do you also want to delete this declined event from your calendar?';
 $labels['itipcomment'] = 'Kommentar zur Einladungs/Benachrichtigung';
 $labels['itipcommenttitle'] = 'Dieser Kommentar wird an die Einladungs/Benachrichtigung angehängt, die an die Teilnehmer verschickt wird';
 $labels['notanattendee'] = 'Sie sind nicht in der Liste der Teilnehmer aufgeführt';

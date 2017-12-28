@@ -38,7 +38,7 @@ function rcube_calendar_ui(settings)
     this.selected_event = null;
     this.selected_calendar = null;
     this.search_request = null;
-    this.saving_lock;
+    this.saving_lock = null;
     this.calendars = {};
     this.quickview_sources = [];
 
@@ -47,8 +47,6 @@ function rcube_calendar_ui(settings)
     var DAY_MS = 86400000;
     var HOUR_MS = 3600000;
     var me = this;
-    var gmt_offset = (new Date().getTimezoneOffset() / -60) - (settings.timezone || 0) - (settings.dst || 0);
-    var client_timezone = new Date().getTimezoneOffset();
     var day_clicked = day_clicked_ts = 0;
     var ignore_click = false;
     var event_defaults = { free_busy:'busy', alarms:'' };
@@ -197,18 +195,18 @@ function rcube_calendar_ui(settings)
     {
       var result = [],
         strlen = str.length,
-        q, p, i, char, last;
+        q, p, i, chr, last;
 
       for (q = p = i = 0; i < strlen; i++) {
-        char = str.charAt(i);
-        if (char == '"' && last != '\\') {
+        chr = str.charAt(i);
+        if (chr == '"' && last != '\\') {
           q = !q;
         }
-        else if (!q && char == delimiter) {
+        else if (!q && chr == delimiter) {
           result.push(str.substring(p, i));
           p = i + 1;
         }
-        last = char;
+        last = chr;
       }
 
       result.push(str.substr(p));
@@ -413,7 +411,7 @@ function rcube_calendar_ui(settings)
         $('#event-repeat').show().children('.event-text').html(Q(event.recurrence_text));
       
       if (event.valarms && event.alarms_text)
-        $('#event-alarm').show().children('.event-text').html(Q(event.alarms_text));
+        $('#event-alarm').show().children('.event-text').html(Q(event.alarms_text).replace(',', ',<br>'));
       
       if (calendar.name)
         $('#event-calendar').show().children('.event-text').html(Q(calendar.name)).attr('class', 'event-text cal-'+calendar.id).css('color', calendar.textColor || calendar.color || '');
@@ -488,9 +486,9 @@ function rcube_calendar_ui(settings)
           line = rcube_libcalendaring.attendee_html(data);
 
           if (morelink)
-            overflow += line;
+            overflow += ' ' + line;
           else
-            html += line;
+            html += ' ' + line;
 
           // stop listing attendees
           if (j == 7 && event.attendees.length >= 7) {
@@ -628,6 +626,8 @@ function rcube_calendar_ui(settings)
       }
 
       rcmail.enable_command('event-history', calendar.history)
+
+      rcmail.triggerEvent('calendar-event-dialog', {dialog: $dialog});
     };
 
     // event handler for clicks on an attendee link
@@ -969,6 +969,8 @@ function rcube_calendar_ui(settings)
         window.setTimeout(load_attendees_tab, exec_deferred);
       if (calendar.attachments)
         window.setTimeout(load_attachments_tab, exec_deferred);
+
+      rcmail.triggerEvent('calendar-event-dialog', {dialog: $dialog});
     };
 
     // show event changelog in a dialog
@@ -3145,6 +3147,28 @@ function rcube_calendar_ui(settings)
       }
     };
 
+    // display the edit dialog, request 'new' action and pass the selected event
+    this.event_copy = function(event) {
+      if (event && event.id) {
+        var copy = $.extend(true, {}, event);
+
+        delete copy.id;
+        delete copy._id;
+        delete copy.created;
+        delete copy.changed;
+        delete copy.recurrence_id;
+        delete copy.attachments; // @TODO
+
+        $.each(copy.attendees, function (k, v) {
+          if (v.role != 'ORGANIZER') {
+            v.status = 'NEEDS-ACTION';
+          }
+        })
+
+        event_edit_dialog('new', copy);
+      }
+    };
+
     // show URL of the given calendar in a dialog box
     this.showurl = function(calendar)
     {
@@ -3906,23 +3930,31 @@ function rcube_calendar_ui(settings)
       // init event dialog
       $('#eventtabs').tabs({
         activate: function(event, ui) {
-          if (ui.newPanel.selector == '#event-panel-attendees' || ui.newPanel.selector == '#event-panel-resources') {
-            var tab = ui.newPanel.selector == '#event-panel-resources' ? 'resource' : 'attendee';
+          // newPanel.selector for jQuery-UI 1.10, newPanel.attr('id') for jQuery-UI 1.12
+          var tab = String(ui.newPanel.selector || ui.newPanel.attr('id'))
+              .replace(/^#?event-panel-/, '').replace(/s$/, '');
+
+          var has_real_attendee = function(attendees) {
+              for (var i=0; i < (attendees ? attendees.length : 0); i++) {
+                if (attendees[i].cutype != 'RESOURCE')
+                  return true;
+              }
+            };
+
+          if (tab == 'attendee' || tab == 'resource') {
             if (!rcube_event.is_keyboard(event))
               $('#edit-'+tab+'-name').select();
             // update free-busy status if needed
             if (freebusy_ui.needsupdate && me.selected_event)
               update_freebusy_status(me.selected_event);
             // add current user as organizer if non added yet
-            if (!event_attendees.length) {
+            if (tab == 'attendee' && !has_real_attendee(event_attendees)) {
               add_attendee($.extend({ role:'ORGANIZER' }, settings.identity));
               $('#edit-attendees-form .attendees-invitebox').show();
             }
           }
           // reset autocompletion on tab change (#3389)
-          if (ui.oldPanel.selector == '#event-panel-attendees' || ui.oldPanel.selector == '#event-panel-resources') {
-            rcmail.ksearch_blur();
-          }
+          rcmail.ksearch_blur();
         }
       });
       $('#edit-enddate').datepicker(datepicker_settings);
@@ -4132,6 +4164,7 @@ window.rcmail && rcmail.addEventListener('init', function(evt) {
   rcmail.register_command('calendar-showurl', function(){ cal.showurl(cal.calendars[cal.selected_calendar]); }, false);
   rcmail.register_command('event-download', function(){ cal.event_download(cal.selected_event); }, true);
   rcmail.register_command('event-sendbymail', function(p, obj, e){ cal.event_sendbymail(cal.selected_event, e); }, true);
+  rcmail.register_command('event-copy', function(){ cal.event_copy(cal.selected_event); }, true);
   rcmail.register_command('event-history', function(p, obj, e){ cal.event_history_dialog(cal.selected_event); }, false);
 
   // search and export events

@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Localizations for Kolab Calendar plugin
  *
@@ -7,10 +6,6 @@
  *
  * For translation see https://www.transifex.com/projects/p/kolab/resource/calendar/
  */
-
-$labels = array();
-
-// preferences
 $labels['default_view'] = 'Oletusnäkymä';
 $labels['time_format'] = 'Aikamuoto';
 $labels['timeslots'] = 'Ajankohdat per tunti';
@@ -23,8 +18,6 @@ $labels['defaultcalendar'] = 'Luo uudet tapahtumat kohteeseen';
 $labels['eventcoloring'] = 'Tapahtuman väritys';
 $labels['coloringmode0'] = 'Kalenterin mukaan';
 $labels['coloringmode1'] = 'Luokan mukaan';
-$labels['coloringmode2'] = 'Calendar for outline, category for content';
-$labels['coloringmode3'] = 'Category for outline, calendar for content';
 $labels['afternothing'] = 'Älä tee mitään';
 $labels['aftertrash'] = 'Siirrä roskakoriin';
 $labels['afterdelete'] = 'Poista viesti';
@@ -32,8 +25,6 @@ $labels['afterflagdeleted'] = 'Merkitse poistettavaksi';
 $labels['aftermoveto'] = 'Siirrä...';
 $labels['itipoptions'] = 'Tapahtuman kutsut';
 $labels['afteraction'] = 'Kun kutsu tai päivitysviesti on käsitelty';
-
-// calendar
 $labels['calendar'] = 'Kalenteri';
 $labels['calendars'] = 'Kalenterit';
 $labels['category'] = 'Luokka';
@@ -122,8 +113,6 @@ $labels['invitationspending'] = 'Odottavat kutsut';
 $labels['invitationsdeclined'] = 'Torjutut kutsut';
 $labels['changepartstat'] = 'Muuta osallistujan tilaa';
 $labels['rsvpcomment'] = 'Kutsuteksti';
-
-// agenda view
 $labels['listrange'] = 'Näytettävä aikaväli';
 $labels['listsections'] = 'Jaa osiin:';
 $labels['smartsections'] = 'Älykkäät osiot';
@@ -138,13 +127,9 @@ $labels['nextmonth'] = 'Ensi kuussa';
 $labels['weekofyear'] = 'Viikko';
 $labels['pastevents'] = 'Menneet';
 $labels['futureevents'] = 'Tulevat';
-
-// alarm/reminder settings
 $labels['showalarms'] = 'Näytä muistutukset';
 $labels['defaultalarmtype'] = 'Muistutuksen oletusasetus';
 $labels['defaultalarmoffset'] = 'Muistutuksen oletusaika';
-
-// attendees
 $labels['attendee'] = 'Osallistujat';
 $labels['role'] = 'Rooli';
 $labels['availability'] = 'Saatavilla';
@@ -184,22 +169,17 @@ $labels['eventupdatesubjectempty'] = 'Sinua koskeva tapahtuma on päivitetty';
 $labels['eventupdatemailbody'] = "*\$title*\n\nMilloin: \$date\n\nKutsutut: \$attendees\n\nOhessa iCalendar -tiedosto mistä löytyvät kaikki päivitetyn tapahtuman yksityistiedot. Voit tuoda tämän tiedoston kalenteriohjelmaasi.";
 $labels['eventcancelsubject'] = '"$title" on peruttu';
 $labels['eventcancelmailbody'] = "*\$title*\n\nMilloin: \$date\n\nKutsutut: \$attendees\n\nTämä tapahtuma on peruttu  \$organizer toimesta.\n\nLöydät liitteenä iCalendar -tiedoston tapahtuman päivitetyin tiedoin.";
-
-// invitation handling (overrides labels from libcalendaring)
 $labels['itipobjectnotfound'] = 'Viestissä mainittua tapahtumaa ei löydy kalenteristasi.';
-
 $labels['itipmailbodyaccepted'] = "\$sender on hyväksynyt kutsun seuraavaan tapahtumaan:\n\n*\$title*\n\nMilloin: \$date\n\nKutsutut: \$attendees";
 $labels['itipmailbodytentative'] = "\$sender on alustavasti hyväksynyt kutsun seuraavaan tapahtumaan:\n\n*\$title*\n\nMilloin: \$date\n\nKutsutut: \$attendees";
 $labels['itipmailbodydeclined'] = "\$sender on hylännyt kutsun seuraavaan tapahtumaan:\n\n*\$title*\n\nMilloin: \$date\n\nKutsutut: \$attendees";
 $labels['itipmailbodycancel'] = "\$sender on hylännyt osallistumisesi tapahtumaan:\n\n*\$title*\n\nMilloin: \$date";
 $labels['itipmailbodydelegated'] = "\$sender on delegoinut osallistumisensa seuraavaan tapahtumaan:\n\n*\$title*\n\nAjankohta: \$date";
 $labels['itipmailbodydelegatedto'] = "\$sender on delegoinut osallistumisensa sinulle seuraavaan tapahtumaan:\n\n*\$title*\n\nAjankohta: \$date";
-
 $labels['itipdeclineevent'] = 'Haluatko perua kutsun tähän tapahtumaan?';
 $labels['declinedeleteconfirm'] = 'Haluatko poistaa tämän hylätyn tapahtuman kalenteristasi?';
 $labels['itipcomment'] = 'Kutsun/herätteen kommentit';
 $labels['itipcommenttitle'] = 'Tämä kommentti liitetään osallistujille lähetettävään kutsuun/heräteviestiin';
-
 $labels['notanattendee'] = 'Sinua ei ole määritetty tapahtuman osanottajaksi';
 $labels['eventcancelled'] = 'Tapahtuma on peruttu';
 $labels['saveincalendar'] = 'tallennuskohde';
@@ -208,8 +188,6 @@ $labels['savetocalendar'] = 'Tallenna kalenteriin';
 $labels['openpreview'] = 'Tarkista kalenteri';
 $labels['noearlierevents'] = 'Ei aiempia tapahtumia';
 $labels['nolaterevents'] = 'Ei myöhempiä tapahtumia';
-
-// resources
 $labels['resource'] = 'Resurssi';
 $labels['addresource'] = 'Varaa resurssi';
 $labels['findresources'] = 'Etsi resursseja';
@@ -217,16 +195,12 @@ $labels['resourcedetails'] = 'Tiedot';
 $labels['resourceavailability'] = 'Saatavuus';
 $labels['resourceowner'] = 'Omistaja';
 $labels['resourceadded'] = 'Resurssi on liitetty tapahtumaasi';
-
-// event dialog tabs
 $labels['tabsummary'] = 'Yhteenveto';
 $labels['tabrecurrence'] = 'Toistuminen';
 $labels['tabattendees'] = 'Osallistujat';
 $labels['tabresources'] = 'Resurssit';
 $labels['tabattachments'] = 'Liitteet';
 $labels['tabsharing'] = 'Jakaminen';
-
-// messages
 $labels['deleteobjectconfirm'] = 'Haluatko varmasti poistaa tämän tapahtuman?';
 $labels['deleteventconfirm'] = 'Haluatko varmasti poistaa tämän tapahtuman?';
 $labels['deletecalendarconfirm'] = 'Haluatko varmasti poistaa tämän kalenterin ja kaikki sen tapahtumat?';
@@ -256,7 +230,6 @@ $labels['importsuccess'] = '$nr tapahtumaa tuotiin onnistuneesti';
 $labels['importnone'] = 'Tuotavaksi tarkoitettuja tapahtumia ei löytynyt';
 $labels['importerror'] = 'Tuotaessa tapahtui virhe';
 $labels['aclnorights'] = 'Sinulla ei ole ylläpitäjän oikeuksia tähän kalenteriin.';
-
 $labels['changeeventconfirm'] = 'Vaihda tapahtuma';
 $labels['removeeventconfirm'] = 'Poista tapahtuma';
 $labels['changerecurringeventwarning'] = 'Tämä on tuistuva tapahtuma. Haluatko muokata vain tätä ajankohtaa, tätä ja tulevia tapahtuman ajankohtia, kaikkia tapahtuman ajankohtia vai tallentaa kokonaan uutena tapahtumana? ';
@@ -266,16 +239,12 @@ $labels['currentevent'] = 'Nykyinen';
 $labels['futurevents'] = 'Tulevat';
 $labels['allevents'] = 'Kaikki';
 $labels['saveasnew'] = 'Tallenna uutena';
-
-// birthdays calendar
 $labels['birthdays'] = 'Syntymäpäivät';
 $labels['birthdayscalendar'] = 'Syntymäpäivät kalenteri';
 $labels['displaybirthdayscalendar'] = 'Näytä syntymäpäivät kalenterissa';
 $labels['birthdayscalendarsources'] = 'Näistä osoitekirjoista';
 $labels['birthdayeventtitle'] = 'Syntymäpäivä: $name';
 $labels['birthdayage'] = 'Ikä $age';
-
-// history dialog
 $labels['objectchangelog'] = 'Muutoshistoria';
 $labels['objectdiff'] = 'Muutokset versiosta $rev1 versioon $rev2';
 $labels['objectnotfound'] = 'Tapahtuman tietojen lataaminen epäonnistui';
@@ -284,9 +253,6 @@ $labels['objectdiffnotavailable'] = 'Valituille versioille ei ole mahdollista te
 $labels['revisionrestoreconfirm'] = 'Haluatko varmasti palauttaa tämän tapahtuman version $rev? Nykyinen tapahtuma korvataan vanhalla versiolla.';
 $labels['objectrestoresuccess'] = 'Versio $rev palautettu onnistuneesti';
 $labels['objectrestoreerror'] = 'Vanhan version palauttaminen epäonnistui';
-
-
-// (hidden) titles and labels for accessibility annotations
 $labels['arialabelminical'] = 'Kalenterin ajankohdan valinta';
 $labels['arialabelcalendarview'] = 'Kalenterinäkymä';
 $labels['arialabelsearchform'] = 'Tapahtumahaun lomake';
@@ -297,5 +263,4 @@ $labels['arialabeleventattendees'] = 'Tapahtuman osallistujalista';
 $labels['arialabeleventresources'] = 'Tapahtuman resurssilista';
 $labels['arialabelresourcesearchform'] = 'Resurssien hakulomake';
 $labels['arialabelresourceselection'] = 'Saatavilla olevat resurssit';
-
 ?>
