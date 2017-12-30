@@ -74,6 +74,9 @@
 		<li role="menuitem"><roundcube:button type="link" command="calendar-remove" label="calendar.removelist" classAct="active" /></li>
 		<roundcube:endif />
 		<li role="menuitem"><roundcube:button type="link" command="calendar-showurl" label="calendar.showurl" classAct="active" /></li>
+		<roundcube:if condition="!empty(env:calendar_settings['freebusy_url'])" />
+		<li role="menuitem"><roundcube:button type="link" command="calendar-showfburl" label="calendar.showfburl" classAct="active" /></li>
+		<roundcube:endif />
 		<roundcube:if condition="env:calendar_driver == 'kolab'" />
 		<li role="menuitem"><roundcube:button type="link" command="folders" task="settings" label="managefolders" classAct="active" /></li>
 		<roundcube:endif />
@@ -359,6 +362,11 @@
 		<p><roundcube:label name="calendar.caldavurldescription" html="yes" /></p>
 		<textarea id="caldavurl" rows="2" readonly="readonly"></textarea>
 	</div>
+</div>
+
+<div id="fburlbox" class="uidialog">
+	<p><roundcube:label name="calendar.fburldescription" /></p>
+	<textarea id="fburl" rows="2" readonly="readonly"></textarea>
 </div>
 
 <roundcube:object name="plugin.calendar_css" />

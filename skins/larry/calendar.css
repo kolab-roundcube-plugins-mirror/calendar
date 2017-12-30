@@ -433,6 +433,7 @@ pre {
 	background-color: #c7e3ef;
 }
 
+#fburl,
 #calfeedurl,
 #caldavurl {
 	width: 98%;
@@ -794,8 +795,7 @@ a.miniColors-trigger {
 }
 
 .calendarmain .eventdialog div.event-line {
-	margin-top: 0.1em;
-	margin-bottom: 0.3em;
+	margin-bottom: 0.4em;
 	white-space: nowrap;
 	overflow-x: hidden;
 	text-overflow: ellipsis;
@@ -1945,6 +1945,12 @@ a.dropdown-link:after {
 	font-weight: bold;
 }
 
+.fc-needs-action,
+.fc-declined,
+.cal-event-status-cancelled {
+	opacity: 0.6;
+}
+
 .cal-event-status-cancelled .fc-event-title {
 	text-decoration: line-through;
 }
@@ -2238,6 +2244,7 @@ div.calendar-invitebox .rsvp-status.delegated {
 	background-position: 2px -180px;
 }
 
+#event-partstat .changersvp.unknown,
 #event-partstat .changersvp.needs-action,
 div.calendar-invitebox .rsvp-status.needs-action {
 	background-position: 2px 0;

@@ -112,6 +112,8 @@ $labels['nmonthsback'] = '$nr months back';
 $labels['showurl'] = 'Show calendar URL';
 $labels['showurldescription'] = 'Use the following address to access (read only) your calendar from other applications. You can copy and paste this into any calendar software that supports the iCal format.';
 $labels['caldavurldescription'] = 'Copy this address to a <a href="http://en.wikipedia.org/wiki/CalDAV" target="_blank">CalDAV</a> client application (e.g. Evolution or Mozilla Thunderbird) to fully synchronize this specific calendar with your computer or mobile device.';
+$labels['showfburl'] = 'Show free-busy URL';
+$labels['fburldescription'] = 'Use the following address to access Free-Busy information from other applications. You can copy and paste this into any calendar software that supports free-busy information in iCal format. No authentication is required for this URL.';
 $labels['findcalendars'] = 'Find calendars...';
 $labels['searchterms'] = 'Search terms';
 $labels['calsearchresults'] = 'Available Calendars';
@@ -123,6 +125,7 @@ $labels['invitationspending'] = 'Pending invitations';
 $labels['invitationsdeclined'] = 'Declined invitations';
 $labels['changepartstat'] = 'Change participant status';
 $labels['rsvpcomment'] = 'Invitation text';
+$labels['eventstartsync'] = 'Move the event start date to the first occurrence';
 
 // agenda view
 $labels['listrange'] = 'Range to display:';
@@ -165,8 +168,6 @@ $labels['availbusy'] = 'Busy';
 $labels['availunknown'] = 'Unknown';
 $labels['availtentative'] = 'Tentative';
 $labels['availoutofoffice'] = 'Out of Office';
-$labels['delegatedto'] = 'Delegated to: ';
-$labels['delegatedfrom'] = 'Delegated from: ';
 $labels['scheduletime'] = 'Find availability';
 $labels['sendinvitations'] = 'Send invitations';
 $labels['sendnotifications'] = 'Notify participants about modifications';
@@ -267,6 +268,7 @@ $labels['currentevent'] = 'Current';
 $labels['futurevents'] = 'Future';
 $labels['allevents'] = 'All';
 $labels['saveasnew'] = 'Save as new';
+$labels['recurrenceerror'] = 'Unable to resolve recurrence rule for specified start date.';
 
 // birthdays calendar
 $labels['birthdays'] = 'Birthdays';

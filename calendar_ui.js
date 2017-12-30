@@ -477,7 +477,7 @@ function rcube_calendar_ui(settings)
           data = event.attendees[j];
           if (data.email) {
             if (data.role != 'ORGANIZER' && settings.identity.emails.indexOf(';'+data.email) >= 0) {
-              mystatus = data.status.toLowerCase();
+              mystatus = (data.status || 'UNKNOWN').toLowerCase();
               if (data.status == 'NEEDS-ACTION' || data.status == 'TENTATIVE' || data.rsvp)
                 rsvp = mystatus;
             }
@@ -519,7 +519,7 @@ function rcube_calendar_ui(settings)
 
         if (mystatus && !rsvp) {
           $('#event-partstat').show().children('.changersvp')
-            .removeClass('accepted tentative declined delegated needs-action')
+            .removeClass('accepted tentative declined delegated needs-action unknown')
             .addClass(mystatus)
             .children('.event-text')
             .text(rcmail.gettext('status' + mystatus, 'libcalendaring'));
@@ -527,7 +527,7 @@ function rcube_calendar_ui(settings)
 
         var show_rsvp = rsvp && !organizer && event.status != 'CANCELLED' && me.has_permission(calendar, 'v');
         $('#event-rsvp')[(show_rsvp ? 'show' : 'hide')]();
-        $('#event-rsvp .rsvp-buttons input').prop('disabled', false).filter('input[rel='+mystatus+']').prop('disabled', true);
+        $('#event-rsvp .rsvp-buttons input').prop('disabled', false).filter('input[rel="'+(mystatus || '')+'"]').prop('disabled', true);
 
         if (show_rsvp && event.comment)
           $('#event-rsvp-comment').show().children('.event-text').html(Q(event.comment));
@@ -678,7 +678,7 @@ function rcube_calendar_ui(settings)
       var freebusy = $('#edit-free-busy').val(event.free_busy);
       var priority = $('#edit-priority').val(event.priority);
       var sensitivity = $('#edit-sensitivity').val(event.sensitivity);
-      
+      var syncstart = $('#edit-recurrence-syncstart input');
       var duration = Math.round((event.end.getTime() - event.start.getTime()) / 1000);
       var startdate = $('#edit-startdate').val($.fullCalendar.formatDate(event.start, settings['date_format'])).data('duration', duration);
       var starttime = $('#edit-starttime').val($.fullCalendar.formatDate(event.start, settings['time_format'])).show();
@@ -897,6 +897,9 @@ function rcube_calendar_ui(settings)
           if (data.calendar && data.calendar != event.calendar)
             data._fromcalendar = event.calendar;
         }
+
+        if (data.recurrence && syncstart.is(':checked'))
+          data.syncstart = 1;
 
         update_event(action, data);
         $dialog.dialog("close");
@@ -3200,6 +3203,27 @@ function rcube_calendar_ui(settings)
       }
     };
 
+    // show free-busy URL in a dialog box
+    this.showfburl = function()
+    {
+      var $dialog = $('#fburlbox');
+
+      if ($dialog.is(':ui-dialog'))
+        $dialog.dialog('close');
+
+      $dialog.dialog({
+        resizable: true,
+        closeOnEscape: true,
+        title: rcmail.gettext('showfburl', 'calendar'),
+        close: function() {
+          $dialog.dialog("destroy").hide();
+        },
+        width: 520
+      }).show();
+
+      $('#fburl').val(settings.freebusy_url).select();
+    };
+
     // refresh the calendar view after saving event data
     this.refresh = function(p)
     {
@@ -3601,7 +3625,7 @@ function rcube_calendar_ui(settings)
     calendars_list.addEventListener('select', function(node) {
       if (node && node.id && me.calendars[node.id]) {
         me.select_calendar(node.id, true);
-        rcmail.enable_command('calendar-edit', 'calendar-showurl', true);
+        rcmail.enable_command('calendar-edit', 'calendar-showurl', 'calendar-showfburl', true);
         rcmail.enable_command('calendar-delete', me.calendars[node.id].editable);
         rcmail.enable_command('calendar-remove', me.calendars[node.id] && me.calendars[node.id].removable);
       }
@@ -3953,8 +3977,15 @@ function rcube_calendar_ui(settings)
               $('#edit-attendees-form .attendees-invitebox').show();
             }
           }
+
           // reset autocompletion on tab change (#3389)
           rcmail.ksearch_blur();
+
+          // display recurrence warning in recurrence tab only
+          if (tab == 'recurrence')
+            $('#edit-recurrence-frequency').change();
+          else
+            $('#edit-recurrence-syncstart').hide();
         }
       });
       $('#edit-enddate').datepicker(datepicker_settings);
@@ -4162,6 +4193,7 @@ window.rcmail && rcmail.addEventListener('init', function(evt) {
   rcmail.register_command('calendar-delete', function(){ cal.calendar_delete(cal.calendars[cal.selected_calendar]); }, false);
   rcmail.register_command('events-import', function(){ cal.import_events(cal.calendars[cal.selected_calendar]); }, true);
   rcmail.register_command('calendar-showurl', function(){ cal.showurl(cal.calendars[cal.selected_calendar]); }, false);
+  rcmail.register_command('calendar-showfburl', function(){ cal.showfburl(); }, false);
   rcmail.register_command('event-download', function(){ cal.event_download(cal.selected_event); }, true);
   rcmail.register_command('event-sendbymail', function(p, obj, e){ cal.event_sendbymail(cal.selected_event, e); }, true);
   rcmail.register_command('event-copy', function(){ cal.event_copy(cal.selected_event); }, true);

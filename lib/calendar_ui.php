@@ -92,6 +92,7 @@ class calendar_ui
     $this->cal->register_handler('plugin.resource_calendar', array($this, 'resource_calendar'));
     $this->cal->register_handler('plugin.attendees_freebusy_table', array($this, 'attendees_freebusy_table'));
     $this->cal->register_handler('plugin.edit_attendees_notify', array($this, 'edit_attendees_notify'));
+    $this->cal->register_handler('plugin.edit_recurrence_sync', array($this, 'edit_recurrence_sync'));
     $this->cal->register_handler('plugin.edit_recurring_warning', array($this, 'recurring_event_warning'));
     $this->cal->register_handler('plugin.event_rsvp_buttons', array($this, 'event_rsvp_buttons'));
     $this->cal->register_handler('plugin.angenda_options', array($this, 'angenda_options'));
@@ -473,12 +474,21 @@ class calendar_ui
   }
 
   /**
-   *
+   * Render HTML for attendee notification warning
    */
   function edit_attendees_notify($attrib = array())
   {
     $checkbox = new html_checkbox(array('name' => '_notify', 'id' => 'edit-attendees-donotify', 'value' => 1));
     return html::div($attrib, html::label(null, $checkbox->show(1) . ' ' . $this->cal->gettext('sendnotifications')));
+  }
+
+  /**
+   * Render HTML for recurrence option to align start date with the recurrence rule
+   */
+  function edit_recurrence_sync($attrib = array())
+  {
+    $checkbox = new html_checkbox(array('name' => '_start_sync', 'value' => 1));
+    return html::div($attrib, html::label(null, $checkbox->show(1) . ' ' . $this->cal->gettext('eventstartsync')));
   }
 
   /**

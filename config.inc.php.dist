@@ -166,4 +166,9 @@ $config['kolab_invitation_calendars'] = false;
 // LDAP directory configuration to find avilable resources for events
 // $config['calendar_resources_directory'] = array(/* ldap_public-like address book configuration */);
 
+// Enables displaying of free-busy URL with token-based authentication
+// Set it to the prefix URL, e.g. 'https://hostname/freebusy' or just '/freebusy'.
+// See freebusy_session_auth in configuration of kolab_auth plugin.
+$config['calendar_freebusy_session_auth_url'] = null;
+
 ?>

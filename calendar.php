@@ -857,8 +857,8 @@ class calendar extends rcube_plugin
     if ($success && $reload)
       $this->rc->output->command('plugin.reload_view');
   }
-  
-  
+
+
   /**
    * Dispatcher for event actions initiated by the client
    */
@@ -867,7 +867,7 @@ class calendar extends rcube_plugin
     $action = rcube_utils::get_input_value('action', rcube_utils::INPUT_GPC);
     $event  = rcube_utils::get_input_value('e', rcube_utils::INPUT_POST, true);
     $success = $reload = $got_msg = false;
-    
+
     // force notify if hidden + active
     if ((int)$this->rc->config->get('calendar_itip_send_option', $this->defaults['calendar_itip_send_option']) === 1)
       $event['_notify'] = 1;
@@ -887,8 +887,10 @@ class calendar extends rcube_plugin
       case "new":
         // create UID for new event
         $event['uid'] = $this->generate_uid();
-        $this->write_preprocess($event, $action);
-        if ($success = $this->driver->new_event($event)) {
+        if (!$this->write_preprocess($event, $action)) {
+          $got_msg = true;
+        }
+        else if ($success = $this->driver->new_event($event)) {
           $event['id'] = $event['uid'];
           $event['_savemode'] = 'all';
           $this->cleanup_event($event);
@@ -898,8 +900,10 @@ class calendar extends rcube_plugin
         break;
         
       case "edit":
-        $this->write_preprocess($event, $action);
-        if ($success = $this->driver->edit_event($event)) {
+        if (!$this->write_preprocess($event, $action)) {
+          $got_msg = true;
+        }
+        else if ($success = $this->driver->edit_event($event)) {
           $this->cleanup_event($event);
           $this->event_save_success($event, $old, $action, $success);
         }
@@ -907,19 +911,23 @@ class calendar extends rcube_plugin
         break;
       
       case "resize":
-        $this->write_preprocess($event, $action);
-        if ($success = $this->driver->resize_event($event)) {
+        if (!$this->write_preprocess($event, $action)) {
+          $got_msg = true;
+        }
+        else if ($success = $this->driver->resize_event($event)) {
           $this->event_save_success($event, $old, $action, $success);
         }
         $reload = $event['_savemode'] ? 2 : 1;
         break;
       
       case "move":
-        $this->write_preprocess($event, $action);
-        if ($success = $this->driver->move_event($event)) {
+        if (!$this->write_preprocess($event, $action)) {
+          $got_msg = true;
+        }
+        else if ($success = $this->driver->move_event($event)) {
           $this->event_save_success($event, $old, $action, $success);
         }
-        $reload  = $success && $event['_savemode'] ? 2 : 1;
+        $reload = $success && $event['_savemode'] ? 2 : 1;
         break;
       
       case "remove":
@@ -1184,7 +1192,7 @@ class calendar extends rcube_plugin
     // unlock client
     $this->rc->output->command('plugin.unlock_saving');
 
-    // update event object on the client or trigger a complete refretch if too complicated
+    // update event object on the client or trigger a complete refresh if too complicated
     if ($reload) {
       $args = array('source' => $event['calendar']);
       if ($reload > 1)
@@ -1732,6 +1740,18 @@ class calendar extends rcube_plugin
       $settings['identity'] = array('name' => $identity['name'], 'email' => strtolower($identity['email']), 'emails' => ';' . strtolower(join(';', $identity['emails'])));
     }
 
+    // freebusy token authentication URL
+    if (($url = $this->rc->config->get('calendar_freebusy_session_auth_url'))
+      && ($uniqueid = $this->rc->config->get('kolab_uniqueid'))
+    ) {
+      if ($url === true) $url = '/freebusy';
+      $url = rtrim(rcube_utils::resolve_url($url), '/ ');
+      $url .= '/' . urlencode($this->rc->get_user_name());
+      $url .= '/' . urlencode($uniqueid);
+
+      $settings['freebusy_url'] = $url;
+    }
+
     return $settings;
   }
 
@@ -1981,12 +2001,31 @@ class calendar extends rcube_plugin
 
     // start/end is all we need for 'move' action (#1480)
     if ($action == 'move') {
-      return;
+      return true;
     }
 
     // convert the submitted recurrence settings
     if (is_array($event['recurrence'])) {
       $event['recurrence'] = $this->lib->from_client_recurrence($event['recurrence'], $event['start']);
+
+      // align start date with the first occurrence
+      if (!empty($event['recurrence']) && !empty($event['syncstart'])
+        && (empty($event['_savemode']) || $event['_savemode'] == 'all')
+      ) {
+        $next = $this->find_first_occurrence($event);
+
+        if (!$next) {
+          $this->rc->output->show_message('calendar.recurrenceerror', 'error');
+          return false;
+        }
+        else if ($event['start'] != $next) {
+          $diff = $event['start']->diff($event['end'], true);
+
+          $event['start'] = $next;
+          $event['end']   = clone $next;
+          $event['end']->add($diff);
+        }
+      }
     }
 
     // convert the submitted alarm values
@@ -2063,6 +2102,8 @@ class calendar extends rcube_plugin
       $event['url'] = $event['vurl'];
       unset($event['vurl']);
     }
+
+    return true;
   }
 
   /**
@@ -3433,6 +3474,35 @@ class calendar extends rcube_plugin
      $this->setup();
      $this->load_driver();
      return $this->driver->user_delete($args);
+  }
+
+  /**
+   * Find first occurrence of a recurring event excluding start date
+   *
+   * @param array $event Event data (with 'start' and 'recurrence')
+   *
+   * @return DateTime Date of the first occurrence
+   */
+  public function find_first_occurrence($event)
+  {
+    // Make sure libkolab plugin is loaded in case of Kolab driver
+    $this->load_driver();
+
+    // Use libkolab to compute recurring events (and libkolab plugin)
+    // Horde-based fallback has many bugs
+    if (class_exists('kolabformat') && class_exists('kolabcalendaring') && class_exists('kolab_date_recurrence')) {
+      $object = kolab_format::factory('event', 3.0);
+      $object->set($event);
+
+      $recurrence = new kolab_date_recurrence($object);
+    }
+    else {
+      // fallback to libcalendaring (Horde-based) recurrence implementation
+      require_once(__DIR__ . '/lib/calendar_recurrence.php');
+      $recurrence = new calendar_recurrence($this, $event);
+    }
+
+    return $recurrence->first_occurrence();
   }
 
   /**

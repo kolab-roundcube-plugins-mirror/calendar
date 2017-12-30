@@ -1157,7 +1157,7 @@ class kolab_driver extends calendar_driver
           $event['end']->add(new DateInterval($new_duration));
 
           // remove fixed weekday, will be re-set to the new weekday in kolab_calendar::update_event()
-          if ($old_start_date != $new_start_date) {
+          if ($old_start_date != $new_start_date && $event['recurrence']) {
             if (strlen($event['recurrence']['BYDAY']) == 2)
               unset($event['recurrence']['BYDAY']);
             if ($old['recurrence']['BYMONTH'] == $old['start']->format('n'))
@@ -1784,15 +1784,15 @@ class kolab_driver extends calendar_driver
    */
   private function get_recurrence_count($event, $dtstart)
   {
+    // load the given event data into a libkolabxml container
+    if (!$event['_formatobj']) {
+      $event_xml = new kolab_format_event();
+      $event_xml->set($event);
+      $event['_formatobj'] = $event_xml;
+    }
+
     // use libkolab to compute recurring events
-    if (class_exists('kolabcalendaring') && $event['_formatobj']) {
-        $recurrence = new kolab_date_recurrence($event['_formatobj']);
-    }
-    else {
-      // fallback to local recurrence implementation
-      require_once($this->cal->home . '/lib/calendar_recurrence.php');
-      $recurrence = new calendar_recurrence($this->cal, $event);
-    }
+    $recurrence = new kolab_date_recurrence($event['_formatobj']);
 
     $count = 0;
     while (($next_event = $recurrence->next_instance()) && $next_event['start'] <= $dtstart && $count < 1000) {
