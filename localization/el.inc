@@ -8,6 +8,7 @@
  */
 $labels['default_view'] = 'Προεπιλεγμένη προβολή';
 $labels['time_format'] = 'Μορφή ώρας';
+$labels['first_day'] = 'Πρώτη ημέρα της εβδομάδας';
 $labels['workinghours'] = 'Ώρες εργασίας';
 $labels['add_category'] = 'Προσθήκη κατηγορίας';
 $labels['remove_category'] = 'Αφαίρεση κατηγορίας';
@@ -25,7 +26,6 @@ $labels['calendars'] = 'Ημερολόγια';
 $labels['category'] = 'Κατηγορία';
 $labels['categories'] = 'Κατηγορίες';
 $labels['createcalendar'] = 'Δημιουργία νέου ημερολογίου';
-$labels['editcalendar'] = 'Επεξεργασία ιδιοτήτων ημερολογίου';
 $labels['name'] = 'Όνομα';
 $labels['color'] = 'Χρώμα';
 $labels['day'] = 'Ημέρα';

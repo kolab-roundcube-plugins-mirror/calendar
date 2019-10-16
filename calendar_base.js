@@ -33,53 +33,40 @@ function rcube_calendar(settings)
     // extend base class
     rcube_libcalendaring.call(this, settings);
 
-    // member vars
-    this.ui_loaded = false;
-    this.selected_attachment = null;
-
-    // private vars
-    var me = this;
-
     // create new event from current mail message
     this.create_from_mail = function(uid)
     {
-      if (uid || (uid = rcmail.get_single_uid())) {
-        // load calendar UI (scripts and edit dialog template)
-        if (!this.ui_loaded) {
-          $.when(
-            $.getScript(rcmail.assets_path('plugins/calendar/calendar_ui.js')),
-            $.getScript(rcmail.assets_path('plugins/calendar/lib/js/fullcalendar.js')),
-            $.get(rcmail.url('calendar/inlineui'), function(html) { $(document.body).append(html); }, 'html')
-          ).then(function() {
-            // disable attendees feature (autocompletion and stuff is not initialized)
-            for (var c in rcmail.env.calendars)
-              rcmail.env.calendars[c].attendees = rcmail.env.calendars[c].resources = false;
+      if (!uid && !(uid = rcmail.get_single_uid())) {
+        return;
+      }
 
-            me.ui_loaded = true;
-            me.ui = new rcube_calendar_ui(me.settings);
-            me.create_from_mail(uid);  // start over
+      var url = {_mbox: rcmail.env.mailbox, _uid: uid, _framed: 1},
+        buttons = {},
+        button_classes = ['mainaction save', 'cancel'],
+        title = rcmail.gettext('calendar.createfrommail'),
+        dialog = $('<iframe>').attr({
+            id: 'kolabcalendarinlinegui',
+            name: 'kolabcalendardialog',
+            src: rcmail.url('calendar/dialog-ui', url)
           });
 
-          return;
-        }
+      // dialog buttons
+      buttons[rcmail.gettext('save')] = function() {
+        var frame = rcmail.get_frame_window('kolabcalendarinlinegui');
+        frame.rcmail.command('event-save');
+      };
 
-        // get message contents for event dialog
-        var lock = rcmail.set_busy(true, 'loading');
-        rcmail.http_post('calendar/mailtoevent', {
-            '_mbox': rcmail.env.mailbox,
-            '_uid': uid
-          }, lock);
-      }
-    };
+      buttons[rcmail.gettext('cancel')] = function() {
+        dialog.dialog('destroy');
+      };
 
-    // callback function triggered from server with contents for the new event
-    this.mail2event_dialog = function(event)
-    {
-      if (event.title) {
-        this.ui.add_event(event);
-        if (rcmail.message_list)
-          rcmail.message_list.blur();
-      }
+      // open jquery UI dialog
+      window.kolab_event_dialog_element = dialog = rcmail.show_popup_dialog(dialog, title, buttons, {
+          button_classes: button_classes,
+          minWidth: 500,
+          width: 600,
+          height: 600
+      });
     };
 
     // handler for attachment-save-calendar commands
@@ -94,7 +81,7 @@ function rcube_calendar(settings)
             // _calendar: $('#calendar-attachment-saveto').val(),
           }, rcmail.set_busy(true, 'itip.savingdata'));
       }
-    }
+    };
 }
 
 
@@ -107,12 +94,9 @@ window.rcmail && rcmail.addEventListener('init', function(evt) {
     if (rcmail.env.task == 'mail') {
       rcmail.register_command('calendar-create-from-mail', function() { cal.create_from_mail(); });
       rcmail.register_command('attachment-save-calendar', function() { cal.save_to_calendar(); });
-      rcmail.addEventListener('plugin.mail2event_dialog', function(p) { cal.mail2event_dialog(p); });
-      rcmail.addEventListener('plugin.unlock_saving', function(p) { cal.ui && cal.ui.unlock_saving(); });
 
       if (rcmail.env.action != 'show') {
         rcmail.env.message_commands.push('calendar-create-from-mail');
-        rcmail.add_element($('<a>'));
       }
       else {
         rcmail.enable_command('calendar-create-from-mail', true);

@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS `kolab_alarms` (
   PRIMARY KEY(`alarm_id`,`user_id`),
   CONSTRAINT `fk_kolab_alarms_user_id` FOREIGN KEY (`user_id`)
     REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) /*!40000 ENGINE=INNODB */;
+) /*!40000 ENGINE=INNODB */ /*!40101 CHARACTER SET utf8 COLLATE utf8_general_ci */;
 
 CREATE TABLE IF NOT EXISTS `itipinvitations` (
   `token` VARCHAR(64) NOT NULL,

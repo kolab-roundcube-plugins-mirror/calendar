@@ -164,47 +164,20 @@ $labels['nextslot'] = 'Nächster Vorschlag';
 $labels['suggestedslot'] = 'Empfohlener Slot';
 $labels['noslotfound'] = 'Es konnten keine freien Zeiten gefunden werden';
 $labels['invitationsubject'] = 'Sie wurden zu »$title« eingeladen';
-$labels['invitationmailbody'] = "*$title*
-Wann: $date
-Teilnehmer: $attendees
-$description
-Im Anhang finden Sie eine iCalendar-Datei mit allen Details des Termins. Diese können Sie in Ihre Kalenderanwendung importieren.";
-$labels['invitationattendlinks'] = "Falls Ihr E-Mail-Programm keine iTip-Anfragen unterstützt, können Sie den folgenden Link verwenden, um den Termin zu bestätigen oder abzulehnen:
-$url";
+$labels['invitationmailbody'] = "*\$title*\n\nWann: \$date\n\nTeilnehmer: \$attendees\n\n\$description\n\nIm Anhang finden Sie eine iCalendar-Datei mit allen Details des Termins. Diese können Sie in Ihre Kalenderanwendung importieren.";
+$labels['invitationattendlinks'] = "Falls Ihr E-Mail-Programm keine iTip-Anfragen unterstützt, können Sie den folgenden Link verwenden, um den Termin zu bestätigen oder abzulehnen:\n\$url";
 $labels['eventupdatesubject'] = '»$title« wurde aktualisiert';
 $labels['eventupdatesubjectempty'] = 'Termin wurde aktualisiert';
-$labels['eventupdatemailbody'] = "*$title*
-Wann: $date
-Teilnehmer: $attendees
-Im Anhang finden Sie eine iCalendar-Datei mit den aktualisiereten Termindaten. Diese können Sie in Ihre Kalenderanwendung importieren.";
+$labels['eventupdatemailbody'] = "*\$title*\n\nWann: \$date\n\nTeilnehmer: \$attendees\n\nIm Anhang finden Sie eine iCalendar-Datei mit den aktualisiereten Termindaten. Diese können Sie in Ihre Kalenderanwendung importieren.";
 $labels['eventcancelsubject'] = '»$title« wurde abgesagt';
-$labels['eventcancelmailbody'] = "*$title*
-Wann: $date
-Teilnehmer: $attendees
-Der Termin wurde von $organizer abgesagt.
-Im Anhang finden Sie eine iCalendar-Datei mit den Termindaten.";
+$labels['eventcancelmailbody'] = "*\$title*\n\nWann: \$date\n\nTeilnehmer: \$attendees\n\nDer Termin wurde von \$organizer abgesagt.\n\nIm Anhang finden Sie eine iCalendar-Datei mit den Termindaten.";
 $labels['itipobjectnotfound'] = 'Der Termin auf den sich diese Nachricht bezieht, wurde in Ihrem Kalender nicht gefunden.';
-$labels['itipmailbodyaccepted'] = "$sender hat die Einladung zum folgenden Termin angenommen:
-*$title*
-Wann: $date
-Teilnehmer: $attendees";
-$labels['itipmailbodytentative'] = "$sender hat die Einladung mit Vorbehalt zum folgenden Termin angenommen:
-*$title*
-Wann: $date
-Teilnehmer: $attendees";
-$labels['itipmailbodydeclined'] = "$sender hat die Einladung zum folgenden Termin abgelehnt:
-*$title*
-Wann: $date
-Teilnehmer: $attendees";
-$labels['itipmailbodycancel'] = "$sender hat Ihre Teilnahme bei der folgenden Veranstaltung zurückgewiesen:
-*$title*
-Wann: $date";
-$labels['itipmailbodydelegated'] = "$sender hat die Teilnahme an folgendem Event delegiert:
-*$title*
-When: $date";
-$labels['itipmailbodydelegatedto'] = "$sender hat die Teilnahme an folgendem Event an Sie delegiert:
-*$title*
-Wann: $date";
+$labels['itipmailbodyaccepted'] = "\$sender hat die Einladung zum folgenden Termin angenommen:\n\n*\$title*\n\nWann: \$date\n\nTeilnehmer: \$attendees";
+$labels['itipmailbodytentative'] = "\$sender hat die Einladung mit Vorbehalt zum folgenden Termin angenommen:\n\n*\$title*\n\nWann: \$date\n\nTeilnehmer: \$attendees";
+$labels['itipmailbodydeclined'] = "\$sender hat die Einladung zum folgenden Termin abgelehnt:\n\n*\$title*\n\nWann: \$date\n\nTeilnehmer: \$attendees";
+$labels['itipmailbodycancel'] = "\$sender hat Ihre Teilnahme bei der folgenden Veranstaltung zurückgewiesen:\n\n*\$title*\n\nWann: \$date";
+$labels['itipmailbodydelegated'] = "\$sender hat die Teilnahme an folgendem Event delegiert:\n\n*\$title*\n\nWhen: \$date";
+$labels['itipmailbodydelegatedto'] = "\$sender hat die Teilnahme an folgendem Event an Sie delegiert:\n\n*\$title*\n\nWann: \$date";
 $labels['itipdeclineevent'] = 'Möchten Sie die Einladung zu diesem Termin ablehnen?';
 $labels['declinedeleteconfirm'] = 'Soll der abgelehnte Termin zusätzlich aus dem Kalender gelöscht werden?';
 $labels['itipcomment'] = 'Kommentar zur Einladungs-/Benachrichtigungsnachricht';

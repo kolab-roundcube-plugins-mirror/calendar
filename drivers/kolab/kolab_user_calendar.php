@@ -38,7 +38,8 @@ class kolab_user_calendar extends kolab_calendar
    */
   public function __construct($user_or_folder, $calendar)
   {
-    $this->cal = $calendar;
+    $this->cal  = $calendar;
+    $this->imap = $calendar->rc->get_storage();
 
     // full user record is provided
     if (is_array($user_or_folder)) {
@@ -259,10 +260,12 @@ class kolab_user_calendar extends kolab_calendar
   }
 
   /**
+   * Get number of events in the given calendar
    *
-   * @param  integer Date range start (unix timestamp)
-   * @param  integer Date range end (unix timestamp)
-   * @param  array   Additional query to filter events
+   * @param integer Date range start (unix timestamp)
+   * @param integer Date range end (unix timestamp)
+   * @param array   Additional query to filter events
+   *
    * @return integer Count
    */
   public function count_events($start, $end = null, $filter_query = null)

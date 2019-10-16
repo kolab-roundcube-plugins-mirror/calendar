@@ -79,6 +79,11 @@ body, td, th, div, p, h3, select, input, textarea {
 	padding-bottom: 1em;
 }
 
+#calendarlist li div a {
+	color: inherit;
+	text-decoration: none;
+}
+
 #calendarlist input,
 #calendarlist .handle {
 	display: none;
@@ -101,7 +106,7 @@ body, td, th, div, p, h3, select, input, textarea {
 
 @media print {
 	.noprint,
-	.fc-header-right span {
+	.fc-right {
 		display: none;
 	}
 	
@@ -116,31 +121,18 @@ body, td, th, div, p, h3, select, input, textarea {
 	overflow: visible;
 }
 
-.fc-event-skin,
-.fc-event-inner .fc-event-skin {
+.fc-unthemed td.fc-day.fc-today {
+	background: transparent;
+}
+
+a.fc-event,
+a.fc-event:hover {
 	color: black;
 	background-color: #fff !important;
 }
 
-.fc-event-title {
+.fc-title {
 	font-weight: bold;
-}
-
-.fc-event-hori .fc-event-title {
-	font-weight: normal;
-	white-space: nowrap;
-}
-
-.fc-event-hori .fc-event-time {
-	white-space: nowrap;
-	font-weight: normal !important;
-	font-size: 10px;
-	padding-right: 0.6em;
-}
-
-.fc-grid .fc-event-time {
-	font-weight: normal !important;
-	padding-right: 0.3em;
 }
 
 .fc-event-cateories {
@@ -155,6 +147,13 @@ body, td, th, div, p, h3, select, input, textarea {
 	height: 1.4em;
 }
 
+.fc-axis,
+.fc-week-number,
+.fc-day-number,
+.fc-view thead th.fc-widget-header {
+	color: #444;
+}
+
 .fc-widget-header,
 .fc-mon, .fc-tue, .fc-wed, .fc-thu, .fc-fri {
 	background-color: #fff;
@@ -164,66 +163,34 @@ body, td, th, div, p, h3, select, input, textarea {
 	border-color: #ccc;
 }
 
-.fc-icon-alarms,
-.fc-icon-recurring {
-	display: inline-block;
-	width: 11px;
-	height: 11px;
-	background: url('images/eventicons.gif') 0 0 no-repeat;
-	margin-left: 3px;
-	line-height: 10px;
+.fc-list-table tr.fc-list-item td,
+.fc-list-view {
+	border: 0 !important;
 }
 
-.fc-icon-alarms {
-	background-position: 0 -13px;
+.fc-list-table tr:first-child td {
+	border-top-width: 1px;
 }
 
-.fc-view-list, .fc-view-table {
-	border: 0;
-}
-
-.fc-view-list div.fc-list-header,
-.fc-view-table td.fc-list-header {
-	padding: 0.3em;
-	background: #fff;
-	font-weight: bold;
-	font-size: 1.2em;
-	color: #333;
-	border-color: #333;
-	border-style: solid;
-	border-width: 1px 0;
-	filter: none;
-}
-
-.fc-list-section .fc-event {
-	cursor: auto;
-}
-
-.fc-view-table tr.fc-event td,
-.fc-view-table tr.fc-event td.fc-event-handle {
-	border-color: #999;
-	padding-top: 0.5em;
-	padding-bottom: 0.5em;
-}
-
-.fc-view-table tr.fc-last td {
-	border: 0;
-}
-
-.fc-view-table tr.fc-event .fc-event-description {
-	padding-left: 2em;
-	padding-top: 0em;
-}
-
-.fc-event-vert .fc-event-description {
+.fc-event-description {
 	font-size: 90%;
-	font-style: italic;
 }
 
-.fc-view-month .fc-event-hori .fc-event-inner {
-	background: #fff !important;
-}
-
-.fc-view-table col.fc-event-location {
+col.fc-event-location {
 	width: 20%;
+}
+
+.fc-event-row-secondary td {
+	border: 0;
+	padding-top: 0 !important;
+}
+
+.fc-scroller {
+	overflow: visible !important;
+	height: auto !important;
+}
+.fc-head .fc-row,
+.fc-day-grid .fc-row {
+	margin-right: 0 !important;
+	border-right-width: 0 !important;
 }

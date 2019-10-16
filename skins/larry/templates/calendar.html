@@ -57,7 +57,7 @@
 
 	<h2 id="aria-label-calendarview" class="voice"><roundcube:label name="calendar.arialabelcalendarview" /></h2>
 	<div id="calendar" role="main" aria-labelledby="aria-label-calendarview">
-		<roundcube:object name="plugin.angenda_options" class="boxfooter" id="agendaoptions" />
+		<roundcube:object name="plugin.agenda_options" class="boxfooter" id="agendaoptions" />
 	</div>
 </div>
 
@@ -158,7 +158,7 @@
 		<div class="event-text"></div>
 	</div>
 
-	<roundcube:object name="plugin.event_rsvp_buttons" id="event-rsvp" class="event-dialog-message" style="display:none" />
+	<roundcube:object name="plugin.event_rsvp_buttons" id="event-rsvp" class="dialog-message" style="display:none" />
 </div>
 
 <div id="eventoptionsmenu" class="popupmenu" aria-hidden="true">
@@ -301,7 +301,7 @@
 	<div class="schedule-options">
 		&nbsp;
 		<div class="schedule-buttons">
-			<button id="shedule-freebusy-prev" title="<roundcube:label name='previouspage' />">&#9668;</button><button id="shedule-freebusy-next" title="<roundcube:label name='nextpage' />">&#9658;</button>
+			<button type="button" id="schedule-freebusy-prev" title="<roundcube:label name='previouspage' />">&#9668;</button><button type="button" id="schedule-freebusy-next" title="<roundcube:label name='nextpage' />">&#9658;</button>
 		</div>
 	</div>
 
@@ -319,8 +319,8 @@
 	</div>
 	<div style="float:left">
 		<div class="schedule-find-buttons">
-			<button id="shedule-find-prev">&#9668; <roundcube:label name="calendar.prevslot" /></button>
-			<button id="shedule-find-next"><roundcube:label name="calendar.nextslot" /> &#9658;</button>
+			<button type="button" id="schedule-find-prev">&#9668; <roundcube:label name="calendar.prevslot" /></button>
+			<button type="button" id="schedule-find-next"><roundcube:label name="calendar.nextslot" /> &#9658;</button>
 		</div>
 		<div class="schedule-options">
 			<label><input type="checkbox" id="schedule-freebusy-workinghours" value="1" /><roundcube:label name="calendar.onlyworkinghours" /></label>

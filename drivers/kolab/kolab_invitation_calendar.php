@@ -176,16 +176,31 @@ class kolab_invitation_calendar
     $event = $this->cal->driver->get_event($id, calendar_driver::FILTER_WRITEABLE);
 
     if (is_array($event)) {
-      // add pointer to original calendar folder
-      $event['_folder_id'] = $event['calendar'];
-      $event = $this->_mod_event($event);
+      $event = $this->_mod_event($event, $event['calendar']);
     }
 
     return $event;
   }
 
   /**
+   * Create instances of a recurring event
+   *
+   * @see kolab_calendar::get_recurring_events()
+   */
+  public function get_recurring_events($event, $start, $end = null, $event_id = null, $limit = null)
+  {
+    // forward call to the actual storage folder
+    if ($event['_folder_id']) {
+      $cal = $this->cal->driver->get_calendar($event['_folder_id']);
+      if ($cal && $cal->ready) {
+        return $cal->get_recurring_events($event, $start, $end, $event_id, $limit);
+      }
+    }
+  }
+
+  /**
    * Get attachment body
+   *
    * @see calendar_driver::get_attachment_body()
    */
   public function get_attachment_body($id, $event)
@@ -212,11 +227,12 @@ class kolab_invitation_calendar
   }
 
   /**
-   * @param  integer Event's new start (unix timestamp)
-   * @param  integer Event's new end (unix timestamp)
-   * @param  string  Search query (optional)
-   * @param  boolean Include virtual events (optional)
-   * @param  array   Additional parameters to query storage
+   * @param integer Event's new start (unix timestamp)
+   * @param integer Event's new end (unix timestamp)
+   * @param string  Search query (optional)
+   * @param boolean Include virtual events (optional)
+   * @param array   Additional parameters to query storage
+   *
    * @return array A list of event records
    */
   public function list_events($start, $end, $search = null, $virtual = 1, $query = array())
@@ -234,7 +250,7 @@ class kolab_invitation_calendar
     $events = array();
     foreach (kolab_storage::list_folders('', '*', 'event', null) as $foldername) {
       $cal = $this->_get_calendar($foldername);
-      if ($cal->get_namespace() == 'other')
+      if (!$cal || $cal->get_namespace() == 'other')
         continue;
 
       foreach ($cal->list_events($start, $end, $search, 1, $query, array(array($subquery, 'OR'))) as $event) {
@@ -251,7 +267,7 @@ class kolab_invitation_calendar
         }
 
         if ($match) {
-          $events[$event['id'] ?: $event['uid']] = $this->_mod_event($event);
+          $events[$event['id'] ?: $event['uid']] = $this->_mod_event($event, $cal->id);
         }
       }
 
@@ -263,12 +279,15 @@ class kolab_invitation_calendar
   }
 
   /**
+   * Get number of events in the given calendar
    *
-   * @param  integer Date range start (unix timestamp)
-   * @param  integer Date range end (unix timestamp)
+   * @param integer Date range start (unix timestamp)
+   * @param integer Date range end (unix timestamp)
+   * @param array   Additional query to filter events
+   *
    * @return integer Count
    */
-  public function count_events($start, $end = null)
+  public function count_events($start, $end = null, $filter = null)
   {
     // get email addresses of the current user
     $user_emails = $this->cal->get_user_emails();
@@ -288,7 +307,7 @@ class kolab_invitation_calendar
     $count = 0;
     foreach (kolab_storage::list_folders('', '*', 'event', null) as $foldername) {
       $cal = $this->_get_calendar($foldername);
-      if ($cal->get_namespace() == 'other')
+      if (!$cal || $cal->get_namespace() == 'other')
         continue;
 
       $count += $cal->count_events($start, $end, $filter);
@@ -309,7 +328,7 @@ class kolab_invitation_calendar
   /**
    * Helper method to modify some event properties
    */
-  private function _mod_event($event)
+  private function _mod_event($event, $calendar_id = null)
   {
     // set classes according to PARTSTAT
     $event = kolab_driver::add_partstat_class($event, $this->partstats);
@@ -318,15 +337,18 @@ class kolab_invitation_calendar
       $event['calendar'] = $this->id;
     }
 
+    // add pointer to original calendar folder
+    if ($calendar_id) {
+      $event['_folder_id'] = $calendar_id;
+    }
+
     return $event;
   }
 
   /**
    * Create a new event record
    *
-   * @see calendar_driver::new_event()
-   * 
-   * @return mixed The created record ID on success, False on error
+   * @see kolab_calendar::insert_event()
    */
   public function insert_event($event)
   {
@@ -336,8 +358,7 @@ class kolab_invitation_calendar
   /**
    * Update a specific event record
    *
-   * @see calendar_driver::new_event()
-   * @return boolean True on success, False on error
+   * @see kolab_calendar::update_event()
    */
   public function update_event($event, $exception_id = null)
   {
@@ -355,22 +376,36 @@ class kolab_invitation_calendar
   /**
    * Delete an event record
    *
-   * @see calendar_driver::remove_event()
-   * @return boolean True on success, False on error
+   * @see kolab_calendar::delete_event()
    */
   public function delete_event($event, $force = true)
   {
+    // forward call to the actual storage folder
+    if ($event['_folder_id']) {
+      $cal = $this->cal->driver->get_calendar($event['_folder_id']);
+      if ($cal && $cal->ready) {
+        return $cal->delete_event($event, $force);
+      }
+    }
+
     return false;
   }
 
   /**
    * Restore deleted event record
    *
-   * @see calendar_driver::undelete_event()
-   * @return boolean True on success, False on error
+   * @see kolab_calendar::restore_event()
    */
   public function restore_event($event)
   {
+    // forward call to the actual storage folder
+    if ($event['_folder_id']) {
+      $cal = $this->cal->driver->get_calendar($event['_folder_id']);
+      if ($cal && $cal->ready) {
+        return $cal->restore_event($event);
+      }
+    }
+
     return false;
   }
 }

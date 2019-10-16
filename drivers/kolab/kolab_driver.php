@@ -91,22 +91,36 @@ class kolab_driver extends calendar_driver
 
     $this->calendars = array();
     foreach ($folders as $folder) {
-      if ($folder instanceof kolab_storage_folder_user) {
-        $calendar = new kolab_user_calendar($folder, $this->cal);
-        $calendar->subscriptions = count($folder->children) > 0;
-      }
-      else {
-        $calendar = new kolab_calendar($folder->name, $this->cal);
-      }
-
+      $calendar = $this->_to_calendar($folder);
       if ($calendar->ready) {
         $this->calendars[$calendar->id] = $calendar;
-        if ($calendar->editable)
+        if ($calendar->editable) {
           $this->has_writeable = true;
+        }
       }
     }
 
     return $this->calendars;
+  }
+
+  /**
+   * Convert kolab_storage_folder into kolab_calendar
+   */
+  private function _to_calendar($folder)
+  {
+    if ($folder instanceof kolab_calendar) {
+      return $folder;
+    }
+
+    if ($folder instanceof kolab_storage_folder_user) {
+      $calendar = new kolab_user_calendar($folder, $this->cal);
+      $calendar->subscriptions = count($folder->children) > 0;
+    }
+    else {
+      $calendar = new kolab_calendar($folder->name, $this->cal);
+    }
+
+    return $calendar;
   }
 
   /**
@@ -129,17 +143,17 @@ class kolab_driver extends calendar_driver
       }
     }
 
-    $delim = $this->rc->get_storage()->get_hierarchy_delimiter();
-    $folders = $this->filter_calendars($filter);
+    $delim     = $this->rc->get_storage()->get_hierarchy_delimiter();
+    $folders   = $this->filter_calendars($filter);
     $calendars = array();
 
     // include virtual folders for a full folder tree
     if (!is_null($tree))
       $folders = kolab_storage::folder_hierarchy($folders, $tree);
 
+    $parents = array_keys($this->calendars);
+
     foreach ($folders as $id => $cal) {
-      $fullname = $cal->get_name();
-      $listname = $cal->get_foldername();
       $imap_path = explode($delim, $cal->name);
 
       // find parent
@@ -147,72 +161,60 @@ class kolab_driver extends calendar_driver
         array_pop($imap_path);
         $parent_id = kolab_storage::folder_id(join($delim, $imap_path));
       }
-      while (count($imap_path) > 1 && !$this->calendars[$parent_id]);
+      while (count($imap_path) > 1 && !in_array($parent_id, $parents));
 
       // restore "real" parent ID
-      if ($parent_id && !$this->calendars[$parent_id]) {
+      if ($parent_id && !in_array($parent_id, $parents)) {
           $parent_id = kolab_storage::folder_id($cal->get_parent());
       }
 
-      // turn a kolab_storage_folder object into a kolab_calendar
-      if ($cal instanceof kolab_storage_folder) {
-          $cal = new kolab_calendar($cal->name, $this->cal);
-          $this->calendars[$cal->id] = $cal;
-      }
+      $parents[] = $cal->id;
 
-      // special handling for user or virtual folders
-      if ($cal instanceof kolab_storage_folder_user) {
+      if ($cal->virtual) {
         $calendars[$cal->id] = array(
           'id'       => $cal->id,
-          'name'     => $fullname,
-          'listname' => $listname,
-          'editname' => $cal->get_foldername(),
-          'color'    => $cal->get_color(),
-          'active'   => $cal->is_active(),
-          'title'    => $cal->get_owner(),
-          'owner'    => $cal->get_owner(),
-          'history'  => false,
-          'virtual'  => false,
-          'editable' => false,
-          'group'     => 'other',
-          'class'     => 'user',
-          'removable' => true,
-        );
-      }
-      else if ($cal->virtual) {
-        $calendars[$cal->id] = array(
-          'id' => $cal->id,
-          'name' => $fullname,
-          'listname' => $listname,
+          'name'     => $cal->get_name(),
+          'listname' => $cal->get_foldername(),
           'editname' => $cal->get_foldername(),
           'virtual'  => true,
           'editable' => false,
-          'group'     => $cal->get_namespace(),
-          'class'     => 'folder',
+          'group'    => $cal->get_namespace(),
         );
       }
       else {
+        // additional folders may come from kolab_storage::folder_hierarchy() above
+        // make sure we deal with kolab_calendar instances
+        $cal = $this->_to_calendar($cal);
+        $this->calendars[$cal->id] = $cal;
+
+        $is_user = ($cal instanceof kolab_user_calendar);
+
         $calendars[$cal->id] = array(
-          'id'       => $cal->id,
-          'name'     => $fullname,
-          'listname' => $listname,
-          'editname' => $cal->get_foldername(),
-          'title'    => $cal->get_title(),
-          'color'    => $cal->get_color(),
-          'editable' => $cal->editable,
-          'rights'    => $cal->rights,
-          'showalarms' => $cal->alarms,
-          'history'  => !empty($this->bonnie_api),
-          'group'    => $cal->get_namespace(),
-          'default'  => $cal->default,
-          'active'   => $cal->is_active(),
-          'owner'    => $cal->get_owner(),
-          'children' => true,  // TODO: determine if that folder indeed has child folders
-          'parent'   => $parent_id,
-          'subtype'  => $cal->subtype,
-          'caldavurl' => $cal->get_caldav_url(),
+          'id'        => $cal->id,
+          'name'      => $cal->get_name(),
+          'listname'  => $cal->get_foldername(),
+          'editname'  => $cal->get_foldername(),
+          'title'     => $cal->get_title(),
+          'color'     => $cal->get_color(),
+          'editable'  => $cal->editable,
+          'group'     => $is_user ? 'other user' : $cal->get_namespace(),
+          'active'    => $cal->is_active(),
+          'owner'     => $cal->get_owner(),
           'removable' => !$cal->default,
         );
+
+        if (!$is_user) {
+          $calendars[$cal->id] += array(
+            'default'    => $cal->default,
+            'rights'     => $cal->rights,
+            'showalarms' => $cal->alarms,
+            'history'    => !empty($this->bonnie_api),
+            'children'   => true,  // TODO: determine if that folder indeed has child folders
+            'parent'     => $parent_id,
+            'subtype'    => $cal->subtype,
+            'caldavurl'  => $cal->get_caldav_url(),
+          );
+        }
       }
 
       if ($cal->subscriptions) {
@@ -221,10 +223,9 @@ class kolab_driver extends calendar_driver
     }
 
     // list virtual calendars showing invitations
-    if ($this->rc->config->get('kolab_invitation_calendars')) {
+    if ($this->rc->config->get('kolab_invitation_calendars') && !($filter & self::FILTER_INSERTABLE)) {
       foreach (array(self::INVITATIONS_CALENDAR_PENDING, self::INVITATIONS_CALENDAR_DECLINED) as $id) {
         $cal = new kolab_invitation_calendar($id, $this->cal);
-        $this->calendars[$cal->id] = $cal;
         if (!($filter & self::FILTER_ACTIVE) || $cal->is_active()) {
           $calendars[$id] = array(
             'id'       => $cal->id,
@@ -256,7 +257,7 @@ class kolab_driver extends calendar_driver
     }
 
     // append the virtual birthdays calendar
-    if ($this->rc->config->get('calendar_contact_birthdays', false)) {
+    if ($this->rc->config->get('calendar_contact_birthdays', false) && !($filter & self::FILTER_INSERTABLE)) {
       $id = self::BIRTHDAY_CALENDAR_ID;
       $prefs = $this->rc->config->get('kolab_calendars', array());  // read local prefs
       if (!($filter & self::FILTER_ACTIVE) || $prefs[$id]['active']) {
@@ -268,7 +269,7 @@ class kolab_driver extends calendar_driver
           'active'     => (bool)$prefs[$id]['active'],
           'showalarms' => (bool)$this->rc->config->get('calendar_birthdays_alarm_type'),
           'group'      => 'x-birthdays',
-          'editable'  => false,
+          'editable'   => false,
           'default'    => false,
           'children'   => false,
           'history'    => false,
@@ -312,7 +313,7 @@ class kolab_driver extends calendar_driver
       if (($filter & self::FILTER_WRITEABLE) && !$cal->editable) {
         continue;
       }
-      if (($filter & self::FILTER_INSERTABLE) && !$cal->insert) {
+      if (($filter & self::FILTER_INSERTABLE) && !$cal->editable) {
         continue;
       }
       if (($filter & self::FILTER_ACTIVE) && !$cal->is_active()) {
@@ -337,11 +338,11 @@ class kolab_driver extends calendar_driver
     return $calendars;
   }
 
-
   /**
    * Get the kolab_calendar instance for the given calendar ID
    *
    * @param string Calendar identifier (encoded imap folder name)
+   *
    * @return object kolab_calendar Object nor null if calendar doesn't exist
    */
   public function get_calendar($id)
@@ -351,9 +352,10 @@ class kolab_driver extends calendar_driver
     // create calendar object if necesary
     if (!$this->calendars[$id]) {
       if (in_array($id, array(self::INVITATIONS_CALENDAR_PENDING, self::INVITATIONS_CALENDAR_DECLINED))) {
-        $this->calendars[$id] = new kolab_invitation_calendar($id, $this->cal);
+        return new kolab_invitation_calendar($id, $this->cal);
       }
-      else if ($id !== self::BIRTHDAY_CALENDAR_ID) {
+      // for unsubscribed calendar folders
+      if ($id !== self::BIRTHDAY_CALENDAR_ID) {
         $calendar = kolab_calendar::factory($id, $this->cal);
         if ($calendar->ready) {
           $this->calendars[$calendar->id] = $calendar;
@@ -370,13 +372,15 @@ class kolab_driver extends calendar_driver
    * @param array Hash array with calendar properties
    *    name: Calendar name
    *   color: The color of the calendar
+   *
    * @return mixed ID of the calendar on success, False on error
    */
   public function create_calendar($prop)
   {
-    $prop['type'] = 'event';
-    $prop['active'] = true;
+    $prop['type']       = 'event';
+    $prop['active']     = true;
     $prop['subscribed'] = true;
+
     $folder = kolab_storage::folder_update($prop);
 
     if ($folder === false) {
@@ -775,21 +779,26 @@ class kolab_driver extends calendar_driver
    */
   public function remove_event($event, $force = true)
   {
-    $ret = true;
-    $success = false;
+    $ret      = true;
+    $success  = false;
     $savemode = $event['_savemode'];
     $decline  = $event['_decline'];
+
+    if (!$force) {
+      unset($event['attendees']);
+      $this->rc->session->remove('calendar_event_undo');
+      $this->rc->session->remove('calendar_restore_event_data');
+      $sess_data = $event;
+    }
 
     if (($storage = $this->get_calendar($event['calendar'])) && ($event = $storage->get_event($event['id']))) {
       $event['_savemode'] = $savemode;
       $savemode = 'all';
-      $master = $event;
-
-      $this->rc->session->remove('calendar_restore_event_data');
+      $master   = $event;
 
       // read master if deleting a recurring event
       if ($event['recurrence'] || $event['recurrence_id'] || $event['isexception']) {
-        $master = $storage->get_event($event['uid']);
+        $master   = $storage->get_event($event['uid']);
         $savemode = $event['_savemode'] ?: ($event['_instance'] || $event['isexception'] ? 'current' : 'all');
 
         // force 'current' mode for single occurrences stored as exception
@@ -817,23 +826,8 @@ class kolab_driver extends calendar_driver
         case 'current':
           $_SESSION['calendar_restore_event_data'] = $master;
 
-          // removing the first instance => just move to next occurence
-          if ($master['recurrence'] && $event['_instance'] == libcalendaring::recurrence_instance_identifier($master)) {
-            $recurring = reset($storage->get_recurring_events($event, $event['start'], null, $event['id'].'-1'));
-
-            // no future instances found: delete the master event (bug #1677)
-            if (!$recurring['start']) {
-              $success = $storage->delete_event($master, $force);
-              break;
-            }
-
-            $master['start'] = $recurring['start'];
-            $master['end'] = $recurring['end'];
-            if ($master['recurrence']['COUNT'])
-              $master['recurrence']['COUNT']--;
-          }
           // remove the matching RDATE entry
-          else if ($master['recurrence']['RDATE']) {
+          if ($master['recurrence']['RDATE']) {
             foreach ($master['recurrence']['RDATE'] as $j => $rdate) {
               if ($rdate->format('Ymd') == $event['start']->format('Ymd')) {
                 unset($master['recurrence']['RDATE'][$j]);
@@ -841,9 +835,10 @@ class kolab_driver extends calendar_driver
               }
             }
           }
-          else {  // add exception to master event
-            $master['recurrence']['EXDATE'][] = $event['start'];
-          }
+
+          // add exception to master event
+          $master['recurrence']['EXDATE'][] = $event['start'];
+
           $success = $storage->update_event($master);
           break;
 
@@ -851,7 +846,7 @@ class kolab_driver extends calendar_driver
           $master['_instance'] = libcalendaring::recurrence_instance_identifier($master);
           if ($master['_instance'] != $event['_instance']) {
             $_SESSION['calendar_restore_event_data'] = $master;
-            
+
             // set until-date on master event
             $master['recurrence']['UNTIL'] = clone $event['start'];
             $master['recurrence']['UNTIL']->sub(new DateInterval('P1D'));
@@ -881,10 +876,10 @@ class kolab_driver extends calendar_driver
           if (!empty($event['recurrence_date']) && empty($master['recurrence']) && !empty($master['exceptions'])) {
             // make the first exception the new master
             $newmaster = array_shift($master['exceptions']);
-            $newmaster['exceptions'] = $master['exceptions'];
+            $newmaster['exceptions']   = $master['exceptions'];
             $newmaster['_attachments'] = $master['_attachments'];
-            $newmaster['_mailbox'] = $master['_mailbox'];
-            $newmaster['_msguid'] = $master['_msguid'];
+            $newmaster['_mailbox']     = $master['_mailbox'];
+            $newmaster['_msguid']      = $master['_msguid'];
 
             $success = $storage->update_event($newmaster);
           }
@@ -901,8 +896,18 @@ class kolab_driver extends calendar_driver
       }
     }
 
+    if ($success && !$force) {
+      if ($master['_folder_id'])
+        $sess_data['_folder_id'] = $master['_folder_id'];
+      $_SESSION['calendar_event_undo'] = array('ts' => time(), 'data' => $sess_data);
+    }
+
     if ($success && $this->freebusy_trigger)
-      $this->rc->output->command('plugin.ping_url', array('action' => 'calendar/push-freebusy', 'source' => $storage->id));
+      $this->rc->output->command('plugin.ping_url', array(
+          'action' => 'calendar/push-freebusy',
+          // _folder_id may be set by invitations calendar
+          'source' => $master['_folder_id'] ?: $storage->id,
+      ));
 
     return $success ? $ret : false;
   }
@@ -911,20 +916,26 @@ class kolab_driver extends calendar_driver
    * Restore a single deleted event
    *
    * @param array Hash array with event properties:
-   *      id: Event identifier
+   *                    id: Event identifier
+   *              calendar: Event calendar
+   *
    * @return boolean True on success, False on error
    */
   public function restore_event($event)
   {
     if ($storage = $this->get_calendar($event['calendar'])) {
       if (!empty($_SESSION['calendar_restore_event_data']))
-        $success = $storage->update_event($_SESSION['calendar_restore_event_data']);
+        $success = $storage->update_event($event = $_SESSION['calendar_restore_event_data']);
       else
         $success = $storage->restore_event($event);
-      
+
       if ($success && $this->freebusy_trigger)
-        $this->rc->output->command('plugin.ping_url', array('action' => 'calendar/push-freebusy', 'source' => $storage->id));
-      
+        $this->rc->output->command('plugin.ping_url', array(
+            'action' => 'calendar/push-freebusy',
+            // _folder_id may be set by invitations calendar
+            'source' => $event['_folder_id'] ?: $storage->id,
+        ));
+
       return $success;
     }
 
@@ -982,6 +993,15 @@ class kolab_driver extends calendar_driver
       // force 'current' mode for single occurrences stored as exception
       else if (!$old['recurrence'] && !$old['recurrence_id'] && $old['isexception'])
         $savemode = 'current';
+
+      // Stick to the master timezone for all occurrences (Bifrost#T104637)
+      $master_tz = $master['start']->getTimezone();
+      $event_tz  = $event['start']->getTimezone();
+
+      if ($master_tz->getName() != $event_tz->getName()) {
+        $event['start']->setTimezone($master_tz);
+        $event['end']->setTimezone($master_tz);
+      }
     }
 
     // check if update affects scheduling and update attendee status accordingly
@@ -2325,7 +2345,14 @@ class kolab_driver extends calendar_driver
     if (in_array($calendar['id'], array(self::BIRTHDAY_CALENDAR_ID, self::INVITATIONS_CALENDAR_PENDING, self::INVITATIONS_CALENDAR_DECLINED))) {
       if ($calendar['id'] != self::BIRTHDAY_CALENDAR_ID)
         unset($formfields['showalarms']);
-      return parent::calendar_form($action, $calendar, $formfields);
+
+      // General tab
+      $form['props'] = array(
+        'name'   => $this->rc->gettext('properties'),
+        'fields' => $formfields,
+      );
+
+      return kolab_utils::folder_form($form, '', 'calendar');
     }
 
     $this->_read_calendars();
@@ -2358,7 +2385,8 @@ class kolab_driver extends calendar_driver
 
     // General tab
     $form['props'] = array(
-      'name' => $this->rc->gettext('properties'),
+      'name'   => $this->rc->gettext('properties'),
+      'fields' => array(),
     );
 
     // Disable folder name input
@@ -2369,12 +2397,7 @@ class kolab_driver extends calendar_driver
     }
 
     // calendar name (default field)
-    $form['props']['fieldsets']['location'] = array(
-      'name'  => $this->rc->gettext('location'),
-      'content' => array(
-        'name' => $formfields['name']
-      ),
-    );
+    $form['props']['fields']['location'] = $formfields['name'];
 
     if (!empty($options) && ($options['norename'] || $options['protected'])) {
       // prevent user from moving folder
@@ -2382,7 +2405,7 @@ class kolab_driver extends calendar_driver
     }
     else {
       $select = kolab_storage::folder_selector('event', array('name' => 'parent', 'id' => 'calendar-parent'), $folder);
-      $form['props']['fieldsets']['location']['content']['path'] = array(
+      $form['props']['fields']['path'] = array(
         'id' => 'calendar-parent',
         'label' => $this->cal->gettext('parentcalendar'),
         'value' => $select->show(strlen($folder) ? $path_imap : ''),
@@ -2390,138 +2413,10 @@ class kolab_driver extends calendar_driver
     }
 
     // calendar color (default field)
-    $form['props']['fieldsets']['settings'] = array(
-      'name'  => $this->rc->gettext('settings'),
-      'content' => array(
-        'color' => $formfields['color'],
-        'showalarms' => $formfields['showalarms'],
-      ),
-    );
-    
-    
-    if ($action != 'form-new') {
-      $form['sharing'] = array(
-          'name'    => rcube::Q($this->cal->gettext('tabsharing')),
-          'content' => html::tag('iframe', array(
-            'src' => $this->cal->rc->url(array('_action' => 'calendar-acl', 'id' => $calendar['id'], 'framed' => 1)),
-            'width' => '100%',
-            'height' => 350,
-            'border' => 0,
-            'style' => 'border:0'),
-        ''),
-      );
-    }
+    $form['props']['fields']['color']  = $formfields['color'];
+    $form['props']['fields']['alarms'] = $formfields['showalarms'];
 
-    $this->form_html = '';
-    if (is_array($hidden_fields)) {
-        foreach ($hidden_fields as $field) {
-            $hiddenfield = new html_hiddenfield($field);
-            $this->form_html .= $hiddenfield->show() . "\n";
-        }
-    }
-
-    // Create form output
-    foreach ($form as $tab) {
-      if (!empty($tab['fieldsets']) && is_array($tab['fieldsets'])) {
-        $content = '';
-        foreach ($tab['fieldsets'] as $fieldset) {
-          $subcontent = $this->get_form_part($fieldset);
-          if ($subcontent) {
-            $content .= html::tag('fieldset', null, html::tag('legend', null, rcube::Q($fieldset['name'])) . $subcontent) ."\n";
-          }
-        }
-      }
-      else {
-        $content = $this->get_form_part($tab);
-      }
-
-      if ($content) {
-        $this->form_html .= html::tag('fieldset', null, html::tag('legend', null, rcube::Q($tab['name'])) . $content) ."\n";
-      }
-    }
-
-    // Parse form template for skin-dependent stuff
-    $this->rc->output->add_handler('calendarform', array($this, 'calendar_form_html'));
-    return $this->rc->output->parse('calendar.kolabform', false, false);
-  }
-
-  /**
-   * Handler for template object
-   */
-  public function calendar_form_html()
-  {
-    return $this->form_html;
-  }
-
-  /**
-   * Helper function used in calendar_form_content(). Creates a part of the form.
-   */
-  private function get_form_part($form)
-  {
-    $content = '';
-
-    if (is_array($form['content']) && !empty($form['content'])) {
-      $table = new html_table(array('cols' => 2));
-      foreach ($form['content'] as $col => $colprop) {
-        $label = !empty($colprop['label']) ? $colprop['label'] : $this->cal->gettext($col);
-
-        $table->add('title', html::label($colprop['id'], rcube::Q($label)));
-        $table->add(null, $colprop['value']);
-      }
-      $content = $table->show();
-    }
-    else {
-      $content = $form['content'];
-    }
-
-    return $content;
-  }
-
-
-  /**
-   * Handler to render ACL form for a calendar folder
-   */
-  public function calendar_acl()
-  {
-    $this->rc->output->add_handler('folderacl', array($this, 'calendar_acl_form'));
-    $this->rc->output->send('calendar.kolabacl');
-  }
-
-  /**
-   * Handler for ACL form template object
-   */
-  public function calendar_acl_form()
-  {
-    $calid = rcube_utils::get_input_value('_id', rcube_utils::INPUT_GPC);
-    if ($calid && ($cal = $this->get_calendar($calid))) {
-      $folder = $cal->get_realname(); // UTF7
-      $color  = $cal->get_color();
-    }
-    else {
-      $folder = '';
-      $color  = '';
-    }
-
-    $storage = $this->rc->get_storage();
-    $delim   = $storage->get_hierarchy_delimiter();
-    $form   = array();
-
-    if (strlen($folder)) {
-      $path_imap = explode($delim, $folder);
-      array_pop($path_imap);  // pop off name part
-      $path_imap = implode($path_imap, $delim);
-
-      $options = $storage->folder_info($folder);
-
-      // Allow plugins to modify the form content (e.g. with ACL form)
-      $plugin = $this->rc->plugins->exec_hook('calendar_form_kolab',
-        array('form' => $form, 'options' => $options, 'name' => $folder));
-    }
-
-    if (!$plugin['form']['sharing']['content'])
-        $plugin['form']['sharing']['content'] = html::div('hint', $this->cal->gettext('aclnorights'));
-
-    return $plugin['form']['sharing']['content'];
+    return kolab_utils::folder_form($form, $folder, 'calendar', $hidden_fields);
   }
 
   /**

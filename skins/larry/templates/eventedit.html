@@ -1,4 +1,4 @@
-<div id="eventedit" class="uidialog uidialog-tabbed" aria-hidden="true">
+<div id="eventedit" class="<roundcube:exp expression="env:framed ? '' : 'uidialog '">uidialog-tabbed" aria-hidden="true">
 	<form id="eventtabs" action="#" method="post" enctype="multipart/form-data">
 		<ul>
 			<li><a href="#event-panel-summary"><roundcube:label name="calendar.tabsummary" /></a></li><li id="edit-tab-recurrence"><a href="#event-panel-recurrence"><roundcube:label name="calendar.tabrecurrence" /></a></li><li id="edit-tab-attendees"><a href="#event-panel-attendees"><roundcube:label name="calendar.tabattendees" /></a></li><li id="edit-tab-resources"><a href="#event-panel-resources"><roundcube:label name="calendar.tabresources" /></a></li><li id="edit-tab-attachments"><a href="#event-panel-attachments"><roundcube:label name="calendar.tabattachments" /></a></li>
@@ -119,16 +119,18 @@
 			<div id="edit-attachments">
 				<roundcube:object name="plugin.attachments_list" id="attachmentlist" class="attachmentslist" />
 			</div>
-			<div id="edit-attachments-form" role="region" aria-labelledby="aria-label-attachmentuploadform">
+			<div id="edit-attachments-form" role="region" aria-labelledby="aria-label-attachmentuploadform" style="text-align:center">
 				<h3 id="aria-label-attachmentuploadform" class="voice"><roundcube:label name="arialabelattachmentuploadform" /></h3>
-				<roundcube:object name="plugin.attachments_form" id="calendar-attachment-form" attachmentFieldSize="30" />
+				<roundcube:object name="plugin.attachments_form" id="calendar-attachment-form" mode="hint" />
+				<a class="button" tabindex="1" href="#" onclick="rcmail.upload_input('edit-attachment-form')"><roundcube:label name="addattachment" /></a>
 			</div>
 			<roundcube:object name="plugin.filedroparea" id="event-panel-attachments" />
 		</div>
 	</form>
 
-	<roundcube:object name="plugin.edit_recurrence_sync" id="edit-recurrence-syncstart" class="event-dialog-message" style="display:none" />
-	<roundcube:object name="plugin.edit_attendees_notify" id="edit-attendees-notify" class="event-dialog-message" style="display:none" />
-	<roundcube:object name="plugin.edit_recurring_warning" class="event-dialog-message edit-recurring-warning" style="display:none" />
-	<div id="edit-localchanges-warning" class="event-dialog-message" style="display:none"><roundcube:label name="calendar.localchangeswarning" /></div>
+	<roundcube:object name="plugin.edit_recurrence_sync" id="edit-recurrence-syncstart" class="dialog-message" style="display:none" />
+	<roundcube:object name="plugin.edit_attendees_notify" id="edit-attendees-notify" class="dialog-message" style="display:none" />
+	<roundcube:object name="plugin.edit_recurring_warning" class="dialog-message edit-recurring-warning" style="display:none" />
+	<roundcube:object name="plugin.attachments_form" id="edit-attachment-form" mode="smart" />
+	<div id="edit-localchanges-warning" class="dialog-message" style="display:none"><roundcube:label name="calendar.localchangeswarning" /></div>
 </div>
