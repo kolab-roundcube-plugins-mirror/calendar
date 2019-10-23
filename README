@@ -22,8 +22,8 @@ Some functions are shared with other plugins and therefore being moved to
 library plugins. Thus in order to run the calendar plugin, you also need the
 following plugins installed:
 
-* libcalendaring [1]
-* libkolab [1]
+* kolab/libcalendaring [1]
+* kolab/libkolab [1]
 
 
 INSTALLATION

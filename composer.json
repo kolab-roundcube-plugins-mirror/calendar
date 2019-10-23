@@ -4,7 +4,7 @@
     "description": "Calendar plugin",
     "homepage": "https://git.kolab.org/diffusion/RPK/",
     "license": "AGPLv3",
-    "version": "3.5.1",
+    "version": "3.5.2",
     "authors": [
         {
             "name": "Thomas Bruederli",
