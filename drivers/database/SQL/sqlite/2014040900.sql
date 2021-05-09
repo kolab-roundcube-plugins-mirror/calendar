@@ -65,3 +65,4 @@ INSERT INTO events (event_id, calendar_id, recurrence_id, uid, created, changed,
              SELECT event_id, calendar_id, recurrence_id, uid, created, changed, sequence, start, end, recurrence, title, description, location, categories, url, all_day, free_busy, priority, sensitivity, alarms, attendees, notifyat
              FROM temp_events;
 
+DROP TABLE temp_events;

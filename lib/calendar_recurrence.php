@@ -26,63 +26,64 @@ require_once realpath(__DIR__ . '/../../libcalendaring/lib/libcalendaring_recurr
  */
 class calendar_recurrence extends libcalendaring_recurrence
 {
-  private $event;
-  private $duration;
+    private $event;
+    private $duration;
 
-  /**
-   * Default constructor
-   *
-   * @param object calendar The calendar plugin instance
-   * @param array The event object to operate on
-   */
-  function __construct($cal, $event)
-  {
-    parent::__construct($cal->lib);
+    /**
+     * Default constructor
+     *
+     * @param calendar $cal   The calendar plugin instance
+     * @param array    $event The event object to operate on
+     */
+    function __construct($cal, $event)
+    {
+        parent::__construct($cal->lib);
 
-    $this->event = $event;
+        $this->event = $event;
 
-    if (is_object($event['start']) && is_object($event['end']))
-      $this->duration = $event['start']->diff($event['end']);
+        if (is_object($event['start']) && is_object($event['end'])) {
+            $this->duration = $event['start']->diff($event['end']);
+        }
 
-    $event['start']->_dateonly |= $event['allday'];
-    $this->init($event['recurrence'], $event['start']);
-  }
+        $event['start']->_dateonly = !empty($event['allday']);
 
-  /**
-   * Alias of libcalendaring_recurrence::next()
-   *
-   * @return mixed DateTime object or False if recurrence ended
-   */
-  public function next_start()
-  {
-    return $this->next();
-  }
-
-  /**
-   * Get the next recurring instance of this event
-   *
-   * @return mixed Array with event properties or False if recurrence ended
-   */
-  public function next_instance()
-  {
-    if ($next_start = $this->next()) {
-      $next = $this->event;
-      $next['start'] = $next_start;
-
-      if ($this->duration) {
-        $next['end'] = clone $next_start;
-        $next['end']->add($this->duration);
-      }
-
-      $next['recurrence_date'] = clone $next_start;
-      $next['_instance'] = libcalendaring::recurrence_instance_identifier($next, $this->event['allday']);
-
-      unset($next['_formatobj']);
-
-      return $next;
+        $this->init($event['recurrence'], $event['start']);
     }
 
-    return false;
-  }
+    /**
+     * Alias of libcalendaring_recurrence::next()
+     *
+     * @return mixed DateTime object or False if recurrence ended
+     */
+    public function next_start()
+    {
+        return $this->next();
+    }
 
+    /**
+     * Get the next recurring instance of this event
+     *
+     * @return mixed Array with event properties or False if recurrence ended
+     */
+    public function next_instance()
+    {
+        if ($next_start = $this->next()) {
+            $next = $this->event;
+            $next['start'] = $next_start;
+
+            if ($this->duration) {
+                $next['end'] = clone $next_start;
+                $next['end']->add($this->duration);
+            }
+
+            $next['recurrence_date'] = clone $next_start;
+            $next['_instance'] = libcalendaring::recurrence_instance_identifier($next, $this->event['allday']);
+
+            unset($next['_formatobj']);
+
+            return $next;
+        }
+
+        return false;
+    }
 }

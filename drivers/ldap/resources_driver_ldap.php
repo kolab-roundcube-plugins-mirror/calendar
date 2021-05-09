@@ -41,72 +41,76 @@ class resources_driver_ldap extends resources_driver
     /**
      * Fetch resource objects to be displayed for booking
      *
-     * @param  string  Search query (optional)
-     * @return array  List of resource records available for booking
+     * @param string $query Search query (optional)
+     * @param int    $num   Max size of the result
+     *
+     * @return array List of resource records available for booking
      */
     public function load_resources($query = null, $num = 5000)
     {
-      if (!($ldap = $this->connect())) {
-        return array();
-      }
-
-      // TODO: apply paging
-      $ldap->set_pagesize($num);
-
-      if (isset($query)) {
-        $results = $ldap->search('*', $query, 0, true, true);
-      }
-      else {
-        $results = $ldap->list_records();
-      }
-
-      if ($results instanceof ArrayAccess) {
-        foreach ($results as $i => $rec) {
-          $results[$i] = $this->decode_resource($rec);
+        if (!($ldap = $this->connect())) {
+            return [];
         }
-      }
 
-      return $results;
+        // TODO: apply paging
+        $ldap->set_pagesize($num);
+
+        if (isset($query)) {
+            $results = $ldap->search('*', $query, 0, true, true);
+        }
+        else {
+            $results = $ldap->list_records();
+        }
+
+        if ($results instanceof ArrayAccess) {
+            foreach ($results as $i => $rec) {
+                $results[$i] = $this->decode_resource($rec);
+            }
+        }
+
+        return $results;
     }
 
     /**
      * Return properties of a single resource
      *
-     * @param string  Unique resource identifier
+     * @param string $id Unique resource identifier
+     *
      * @return array Resource object as hash array
      */
     public function get_resource($dn)
     {
-      $rec = null;
+        $rec = null;
 
-      if ($ldap = $this->connect()) {
-        $rec = $ldap->get_record(rcube_ldap::dn_encode($dn), true);
+        if ($ldap = $this->connect()) {
+            $rec = $ldap->get_record(rcube_ldap::dn_encode($dn), true);
 
-        if (!empty($rec)) {
-          $rec = $this->decode_resource($rec);
+            if (!empty($rec)) {
+                $rec = $this->decode_resource($rec);
+            }
         }
-      }
 
-      return $rec;
+        return $rec;
     }
 
     /**
      * Return properties of a resource owner
      *
-     * @param string  Owner identifier
-     * @return array  Resource object as hash array
+     * @param string $dn Owner identifier
+     *
+     * @return array Resource object as hash array
      */
     public function get_resource_owner($dn)
     {
-      $owner = null;
+        $owner = null;
 
-      if ($ldap = $this->connect()) {
-        $owner = $ldap->get_record(rcube_ldap::dn_encode($dn), true);
-        $owner['ID'] = rcube_ldap::dn_decode($owner['ID']);
-        unset($owner['_raw_attrib'], $owner['_type']);
-      }
+        if ($ldap = $this->connect()) {
+            $owner = $ldap->get_record(rcube_ldap::dn_encode($dn), true);
+            $owner['ID'] = rcube_ldap::dn_decode($owner['ID']);
+            unset($owner['_raw_attrib'], $owner['_type']);
+        }
 
-      return $owner;
+        return $owner;
     }
 
     /**
@@ -114,41 +118,40 @@ class resources_driver_ldap extends resources_driver
      */
     private function decode_resource($rec)
     {
-      $rec['ID'] = rcube_ldap::dn_decode($rec['ID']);
+        $rec['ID'] = rcube_ldap::dn_decode($rec['ID']);
 
-      $attributes = array();
+        $attributes = [];
 
-      foreach ((array) $rec['attributes'] as $sattr) {
-        $sattr = trim($sattr);
-        if ($sattr && $sattr[0] === '{') {
-          $attr = @json_decode($sattr, true);
-          $attributes += $attr;
+        foreach ((array) $rec['attributes'] as $sattr) {
+            $sattr = trim($sattr);
+            if (!empty($sattr) && $sattr[0] === '{') {
+                $attr = @json_decode($sattr, true);
+                $attributes += $attr;
+            }
+            else if (!empty($sattr) && empty($rec['description'])) {
+                $rec['description'] = $sattr;
+            }
         }
-        else if ($sattr && empty($rec['description'])) {
-          $rec['description'] = $sattr;
+
+        $rec['attributes'] = $attributes;
+
+        // force $rec['members'] to be an array
+        if (!empty($rec['members']) && !is_array($rec['members'])) {
+            $rec['members'] = [$rec['members']];
         }
-      }
 
-      $rec['attributes'] = $attributes;
+        // remove unused cruft
+        unset($rec['_raw_attrib']);
 
-      // force $rec['members'] to be an array
-      if (!empty($rec['members']) && !is_array($rec['members'])) {
-        $rec['members'] = array($rec['members']);
-      }
-
-      // remove unused cruft
-      unset($rec['_raw_attrib']);
-
-      return $rec;
+        return $rec;
     }
 
     private function connect()
     {
-      if (!isset($this->ldap)) {
-        $this->ldap = new rcube_ldap($this->rc->config->get('calendar_resources_directory'), true);
-      }
+        if (!isset($this->ldap)) {
+            $this->ldap = new rcube_ldap($this->rc->config->get('calendar_resources_directory'), true);
+        }
 
-      return $this->ldap->ready ? $this->ldap : null;
+        return $this->ldap->ready ? $this->ldap : null;
     }
-
 }

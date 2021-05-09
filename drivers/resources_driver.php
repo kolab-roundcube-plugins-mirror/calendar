@@ -26,87 +26,93 @@
  */
 abstract class resources_driver
 {
-  protected $cal;
+    protected $cal;
 
-  /**
-   * Default constructor
-   */
-  function __construct($cal)
-  {
-      $this->cal = $cal;
-  }
+    /**
+     * Default constructor
+     */
+    function __construct($cal)
+    {
+        $this->cal = $cal;
+    }
 
-  /**
-   * Fetch resource objects to be displayed for booking
-   *
-   * @param  string  Search query (optional)
-   * @return array  List of resource records available for booking
-   */
-  abstract public function load_resources($query = null);
+    /**
+     * Fetch resource objects to be displayed for booking
+     *
+     * @param string $query Search query (optional)
+     *
+     * @return array List of resource records available for booking
+     */
+    abstract public function load_resources($query = null);
 
-  /**
-   * Return properties of a single resource
-   *
-   * @param string  Unique resource identifier
-   * @return array  Resource object as hash array
-   */
-  abstract public function get_resource($id);
+    /**
+     * Return properties of a single resource
+     *
+     * @param string $id Unique resource identifier
+     *
+     * @return array Resource object as hash array
+     */
+    abstract public function get_resource($id);
 
-  /**
-   * Return properties of a resource owner
-   *
-   * @param string  Owner identifier
-   * @return array  Resource object as hash array
-   */
-  public function get_resource_owner($id)
-  {
-      return null;
-  }
+    /**
+     * Return properties of a resource owner
+     *
+     * @param string $id Owner identifier
+     *
+     * @return array Resource object as hash array
+     */
+    public function get_resource_owner($id)
+    {
+        return null;
+    }
 
-  /**
-   * Get event data to display a resource's calendar
-   *
-   * The default implementation extracts the resource's email address
-   * and fetches free-busy data using the calendar backend driver.
-   *
-   * @param  integer Event's new start (unix timestamp)
-   * @param  integer Event's new end (unix timestamp)
-   * @return array A list of event objects (see calendar_driver specification)
-   */
-  public function get_resource_calendar($id, $start, $end)
-  {
-      $events = array();
-      $rec = $this->get_resource($id);
-      if ($rec && !empty($rec['email']) && $this->cal->driver) {
-          $fbtypemap = array(
-              calendar::FREEBUSY_BUSY => 'busy',
-              calendar::FREEBUSY_TENTATIVE => 'tentative',
-              calendar::FREEBUSY_OOF => 'outofoffice',
-          );
+    /**
+     * Get event data to display a resource's calendar
+     *
+     * The default implementation extracts the resource's email address
+     * and fetches free-busy data using the calendar backend driver.
+     *
+     * @param string $id    Calendar identifier
+     * @param int    $start Event's new start (unix timestamp)
+     * @param int    $end   Event's new end (unix timestamp)
+     *
+     * @return array A list of event objects (see calendar_driver specification)
+     */
+    public function get_resource_calendar($id, $start, $end)
+    {
+        $events = [];
+        $rec    = $this->get_resource($id);
 
-          // if the backend has free-busy information
-          $fblist = $this->cal->driver->get_freebusy_list($rec['email'], $start, $end);
-          if (is_array($fblist)) {
-              foreach ($fblist as $slot) {
-                  list($from, $to, $type) = $slot;
-                  if ($type == calendar::FREEBUSY_FREE || $type == calendar::FREEBUSY_UNKNOWN) {
-                      continue;
-                  }
-                  if ($from < $end && $to > $start) {
-                      $event = array(
-                          'id'     => sha1($id . $from . $to),
-                          'title'  => $rec['name'],
-                          'start'  => new DateTime('@' . $from),
-                          'end'    => new DateTime('@' . $to),
-                          'status' => $fbtypemap[$type],
-                          'calendar' => '_resource',
-                      );
-                      $events[] = $event;
-                  }
-              }
-          }
-      }
+        if ($rec && !empty($rec['email']) && !empty($this->cal->driver)) {
+            $fbtypemap = [
+                calendar::FREEBUSY_BUSY      => 'busy',
+                calendar::FREEBUSY_TENTATIVE => 'tentative',
+                calendar::FREEBUSY_OOF       => 'outofoffice',
+            ];
 
-      return $events;
-  }
+            // if the backend has free-busy information
+            $fblist = $this->cal->driver->get_freebusy_list($rec['email'], $start, $end);
+            if (is_array($fblist)) {
+                foreach ($fblist as $slot) {
+                    list($from, $to, $type) = $slot;
+                    if ($type == calendar::FREEBUSY_FREE || $type == calendar::FREEBUSY_UNKNOWN) {
+                        continue;
+                    }
+
+                    if ($from < $end && $to > $start) {
+                        $events[] = [
+                            'id'     => sha1($id . $from . $to),
+                            'title'  => $rec['name'],
+                            'start'  => new DateTime('@' . $from),
+                            'end'    => new DateTime('@' . $to),
+                            'status' => $fbtypemap[$type],
+                            'calendar' => '_resource',
+                        ];
+                    }
+                }
+            }
+        }
+
+        return $events;
+    }
 }

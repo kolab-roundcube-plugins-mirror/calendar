@@ -28,213 +28,231 @@ require_once realpath(__DIR__ . '/../../libcalendaring/lib/libcalendaring_itip.p
  */
 class calendar_itip extends libcalendaring_itip
 {
-  /**
-   * Constructor to set text domain to calendar
-   */
-  function __construct($plugin, $domain = 'calendar')
-  {
-    parent::__construct($plugin, $domain);
+    /**
+     * Constructor to set text domain to calendar
+     */
+    function __construct($plugin, $domain = 'calendar')
+    {
+        parent::__construct($plugin, $domain);
 
-    $this->db_itipinvitations = $this->rc->db->table_name('itipinvitations', true);
-  }
-
-  /**
-   * Handler for calendar/itip-status requests
-   */
-  public function get_itip_status($event, $existing = null)
-  {
-    $status = parent::get_itip_status($event, $existing);
-
-    // don't ask for deleting events when declining
-    if ($this->rc->config->get('kolab_invitation_calendars'))
-      $status['saved'] = false;
-
-    return $status;
-  }
-
-  /**
-   * Find invitation record by token
-   *
-   * @param string Invitation token
-   * @return mixed Invitation record as hash array or False if not found
-   */
-  public function get_invitation($token)
-  {
-    if ($parts = $this->decode_token($token)) {
-      $result = $this->rc->db->query("SELECT * FROM $this->db_itipinvitations WHERE `token` = ?", $parts['base']);
-      if ($result && ($rec = $this->rc->db->fetch_assoc($result))) {
-        $rec['event'] = unserialize($rec['event']);
-        $rec['attendee'] = $parts['attendee'];
-        return $rec;
-      }
+        $this->db_itipinvitations = $this->rc->db->table_name('itipinvitations', true);
     }
-    
-    return false;
-  }
 
-  /**
-   * Update the attendee status of the given invitation record
-   *
-   * @param array Invitation record as fetched with calendar_itip::get_invitation()
-   * @param string Attendee email address
-   * @param string New attendee status
-   */
-  public function update_invitation($invitation, $email, $newstatus)
-  {
-    if (is_string($invitation))
-      $invitation = $this->get_invitation($invitation);
-    
-    if ($invitation['token'] && $invitation['event']) {
-      // update attendee record in event data
-      foreach ($invitation['event']['attendees'] as $i => $attendee) {
-        if ($attendee['role'] == 'ORGANIZER') {
-          $organizer = $attendee;
+    /**
+     * Handler for calendar/itip-status requests
+     */
+    public function get_itip_status($event, $existing = null)
+    {
+        $status = parent::get_itip_status($event, $existing);
+
+        // don't ask for deleting events when declining
+        if ($this->rc->config->get('kolab_invitation_calendars')) {
+            $status['saved'] = false;
         }
-        else if ($attendee['email'] == $email) {
-          // nothing to be done here
-          if ($attendee['status'] == $newstatus)
-            return true;
-          
-          $invitation['event']['attendees'][$i]['status'] = $newstatus;
-          $this->sender = $attendee;
+
+        return $status;
+    }
+
+    /**
+     * Find invitation record by token
+     *
+     * @param string $token Invitation token
+     *
+     * @return mixed Invitation record as hash array or False if not found
+     */
+    public function get_invitation($token)
+    {
+        if ($parts = $this->decode_token($token)) {
+            $result = $this->rc->db->query("SELECT * FROM $this->db_itipinvitations WHERE `token` = ?", $parts['base']);
+            if ($result && ($rec = $this->rc->db->fetch_assoc($result))) {
+                $rec['event']    = unserialize($rec['event']);
+                $rec['attendee'] = $parts['attendee'];
+
+                return $rec;
+            }
         }
-      }
-      $invitation['event']['changed'] = new DateTime();
-      
-      // send iTIP REPLY message to organizer
-      if ($organizer) {
-        $status = strtolower($newstatus);
-        if ($this->send_itip_message($invitation['event'], 'REPLY', $organizer, 'itipsubject' . $status, 'itipmailbody' . $status))
-          $this->rc->output->command('display_message', $this->plugin->gettext(array('name' => 'sentresponseto', 'vars' => array('mailto' => $organizer['name'] ? $organizer['name'] : $organizer['email']))), 'confirmation');
-        else
-          $this->rc->output->command('display_message', $this->plugin->gettext('itipresponseerror'), 'error');
-      }
-      
-      // update record in DB
-      $query = $this->rc->db->query(
-        "UPDATE $this->db_itipinvitations
-         SET `event` = ?
-         WHERE `token` = ?",
-        self::serialize_event($invitation['event']),
-        $invitation['token']
-      );
 
-      if ($this->rc->db->affected_rows($query))
-        return true;
+        return false;
     }
-    
-    return false;
-  }
 
+    /**
+     * Update the attendee status of the given invitation record
+     *
+     * @param array  $invitation Invitation record as fetched with calendar_itip::get_invitation()
+     * @param string $email      Attendee email address
+     * @param string $newstatus  New attendee status
+     */
+    public function update_invitation($invitation, $email, $newstatus)
+    {
+        if (is_string($invitation)) {
+            $invitation = $this->get_invitation($invitation);
+        }
 
-  /**
-   * Create iTIP invitation token for later replies via URL
-   *
-   * @param array Hash array with event properties
-   * @param string Attendee email address
-   * @return string Invitation token
-   */
-  public function store_invitation($event, $attendee)
-  {
-    static $stored = array();
-    
-    if (!$event['uid'] || !$attendee)
-      return false;
-      
-    // generate token for this invitation
-    $token = $this->generate_token($event, $attendee);
-    $base = substr($token, 0, 40);
-    
-    // already stored this
-    if ($stored[$base])
-      return $token;
+        if (!empty($invitation['token']) && !empty($invitation['event'])) {
+            // update attendee record in event data
+            foreach ($invitation['event']['attendees'] as $i => $attendee) {
+                if ($attendee['role'] == 'ORGANIZER') {
+                    $organizer = $attendee;
+                }
+                else if ($attendee['email'] == $email) {
+                    // nothing to be done here
+                    if ($attendee['status'] == $newstatus) {
+                        return true;
+                    }
 
-    // delete old entry
-    $this->rc->db->query("DELETE FROM $this->db_itipinvitations WHERE `token` = ?", $base);
+                    $invitation['event']['attendees'][$i]['status'] = $newstatus;
+                    $this->sender = $attendee;
+                }
+            }
 
-    $event_uid = $event['uid'] . ($event['_instance'] ? '-' . $event['_instance'] : '');
+            $invitation['event']['changed'] = new DateTime();
 
-    $query = $this->rc->db->query(
-      "INSERT INTO $this->db_itipinvitations
-       (`token`, `event_uid`, `user_id`, `event`, `expires`)
-       VALUES(?, ?, ?, ?, ?)",
-      $base,
-      $event_uid,
-      $this->rc->user->ID,
-      self::serialize_event($event),
-      date('Y-m-d H:i:s', $event['end']->format('U') + 86400 * 2)
-    );
-    
-    if ($this->rc->db->affected_rows($query)) {
-      $stored[$base] = 1;
-      return $token;
+            // send iTIP REPLY message to organizer
+            if (!empty($organizer)) {
+                $status = strtolower($newstatus);
+                if ($this->send_itip_message($invitation['event'], 'REPLY', $organizer, 'itipsubject' . $status, 'itipmailbody' . $status)) {
+                    $mailto = !empty($organizer['name']) ? $organizer['name'] : $organizer['email'];
+                    $message = $this->plugin->gettext([
+                            'name' => 'sentresponseto',
+                            'vars' => ['mailto' => $mailto]
+                    ]);
+                    $this->rc->output->command('display_message', $message, 'confirmation');
+                }
+                else {
+                    $this->rc->output->command('display_message', $this->plugin->gettext('itipresponseerror'), 'error');
+                }
+            }
+
+            // update record in DB
+            $query = $this->rc->db->query(
+                "UPDATE $this->db_itipinvitations SET `event` = ? WHERE `token` = ?",
+                self::serialize_event($invitation['event']),
+                $invitation['token']
+            );
+
+            if ($this->rc->db->affected_rows($query)) {
+                return true;
+            }
+        }
+
+        return false;
     }
-    
-    return false;
-  }
 
-  /**
-   * Mark invitations for the given event as cancelled
-   *
-   * @param array Hash array with event properties
-   */
-  public function cancel_itip_invitation($event)
-  {
-    $event_uid = $event['uid'] . ($event['_instance'] ? '-' . $event['_instance'] : '');
+    /**
+     * Create iTIP invitation token for later replies via URL
+     *
+     * @param array  $event    Hash array with event properties
+     * @param string $attendee Attendee email address
+     *
+     * @return string Invitation token
+     */
+    public function store_invitation($event, $attendee)
+    {
+        static $stored = [];
 
-    // flag invitation record as cancelled
-    $this->rc->db->query(
-      "UPDATE $this->db_itipinvitations
-       SET `cancelled` = 1
-       WHERE `event_uid` = ? AND `user_id` = ?",
-       $event_uid,
-       $this->rc->user->ID
-    );
-  }
+        if (empty($event['uid']) || !$attendee) {
+            return false;
+        }
 
-  /**
-   * Generate an invitation request token for the given event and attendee
-   *
-   * @param array Event hash array
-   * @param string Attendee email address
-   */
-  public function generate_token($event, $attendee)
-  {
-    $event_uid = $event['uid'] . ($event['_instance'] ? '-' . $event['_instance'] : '');
-    $base = sha1($event_uid . ';' . $this->rc->user->ID);
-    $mail = base64_encode($attendee);
-    $hash = substr(md5($base . $mail . $this->rc->config->get('des_key')), 0, 6);
-    
-    return "$base.$mail.$hash";
-  }
+        // generate token for this invitation
+        $token = $this->generate_token($event, $attendee);
+        $base = substr($token, 0, 40);
 
-  /**
-   * Decode the given iTIP request token and return its parts
-   *
-   * @param string Request token to decode
-   * @return mixed Hash array with parts or False if invalid
-   */
-  public function decode_token($token)
-  {
-    list($base, $mail, $hash) = explode('.', $token);
-    
-    // validate and return parts
-    if ($mail && $hash && $hash == substr(md5($base . $mail . $this->rc->config->get('des_key')), 0, 6)) {
-      return array('base' => $base, 'attendee' => base64_decode($mail));
+        // already stored this
+        if (!empty($stored[$base])) {
+            return $token;
+        }
+
+        // delete old entry
+        $this->rc->db->query("DELETE FROM $this->db_itipinvitations WHERE `token` = ?", $base);
+
+        $event_uid = $event['uid'] . (!empty($event['_instance']) ? '-' . $event['_instance'] : '');
+
+        $query = $this->rc->db->query(
+            "INSERT INTO $this->db_itipinvitations"
+            . " (`token`, `event_uid`, `user_id`, `event`, `expires`)"
+            . " VALUES(?, ?, ?, ?, ?)",
+            $base,
+            $event_uid,
+            $this->rc->user->ID,
+            self::serialize_event($event),
+            date('Y-m-d H:i:s', $event['end']->format('U') + 86400 * 2)
+        );
+
+        if ($this->rc->db->affected_rows($query)) {
+            $stored[$base] = 1;
+            return $token;
+        }
+
+        return false;
     }
-    
-    return false;
-  }
 
-  /**
-   * Helper method to serialize the given event for storing in invitations table
-   */
-  private static function serialize_event($event)
-  {
-    $ev = $event;
-    $ev['description'] = abbreviate_string($ev['description'], 100);
-    unset($ev['attachments']);
-    return serialize($ev);
-  }
+    /**
+     * Mark invitations for the given event as cancelled
+     *
+     * @param array $event Hash array with event properties
+     */
+    public function cancel_itip_invitation($event)
+    {
+        $event_uid = $event['uid'] . (!empty($event['_instance']) ? '-' . $event['_instance'] : '');
 
+        // flag invitation record as cancelled
+        $this->rc->db->query(
+            "UPDATE $this->db_itipinvitations SET `cancelled` = 1"
+            . " WHERE `event_uid` = ? AND `user_id` = ?",
+           $event_uid,
+           $this->rc->user->ID
+        );
+    }
+
+    /**
+     * Generate an invitation request token for the given event and attendee
+     *
+     * @param array  $event    Event hash array
+     * @param string $attendee Attendee email address
+     */
+    public function generate_token($event, $attendee)
+    {
+        $event_uid = $event['uid'] . (!empty($event['_instance']) ? '-' . $event['_instance'] : '');
+        $base = sha1($event_uid . ';' . $this->rc->user->ID);
+        $mail = base64_encode($attendee);
+        $hash = substr(md5($base . $mail . $this->rc->config->get('des_key')), 0, 6);
+
+        return "$base.$mail.$hash";
+    }
+
+    /**
+     * Decode the given iTIP request token and return its parts
+     *
+     * @param string $token Request token to decode
+     *
+     * @return mixed Hash array with parts or False if invalid
+     */
+    public function decode_token($token)
+    {
+        list($base, $mail, $hash) = explode('.', $token);
+
+        // validate and return parts
+        if ($mail && $hash && $hash == substr(md5($base . $mail . $this->rc->config->get('des_key')), 0, 6)) {
+            return ['base' => $base, 'attendee' => base64_decode($mail)];
+        }
+
+        return false;
+    }
+
+    /**
+     * Helper method to serialize the given event for storing in invitations table
+     */
+    private static function serialize_event($event)
+    {
+        $ev = $event;
+
+        if (!empty($ev['description'])) {
+            $ev['description'] = abbreviate_string($ev['description'], 100);
+        }
+
+        unset($ev['attachments']);
+
+        return serialize($ev);
+    }
 }

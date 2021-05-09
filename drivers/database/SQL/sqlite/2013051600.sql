@@ -61,3 +61,4 @@ CREATE TABLE events (
 INSERT INTO events (event_id, calendar_id, recurrence_id, uid, created, changed, sequence, start, end, recurrence, title, description, location, categories, all_day, free_busy, priority, sensitivity, alarms, attendees, notifyat)
     SELECT event_id, calendar_id, recurrence_id, uid, created, changed, sequence, start, end, recurrence, title, description, location, categories, all_day, free_busy, priority, sensitivity, alarms, attendees, notifyat FROM temp_events;
 
+DROP TABLE temp_events;
