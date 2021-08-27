@@ -3254,19 +3254,27 @@ $("#rcmfd_new_category").keypress(function(event) {
 
         // add "Save to calendar" button into attachment menu
         if ($has_events) {
-            $this->add_button([
-                    'id'         => 'attachmentsavecal',
-                    'name'       => 'attachmentsavecal',
-                    'type'       => 'link',
-                    'wrapper'    => 'li',
-                    'command'    => 'attachment-save-calendar',
-                    'class'      => 'icon calendarlink disabled',
-                    'classact'   => 'icon calendarlink active',
+            $calendars = $this->driver->list_calendars(calendar_driver::FILTER_PERSONAL | calendar_driver::FILTER_WRITEABLE);
+
+            foreach($calendars as $calendar) {
+                //TODO inline style tags are a bit ugly, but I cant think of a better way of coloring the icon
+                $style = html::tag('style', ['type' => 'text/css'], ".icon.cal-$calendar[id]::before {color: #$calendar[color]}");
+                $this->add_button([
+                    'id' => 'attachmentsavecal-' .$calendar['id'],
+                    'name' => 'attachmentsavecal',
+                    'type' => 'link',
+                    'wrapper' => 'li',
+                    'command' => 'attachment-save-calendar',
+                    'prop' => $calendar['id'],
+                    'class' => 'icon calendarlink disabled',
+                    'classact' => "icon calendarlink active cal-$calendar[id]",
                     'innerclass' => 'icon calendar',
-                    'label'      => 'calendar.savetocalendar',
+                    //maybe change the calendar.savetocalendar translation so a calendar can be added and use a label instead?
+                    'content' => $this->gettext('calendar.savetocalendar') ." ($calendar[name]) $style"
                 ],
-                'attachmentmenu'
-            );
+                    'attachmentmenu'
+                );
+            }
         }
 
         return $p;

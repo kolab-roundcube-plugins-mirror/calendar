@@ -72,13 +72,12 @@ function rcube_calendar(settings)
     // handler for attachment-save-calendar commands
     this.save_to_calendar = function(p)
     {
-      // TODO: show dialog to select the calendar for importing
       if (this.selected_attachment && window.rcube_libcalendaring) {
         rcmail.http_post('calendar/mailimportattach', {
             _uid: rcmail.env.uid,
             _mbox: rcmail.env.mailbox,
-            _part: this.selected_attachment
-            // _calendar: $('#calendar-attachment-saveto').val(),
+            _part: this.selected_attachment,
+            _calendar: p
           }, rcmail.set_busy(true, 'itip.savingdata'));
       }
     };
@@ -93,7 +92,7 @@ window.rcmail && rcmail.addEventListener('init', function(evt) {
     // register create-from-mail command to message_commands array
     if (rcmail.env.task == 'mail') {
       rcmail.register_command('calendar-create-from-mail', function() { cal.create_from_mail(); });
-      rcmail.register_command('attachment-save-calendar', function() { cal.save_to_calendar(); });
+      rcmail.register_command('attachment-save-calendar', function(p) { cal.save_to_calendar(p); });
 
       if (rcmail.env.action != 'show') {
         rcmail.env.message_commands.push('calendar-create-from-mail');
