@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Localizations for Kolab Calendar plugin
  *
@@ -277,4 +278,3 @@ $labels['arialabeleventresources'] = 'Tapahtuman resurssilista';
 $labels['arialabelresourcesearchform'] = 'Resurssien hakulomake';
 $labels['arialabelresourceselection'] = 'Saatavilla olevat resurssit';
 $labels['arialabeleventform'] = 'Tapahtuman muokkauslomake';
-?>

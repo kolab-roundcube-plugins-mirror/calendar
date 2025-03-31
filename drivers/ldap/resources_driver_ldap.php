@@ -32,7 +32,7 @@ class resources_driver_ldap extends resources_driver
     /**
      * Default constructor
      */
-    function __construct($cal)
+    public function __construct($cal)
     {
         $this->cal = $cal;
         $this->rc = $cal->rc;
@@ -41,12 +41,13 @@ class resources_driver_ldap extends resources_driver
     /**
      * Fetch resource objects to be displayed for booking
      *
-     * @param string $query Search query (optional)
-     * @param int    $num   Max size of the result
+     * @param string $query       Search query (optional)
+     * @param int    $num         Max size of the result
+     * @param string $searchField Field to search with query
      *
      * @return array List of resource records available for booking
      */
-    public function load_resources($query = null, $num = 5000)
+    public function load_resources($query = null, $num = 5000, $searchField = '*')
     {
         if (!($ldap = $this->connect())) {
             return [];
@@ -56,13 +57,13 @@ class resources_driver_ldap extends resources_driver
         $ldap->set_pagesize($num);
 
         if (isset($query)) {
-            $results = $ldap->search('*', $query, 0, true, true);
-        }
-        else {
+            $mode = $searchField == 'owner' ? rcube_addressbook::SEARCH_STRICT : 0;
+            $results = $ldap->search($searchField, $query, $mode, true, true);
+        } else {
             $results = $ldap->list_records();
         }
 
-        if ($results instanceof ArrayAccess) {
+        if ($results instanceof Iterator) {
             foreach ($results as $i => $rec) {
                 $results[$i] = $this->decode_resource($rec);
             }
@@ -74,7 +75,7 @@ class resources_driver_ldap extends resources_driver
     /**
      * Return properties of a single resource
      *
-     * @param string $id Unique resource identifier
+     * @param string $dn Unique resource identifier
      *
      * @return array Resource object as hash array
      */
@@ -122,14 +123,15 @@ class resources_driver_ldap extends resources_driver
 
         $attributes = [];
 
-        foreach ((array) $rec['attributes'] as $sattr) {
-            $sattr = trim($sattr);
-            if (!empty($sattr) && $sattr[0] === '{') {
-                $attr = @json_decode($sattr, true);
-                $attributes += $attr;
-            }
-            else if (!empty($sattr) && empty($rec['description'])) {
-                $rec['description'] = $sattr;
+        if (!empty($rec['attributes'])) {
+            foreach ((array) $rec['attributes'] as $sattr) {
+                $sattr = trim($sattr);
+                if (!empty($sattr) && $sattr[0] === '{') {
+                    $attr = @json_decode($sattr, true);
+                    $attributes += $attr;
+                } elseif (!empty($sattr) && empty($rec['description'])) {
+                    $rec['description'] = $sattr;
+                }
             }
         }
 

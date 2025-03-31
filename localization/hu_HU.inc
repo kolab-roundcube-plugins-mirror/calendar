@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Localizations for Kolab Calendar plugin
  *
@@ -211,4 +212,3 @@ $labels['displaybirthdayscalendar'] = 'Születésnapok megjelenítése';
 $labels['birthdayscalendarsources'] = 'Alábbi címjegyzékekből:';
 $labels['birthdayeventtitle'] = '$name születésnapja';
 $labels['birthdayage'] = '$age éves';
-?>

@@ -68,7 +68,6 @@ function rcube_calendar_ui(settings)
     var count_sources = [];
     var event_sources = [];
     var exec_deferred = 1;
-    var sensitivitylabels = { 'public':rcmail.gettext('public','calendar'), 'private':rcmail.gettext('private','calendar'), 'confidential':rcmail.gettext('confidential','calendar') };
     var ui_loading = rcmail.set_busy(true, 'loading');
 
     // global fullcalendar settings
@@ -82,6 +81,7 @@ function rcube_calendar_ui(settings)
       dayNamesShort: settings.days_short,
       weekNumbers: settings.show_weekno > 0,
       weekNumberTitle: rcmail.gettext('weekshort', 'calendar') + ' ',
+      weekNumberCalculation: 'ISO',
       firstDay: settings.first_day,
       firstHour: settings.first_hour,
       slotDuration: {minutes: 60/settings.timeslots},
@@ -137,8 +137,7 @@ function rcube_calendar_ui(settings)
       // event rendering
       eventRender: function(event, element, view) {
         if (view.name != 'list') {
-          var prefix = event.sensitivity && event.sensitivity != 'public' ? String(sensitivitylabels[event.sensitivity]).toUpperCase()+': ' : '';
-          element.attr('title', prefix + event.title);
+          element.attr('title', event.title);
         }
         if (view.name != 'month') {
           if (view.name == 'list') {
@@ -151,8 +150,6 @@ function rcube_calendar_ui(settings)
             element.find('div.fc-title').after($('<div class="fc-event-location">').html('@&nbsp;' + Q(event.location)));
           }
           var time_element = element.find('div.fc-time');
-          if (event.sensitivity && event.sensitivity != 'public')
-            time_element.append('<i class="fc-icon-sensitive"></i>');
           if (event.recurrence)
             time_element.append('<i class="fc-icon-recurring"></i>');
           if (event.alarms || (event.valarms && event.valarms.length))
@@ -368,10 +365,10 @@ function rcube_calendar_ui(settings)
       if ($dialog.is(':ui-dialog'))
         $dialog.dialog('close');
 
-      // remove status-* and sensitivity-* classes
+      // remove status-* classes
       $dialog.removeClass(function(i, oldclass) {
           var oldies = String(oldclass).split(' ');
-          return $.grep(oldies, function(cls) { return cls.indexOf('status-') === 0 || cls.indexOf('sensitivity-') === 0 }).join(' ');
+          return $.grep(oldies, function(cls) { return cls.indexOf('status-') === 0; }).join(' ');
       });
 
       // convert start/end dates if not done yet by fullcalendar
@@ -398,7 +395,7 @@ function rcube_calendar_ui(settings)
         $('#event-alarm').show().find('.event-text').html(Q(event.alarms_text).replace(',', ',<br>'));
       if (calendar.name)
         $('#event-calendar').show().find('.event-text').html(Q(calendar.name)).addClass('cal-'+calendar.id);
-      if (event.categories)
+      if (event.categories && String(event.categories).length)
         $('#event-category').show().find('.event-text').text(event.categories).addClass('cat-'+String(event.categories).toLowerCase().replace(rcmail.identifier_expr, ''));
       if (event.free_busy)
         $('#event-free-busy').show().find('.event-text').text(rcmail.gettext(event.free_busy, 'calendar'));
@@ -412,11 +409,6 @@ function rcube_calendar_ui(settings)
         $('#event-status').show().find('.event-text').text(rcmail.gettext('status-'+status_lc,'calendar'));
         $('#event-status-badge > span').text(rcmail.gettext('status-'+status_lc,'calendar'));
         $dialog.addClass('status-'+status_lc);
-      }
-      if (event.sensitivity && event.sensitivity != 'public') {
-        $('#event-sensitivity').show().find('.event-text').text(sensitivitylabels[event.sensitivity]);
-        $('#event-status-badge > span').text(sensitivitylabels[event.sensitivity]);
-        $dialog.addClass('sensitivity-'+event.sensitivity);
       }
       if (event.created || event.changed) {
         var created = parseISO8601(event.created),
@@ -459,7 +451,7 @@ function rcube_calendar_ui(settings)
         for (var j=0; j < num_attendees; j++) {
           data = event.attendees[j];
           if (data.email) {
-            if (data.role != 'ORGANIZER' && settings.identity.emails.indexOf(';'+data.email) >= 0) {
+            if (data.role != 'ORGANIZER' && is_this_me(data.email)) {
               mystatus = (data.status || 'UNKNOWN').toLowerCase();
               if (data.status == 'NEEDS-ACTION' || data.status == 'TENTATIVE' || data.rsvp)
                 rsvp = mystatus;
@@ -669,7 +661,6 @@ function rcube_calendar_ui(settings)
       var eventstatus = $('#edit-event-status').val(event.status);
       var freebusy = $('#edit-free-busy').val(event.free_busy);
       var priority = $('#edit-priority').val(event.priority);
-      var sensitivity = $('#edit-sensitivity').val(event.sensitivity);
       var syncstart = $('#edit-recurrence-syncstart input');
       var end = 'toDate' in event.end ? event.end : moment(event.end);
       var start = 'toDate' in event.start ? event.start : moment(event.start);
@@ -774,8 +765,8 @@ function rcube_calendar_ui(settings)
 
         // select the correct organizer identity
         var identity_id = 0;
-        $.each(settings.identities, function(i,v){
-          if (organizer && typeof organizer == 'object' && v == organizer.email) {
+        $.each(settings.identities, function(i,v) {
+          if (organizer && typeof organizer == 'object' && organizer.email && v == organizer.email.toLowerCase()) {
             identity_id = i;
             return false;
           }
@@ -792,6 +783,8 @@ function rcube_calendar_ui(settings)
         $('#edit-identities-list').val(identity_id);
         $('#edit-attendees-form')[(allow_invitations?'show':'hide')]();
         $('#edit-attendee-schedule')[(calendar.freebusy?'show':'hide')]();
+        $('#event-panel-attendees #edit-attendees-legend')[(calendar.freebusy?'show':'hide')]();
+        $('#edit-attendees-table th.availability')[(calendar.freebusy?'show':'hide')]();
       };
 
       // attachments
@@ -850,7 +843,6 @@ function rcube_calendar_ui(settings)
             vurl: vurl.val(),
             free_busy: freebusy.val(),
             priority: priority.val(),
-            sensitivity: sensitivity.val(),
             status: eventstatus.val(),
             recurrence: me.serialize_recurrence(endtime.val()),
             valarms: me.serialize_alarms('#edit-alarms'),
@@ -864,12 +856,6 @@ function rcube_calendar_ui(settings)
           for (var i in rcmail.env.attachments)
             if (i.match(/^rcmfile(.+)/))
               data.attachments.push(RegExp.$1);
-
-          // read attendee roles
-          $('select.edit-attendee-role').each(function(i, elem){
-            if (data.attendees[i])
-              data.attendees[i].role = $(elem).val();
-          });
 
           if (organizer)
             data._identity = $('#edit-identities-list option:selected').val();
@@ -938,12 +924,18 @@ function rcube_calendar_ui(settings)
       $('#edit-tab-attachments')[(calendar.attachments?'show':'hide')]();
       $('#eventedit:not([data-notabs])').tabs('option', 'active', 0); // Larry
 
-      // show/hide tabs according to calendar's feature support and activate first tab (Ellastic)
+      // show/hide tabs according to calendar's feature support and activate first tab (Elastic)
       $('li > a[href="#event-panel-attendees"]').parent()[(calendar.attendees?'show':'hide')]();
       $('li > a[href="#event-panel-resources"]').parent()[(rcmail.env.calendar_resources?'show':'hide')]();
       $('li > a[href="#event-panel-attachments"]').parent()[(calendar.attachments?'show':'hide')]();
       if ($('#eventedit').data('notabs'))
         $('#eventedit li.nav-item:first-child a').tab('show');
+
+      if (!rcmail.env.calendar_resources_freebusy) {
+        // With no freebusy setup, some features needs to be hidden
+        // TODO: Show "Find resources" dialog, but with Availability tab hidden
+        $('#event-panel-resources').find('#edit-resource-find,#edit-attendees-legend,td.availability,th.availability').hide();
+      }
 
       // hack: set task to 'calendar' to make all dialog actions work correctly
       var comm_path_before = rcmail.env.comm_path;
@@ -1196,13 +1188,13 @@ function rcube_calendar_ui(settings)
     {
       var $dialog = $('#eventfreebusy'),
         event = me.selected_event;
-      
+
       if ($dialog.is(':ui-dialog'))
         $dialog.dialog('close');
-      
+
       if (!event_attendees.length)
         return false;
-      
+
       // set form elements
       var allday = $('#edit-allday').get(0);
       var end = 'toDate' in event.end ? event.end : moment(event.end);
@@ -1213,25 +1205,19 @@ function rcube_calendar_ui(settings)
       freebusy_ui.starttime = $('#schedule-starttime').val(format_date(start, settings.time_format)).show();
       freebusy_ui.enddate = $('#schedule-enddate').val(format_date(end, settings.date_format));
       freebusy_ui.endtime = $('#schedule-endtime').val(format_date(end, settings.time_format)).show();
-      
+
       if (allday.checked) {
         freebusy_ui.starttime.val("12:00").hide();
         freebusy_ui.endtime.val("13:00").hide();
         event.allDay = true;
       }
-      
-      // read attendee roles from drop-downs
-      $('select.edit-attendee-role').each(function(i, elem){
-        if (event_attendees[i])
-          event_attendees[i].role = $(elem).val();
-      });
-      
+
       // render time slots
       var now = new Date(), fb_start = new Date(), fb_end = new Date();
       fb_start.setTime(event.start);
       fb_start.setHours(0); fb_start.setMinutes(0); fb_start.setSeconds(0); fb_start.setMilliseconds(0);
       fb_end.setTime(fb_start.getTime() + DAY_MS);
-      
+
       freebusy_data = { required:{}, all:{} };
       freebusy_ui.loading = 1;  // prevent render_freebusy_grid() to load data yet
       freebusy_ui.numdays = Math.max(allday.checked ? 14 : 1, Math.ceil(duration * 2 / 86400));
@@ -1239,7 +1225,7 @@ function rcube_calendar_ui(settings)
       freebusy_ui.start = fb_start;
       freebusy_ui.end = new Date(freebusy_ui.start.getTime() + DAY_MS * freebusy_ui.numdays);
       render_freebusy_grid(0);
-      
+
       // render list of attendees
       freebusy_ui.attendees = {};
       var domid, dispname, data, role_html, list_html = '';
@@ -1249,18 +1235,18 @@ function rcube_calendar_ui(settings)
         domid = String(data.email).replace(rcmail.identifier_expr, '');
         role_html = '<a class="attendee-role-toggle" id="rcmlia' + domid + '" title="' + Q(rcmail.gettext('togglerole', 'calendar')) + '">&nbsp;</a>';
         list_html += '<div class="attendee ' + String(data.role).toLowerCase() + '" id="rcmli' + domid + '">' + role_html + dispname + '</div>';
-        
+
         // clone attendees data for local modifications
         freebusy_ui.attendees[i] = freebusy_ui.attendees[domid] = $.extend({}, data);
       }
-      
+
       // add total row
       list_html += '<div class="attendee spacer">&nbsp;</div>';
       list_html += '<div class="attendee total">' + rcmail.gettext('reqallattendees','calendar') + '</div>';
-      
+
       $('#schedule-attendees-list').html(list_html)
         .unbind('click.roleicons')
-        .bind('click.roleicons', function(e){
+        .bind('click.roleicons', function(e) {
           // toggle attendee status upon click on icon
           if (e.target.id && e.target.id.match(/rcmlia(.+)/)) {
             var attendee, domid = RegExp.$1,
@@ -1271,7 +1257,7 @@ function rcube_calendar_ui(settings)
               j = (j+1) % roles.length;
               attendee.role = roles[j];
               $(e.target).parent().attr('class', 'attendee '+String(attendee.role).toLowerCase());
-              
+
               // update total display if required-status changed
               if (req != (roles[j] != 'OPT-PARTICIPANT' && roles[j] != 'NON-PARTICIPANT')) {
                 compute_freebusy_totals();
@@ -1279,7 +1265,7 @@ function rcube_calendar_ui(settings)
               }
             }
           }
-          
+
           return false;
         });
 
@@ -1298,12 +1284,15 @@ function rcube_calendar_ui(settings)
             $('#edit-endtime').val(freebusy_ui.endtime.val());
 
             // write role changes back to main dialog
-            $('select.edit-attendee-role').each(function(i, elem){
-              if (event_attendees[i] && freebusy_ui.attendees[i]) {
-                event_attendees[i].role = freebusy_ui.attendees[i].role;
-                $(elem).val(event_attendees[i].role);
+            for (var domid in freebusy_ui.attendees) {
+              var attendee = freebusy_ui.attendees[domid],
+                event_attendee = event_attendees.find(function(item) { return item.email == attendee.email});
+
+              if (event_attendee && attendee.role != event_attendee.role) {
+                event_attendee.role = attendee.role;
+                $('select.edit-attendee-role').filter(function(i,elem) { return $(elem).data('email') == attendee.email; }).val(attendee.role);
               }
-            });
+            }
 
             if (freebusy_ui.needsupdate)
               update_freebusy_status(me.selected_event);
@@ -1338,12 +1327,12 @@ function rcube_calendar_ui(settings)
         minWidth: 640,
         width: 850
       }).show();
-      
+
       // adjust dialog size to fit grid without scrolling
       var gridw = $('#schedule-freebusy-times').width();
       var overflow = gridw - $('#attendees-freebusy-table td.times').width();
       me.dialog_resize($dialog.get(0), $dialog.height() + (bw.ie ? 20 : 0), 800 + Math.max(0, overflow));
-      
+
       // fetch data from server
       freebusy_ui.loading = 0;
       load_freebusy_data(freebusy_ui.start, freebusy_ui.interval);
@@ -1355,17 +1344,17 @@ function rcube_calendar_ui(settings)
       if (delta) {
         freebusy_ui.start.setTime(freebusy_ui.start.getTime() + DAY_MS * delta);
         fix_date(freebusy_ui.start);
-        
+
         // skip weekends if in workinhoursonly-mode
         if (Math.abs(delta) == 1 && freebusy_ui.workinhoursonly) {
           while (is_weekend(freebusy_ui.start))
             freebusy_ui.start.setTime(freebusy_ui.start.getTime() + DAY_MS * delta);
           fix_date(freebusy_ui.start);
         }
-        
+
         freebusy_ui.end = new Date(freebusy_ui.start.getTime() + DAY_MS * freebusy_ui.numdays);
       }
-      
+
       var dayslots = Math.floor(1440 / freebusy_ui.interval);
       var date_format = 'ddd '+ (dayslots <= 2 ? settings.date_short : settings.date_format);
       var lastdate, datestr, css,
@@ -1385,17 +1374,17 @@ function rcube_calendar_ui(settings)
           dates_row += '<th colspan="' + dayslots + '" class="boxtitle date' + format_date(curdate, 'DDMMYYYY') + '">' + Q(datestr) + '</th>';
           lastdate = datestr;
         }
-        
+
         // set css class according to working hours
         css = is_weekend(curdate) || (freebusy_ui.interval <= 60 && !is_workinghour(curdate)) ? 'offhours' : 'workinghours';
         times_row += '<td class="' + times_css + css + '" id="t-' + Math.floor(t/1000) + '">' + Q(allday ? rcmail.gettext('all-day','calendar') : format_date(curdate, settings.time_format)) + '</td>';
         slots_row += '<td class="' + css + '">&nbsp;</td>';
-        
+
         t += interval * 60000;
       }
       dates_row += '</tr>';
       times_row += '</tr>';
-      
+
       // render list of attendees
       var domid, data, list_html = '', times_html = '';
       for (var i=0; i < event_attendees.length; i++) {
@@ -1403,15 +1392,15 @@ function rcube_calendar_ui(settings)
         domid = String(data.email).replace(rcmail.identifier_expr, '');
         times_html += '<tr id="fbrow' + domid + '" class="fbcontent">' + slots_row + '</tr>';
       }
-      
+
       // add line for all/required attendees
       times_html += '<tr class="spacer"><td colspan="' + (dayslots * freebusy_ui.numdays) + '"></td>';
       times_html += '<tr id="fbrowall" class="fbcontent">' + slots_row + '</tr>';
-      
+
       var table = $('#schedule-freebusy-times');
       table.children('thead').html(dates_row + times_row);
       table.children('tbody').html(times_html);
-      
+
       // initialize event handlers on grid
       if (!freebusy_ui.grid_events) {
         freebusy_ui.grid_events = true;
@@ -1429,7 +1418,7 @@ function rcube_calendar_ui(settings)
           }
         });
       }
-      
+
       // if we have loaded free-busy data, show it
       if (!freebusy_ui.loading) {
         if (freebusy_ui.start < freebusy_data.start || freebusy_ui.end > freebusy_data.end || freebusy_ui.interval != freebusy_data.interval) {
@@ -1442,12 +1431,12 @@ function rcube_calendar_ui(settings)
           }
         }
       }
-      
+
       // render current event date/time selection over grid table
       // use timeout to let the dom attributes (width/height/offset) be set first
       window.setTimeout(function(){ render_freebusy_overlay(); }, 10);
     };
-    
+
     // render overlay element over the grid to visiualize the current event date/time
     var render_freebusy_overlay = function()
     {
@@ -1566,7 +1555,7 @@ function rcube_calendar_ui(settings)
           domid = String(email).replace(rcmail.identifier_expr, '');
           $('#rcmli' + domid).addClass('loading');
           freebusy_ui.loading++;
-          
+
           $.ajax({
             type: 'GET',
             dataType: 'json',
@@ -1574,7 +1563,7 @@ function rcube_calendar_ui(settings)
             data: { email:email, start:date2servertime(clone_date(start, 1)), end:date2servertime(clone_date(end, 2)), interval:interval, _remote:1 },
             success: function(data) {
               freebusy_ui.loading--;
-              
+
               // find attendee
               var i, attendee = null;
               for (i=0; i < event_attendees.length; i++) {
@@ -1583,7 +1572,7 @@ function rcube_calendar_ui(settings)
                   break;
                 }
               }
-              
+
               // copy data to member var
               var ts, status,
                 req = attendee.role != 'OPT-PARTICIPANT',
@@ -1599,13 +1588,13 @@ function rcube_calendar_ui(settings)
                 status = data.slots.charAt(i);
                 freebusy_data[data.email][ts] = status
                 start = new Date(start.getTime() + data.interval * 60000);
-                
+
                 // set totals
                 if (!freebusy_data.required[ts])
                   freebusy_data.required[ts] = [0,0,0,0];
                 if (req)
                   freebusy_data.required[ts][status]++;
-                
+
                 if (!freebusy_data.all[ts])
                   freebusy_data.all[ts] = [0,0,0,0];
                 freebusy_data.all[ts][status]++;
@@ -1614,44 +1603,44 @@ function rcube_calendar_ui(settings)
               // hide loading indicator
               var domid = String(data.email).replace(rcmail.identifier_expr, '');
               $('#rcmli' + domid).removeClass('loading');
-              
+
               // update display
               update_freebusy_display(data.email);
             }
           });
-          
+
           // count required attendees
           if (freebusy_ui.attendees[i].role != 'OPT-PARTICIPANT')
             freebusy_ui.numrequired++;
         }
       }
     };
-    
+
     // re-calculate total status after role change
     var compute_freebusy_totals = function()
     {
       freebusy_ui.numrequired = 0;
       freebusy_data.all = [];
       freebusy_data.required = [];
-      
+
       var email, req, status;
       for (var i=0; i < event_attendees.length; i++) {
         if (!(email = event_attendees[i].email))
           continue;
-        
+
         req = freebusy_ui.attendees[i].role != 'OPT-PARTICIPANT';
         if (req)
           freebusy_ui.numrequired++;
-        
+
         for (var ts in freebusy_data[email]) {
           if (!freebusy_data.required[ts])
             freebusy_data.required[ts] = [0,0,0,0];
           if (!freebusy_data.all[ts])
             freebusy_data.all[ts] = [0,0,0,0];
-          
+
           status = freebusy_data[email][ts];
           freebusy_data.all[ts][status]++;
-          
+
           if (req)
             freebusy_data.required[ts][status]++;
         }
@@ -1804,7 +1793,7 @@ function rcube_calendar_ui(settings)
             break;
           }
         }
-        
+
         // occupied slot
         if (!candidatestart) {
           slot += Math.max(0, intvlslots - candidatecount - 1) * sinterval * dir;
@@ -1813,9 +1802,9 @@ function rcube_calendar_ui(settings)
         }
         else if (dir < 0)
           candidatestart = slot;
-        
+
         candidatecount++;
-        
+
         // if candidate is big enough, this is it!
         if (candidatecount == numslots) {
           'toDate' in event.start ? (event.start = new Date(candidatestart)) : event.start.setTime(candidatestart);
@@ -1876,7 +1865,7 @@ function rcube_calendar_ui(settings)
       for (var i=0; i < names.length; i++) {
         email = name = '';
         item = $.trim(names[i]);
-        
+
         if (!item.length) {
           continue;
         } // address in brackets without name (do nothing)
@@ -1898,7 +1887,7 @@ function rcube_calendar_ui(settings)
           rcmail.alert_dialog(rcmail.gettext('noemailwarning'));
         }
       }
-      
+
       return success;
     };
 
@@ -1935,6 +1924,7 @@ function rcube_calendar_ui(settings)
         dispname = rcmail.env['identities-selector'];
 
       var select = '<select class="edit-attendee-role form-control custom-select"'
+        + ' data-email="' + Q(data.email) + '"'
         + (organizer || readonly ? ' disabled="true"' : '')
         + ' aria-label="' + rcmail.gettext('role','calendar') + '">';
       for (var r in opts)
@@ -1973,7 +1963,7 @@ function rcube_calendar_ui(settings)
       var avail_tag = elastic ? ('<span class="' + avail + '"') : ('<img alt="" src="' + img_src + '" class="availabilityicon '  + avail + '"');
       var html = '<td class="role">' + select + '</td>' +
         '<td class="name"><span class="attendee-name">' + dispname + '</span></td>' +
-        '<td class="availability">' + avail_tag + ' data-email="' + data.email + '" /></td>' +
+        (calendar.freebusy ? '<td class="availability">' + avail_tag + ' data-email="' + data.email + '" /></td>' : '') +
         '<td class="confirmstate"><span class="attendee ' + (status || 'organizer') + '" title="' + Q(tooltip) + '">' + Q(status && !elastic ? status_label : '') + '</span></td>' +
         (data.cutype != 'RESOURCE' ? '<td class="invite">' + (organizer || readonly || !invbox ? '' : invbox) + '</td>' : '') +
         '<td class="options">' + (organizer || readonly ? '' : dellink) + '</td>';
@@ -1993,6 +1983,7 @@ function rcube_calendar_ui(settings)
         var enabled = $('#edit-attendees-invite:checked').length || $('input.edit-attendee-reply:checked').length;
         $('#eventedit .attendees-commentbox')[enabled ? 'show' : 'hide']();
       });
+      tr.find('select.edit-attendee-role').change(function() { data.role = $(this).val(); });
 
       // select organizer identity
       if (data.identity_id)
@@ -2021,10 +2012,10 @@ function rcube_calendar_ui(settings)
         if (email = icon.attr('data-email'))
           check_freebusy_status(icon, email, event);
       });
-      
+
       freebusy_ui.needsupdate = false;
     };
-    
+
     // load free-busy status from server and update icon accordingly
     var check_freebusy_status = function(icon, email, event)
     {
@@ -2033,9 +2024,9 @@ function rcube_calendar_ui(settings)
         $(icon).attr('class', 'availabilityicon unknown');
         return;
       }
-      
+
       icon = $(icon).attr('class', 'availabilityicon loading');
-      
+
       $.ajax({
         type: 'GET',
         dataType: 'html',
@@ -2050,7 +2041,7 @@ function rcube_calendar_ui(settings)
         }
       });
     };
-    
+
     // remove an attendee from the list
     var remove_attendee = function(elem, id)
     {
@@ -2379,6 +2370,16 @@ function rcube_calendar_ui(settings)
         add_attendee($.extend({ role:'REQ-PARTICIPANT', status:'NEEDS-ACTION', cutype:'RESOURCE' }, resource));
     }
 
+    var is_this_me = function(email)
+    {
+      if (settings.identity.emails.indexOf(';'+email) >= 0
+        || (settings.identity.ownedResources && settings.identity.ownedResources.indexOf(';'+email) >= 0)
+      ) {
+        return true;
+      }
+      return false;
+    };
+
     // when the user accepts or declines an event invitation
     var event_rsvp = function(response, delegate, replymode, event)
     {
@@ -2413,7 +2414,8 @@ function rcube_calendar_ui(settings)
         attendees = [];
         for (var data, i=0; i < me.selected_event.attendees.length; i++) {
           data = me.selected_event.attendees[i];
-          if (settings.identity.emails.indexOf(';'+String(data.email).toLowerCase()) >= 0) {
+          //FIXME this can only work if there is a single resource per invitation
+          if (is_this_me(String(data.email).toLowerCase())) {
             data.status = response.toUpperCase();
             data.rsvp = 0;  // unset RSVP flag
 
@@ -2567,6 +2569,10 @@ function rcube_calendar_ui(settings)
     // mouse-click handler to check if the show dialog is still open and prevent default action
     var dialog_check = function(e)
     {
+      if (!e) {
+        return false;
+      }
+
       var showd = $("#eventshow");
       if (showd.is(':visible') && !$(e.target).closest('.ui-dialog').length && !$(e.target).closest('.popupmenu').length) {
         showd.dialog('close');
@@ -3373,20 +3379,21 @@ function rcube_calendar_ui(settings)
         if (q != '') {
           var id = 'search-'+q;
           var sources = [];
-          
+
           if (me.quickview_active)
             reset_quickview();
-          
+
           if (this._search_message)
             rcmail.hide_message(this._search_message);
-          
+
           $.each(fc.fullCalendar('getEventSources'), function() {
             this.url = this.url.replace(/&q=.+/, '') + '&q=' + urlencode(q);
             me.calendars[this.id].url = this.url;
             sources.push(this.id);
           });
+
           id += '@'+sources.join(',');
-          
+
           // ignore if query didn't change
           if (this.search_request == id) {
             return;
@@ -3395,10 +3402,10 @@ function rcube_calendar_ui(settings)
           else if (!this.search_request) {
             this.default_view = fc.fullCalendar('getView').name;
           }
-          
+
           this.search_request = id;
           this.search_query = q;
-          
+
           // change to list view
           fc.fullCalendar('changeView', 'list');
 
@@ -3530,6 +3537,22 @@ function rcube_calendar_ui(settings)
       }
     };
 
+    /*** Nextcloud Talk integration ***/
+
+    this.talk_room_create = function()
+    {
+        var lock = rcmail.set_busy(true, 'calendar.talkroomcreating');
+
+        rcmail.http_post('talk-room-create', { _name: $('#edit-title').val() }, lock);
+    };
+
+    this.talk_room_created = function(data)
+    {
+        if (data.url) {
+            $('#edit-location').val(data.url);
+        }
+    };
+
 
     /***  startup code  ***/
 
@@ -3549,7 +3572,7 @@ function rcube_calendar_ui(settings)
       if (node && node.id && me.calendars[node.id]) {
         me.select_calendar(node.id, true);
         rcmail.enable_command('calendar-edit', 'calendar-showurl', 'calendar-showfburl', true);
-        rcmail.enable_command('calendar-delete', me.calendars[node.id].editable);
+        rcmail.enable_command('calendar-delete', me.has_permission(me.calendars[node.id], 'xa'));
         rcmail.enable_command('calendar-remove', me.calendars[node.id] && me.calendars[node.id].removable);
       }
     });
@@ -3648,7 +3671,7 @@ function rcube_calendar_ui(settings)
     });
 
     // register dbl-click handler to open calendar edit dialog
-    $(rcmail.gui_objects.calendarslist).on('dblclick', ':not(.virtual) > .calname', function(e){
+    $(rcmail.gui_objects.calendarslist).on('dblclick', ':not(.virtual) > .calname', function(e) {
       var id = $(this).closest('li').attr('id').replace(/^rcmlical/, '');
       me.calendar_edit_dialog(me.calendars[id]);
     });
@@ -4179,6 +4202,7 @@ window.rcmail && rcmail.addEventListener('init', function(evt) {
   rcmail.register_command('event-sendbymail', function(p, obj, e){ cal.event_sendbymail(cal.selected_event, e); }, true);
   rcmail.register_command('event-copy', function(){ cal.event_copy(cal.selected_event); }, true);
   rcmail.register_command('event-history', function(p, obj, e){ cal.event_history_dialog(cal.selected_event); }, false);
+  rcmail.register_command('talk-room-create', function(){ cal.talk_room_create(); }, true);
 
   // search and export events
   rcmail.register_command('export', function(){ cal.export_events(cal.calendars[cal.selected_calendar]); }, true);
@@ -4206,6 +4230,7 @@ window.rcmail && rcmail.addEventListener('init', function(evt) {
   rcmail.addEventListener('plugin.close_history_dialog', function(data){ cal.close_history_dialog(); });
   rcmail.addEventListener('plugin.event_show_revision', function(data){ cal.event_show_dialog(data, null, true); });
   rcmail.addEventListener('plugin.itip_message_processed', function(data){ cal.itip_message_processed(data); });
+  rcmail.addEventListener('plugin.talk_room_created', function(data){ cal.talk_room_created(data); });
   rcmail.addEventListener('requestrefresh', function(q){ return cal.before_refresh(q); });
 
   $(window).resize(function(e) {

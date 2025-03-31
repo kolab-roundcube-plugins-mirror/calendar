@@ -1,10 +1,3 @@
-/**
- * Roundcube Calendar Kolab backend
- *
- * @author Thomas Bruederli
- * @licence GNU AGPL
- **/
-
 CREATE TABLE kolab_alarms (
   alarm_id VARCHAR(255) NOT NULL,
   user_id INTEGER NOT NULL,
@@ -26,4 +19,4 @@ CREATE TABLE itipinvitations (
 
 CREATE INDEX ix_itipinvitations_uid ON itipinvitations(event_uid,user_id);
 
-INSERT INTO system (name, value) VALUES ('calendar-kolab-version', '2014041700');
+INSERT INTO system (name, value) VALUES ('calendar-caldav-version', '2014041700');

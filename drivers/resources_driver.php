@@ -31,7 +31,7 @@ abstract class resources_driver
     /**
      * Default constructor
      */
-    function __construct($cal)
+    public function __construct($cal)
     {
         $this->cal = $cal;
     }
@@ -59,7 +59,7 @@ abstract class resources_driver
      *
      * @param string $id Owner identifier
      *
-     * @return array Resource object as hash array
+     * @return ?array Resource owner object as hash array
      */
     public function get_resource_owner($id)
     {
@@ -94,7 +94,7 @@ abstract class resources_driver
             $fblist = $this->cal->driver->get_freebusy_list($rec['email'], $start, $end);
             if (is_array($fblist)) {
                 foreach ($fblist as $slot) {
-                    list($from, $to, $type) = $slot;
+                    [$from, $to, $type] = $slot;
                     if ($type == calendar::FREEBUSY_FREE || $type == calendar::FREEBUSY_UNKNOWN) {
                         continue;
                     }

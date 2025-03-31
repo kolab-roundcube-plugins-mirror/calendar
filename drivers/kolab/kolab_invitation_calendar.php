@@ -34,6 +34,7 @@ class kolab_invitation_calendar
     public $categories    = [];
     public $name          = 'Invitations';
 
+    protected $cal;
 
     /**
      * Default constructor
@@ -44,19 +45,19 @@ class kolab_invitation_calendar
         $this->id  = $id;
 
         switch ($this->id) {
-        case kolab_driver::INVITATIONS_CALENDAR_PENDING:
-            $this->partstats = ['NEEDS-ACTION'];
-            $this->name      = $this->cal->gettext('invitationspending');
+            case kolab_driver::INVITATIONS_CALENDAR_PENDING:
+                $this->partstats = ['NEEDS-ACTION'];
+                $this->name      = $this->cal->gettext('invitationspending');
 
-            if (!empty($_REQUEST['_quickview'])) {
-                $this->partstats[] = 'TENTATIVE';
-            }
-            break;
+                if (!empty($_REQUEST['_quickview'])) {
+                    $this->partstats[] = 'TENTATIVE';
+                }
+                break;
 
-        case kolab_driver::INVITATIONS_CALENDAR_DECLINED:
-            $this->partstats = ['DECLINED'];
-            $this->name      = $this->cal->gettext('invitationsdeclined');
-            break;
+            case kolab_driver::INVITATIONS_CALENDAR_DECLINED:
+                $this->partstats = ['DECLINED'];
+                $this->name      = $this->cal->gettext('invitationsdeclined');
+                break;
         }
 
         // user-specific alarms settings win
@@ -117,7 +118,7 @@ class kolab_invitation_calendar
     /**
      * Getter for the Cyrus mailbox identifier corresponding to this folder
      *
-     * @return string Mailbox ID
+     * @return ?string Mailbox ID
      */
     public function get_mailbox_id()
     {
@@ -212,8 +213,7 @@ class kolab_invitation_calendar
         // find the actual folder this event resides in
         if (!empty($event['_folder_id'])) {
             $cal = $this->cal->driver->get_calendar($event['_folder_id']);
-        }
-        else {
+        } else {
             $cal = null;
             foreach (kolab_storage::list_folders('', '*', 'event', null) as $foldername) {
                 $cal = $this->_get_calendar($foldername);
@@ -231,15 +231,15 @@ class kolab_invitation_calendar
     }
 
     /**
-     * @param int    Event's new start (unix timestamp)
-     * @param int    Event's new end (unix timestamp)
-     * @param string Search query (optional)
-     * @param bool   Include virtual events (optional)
-     * @param array  Additional parameters to query storage
+     * @param int    $start   Event's new start (unix timestamp)
+     * @param int    $end     Event's new end (unix timestamp)
+     * @param string $search  Search query (optional)
+     * @param bool   $virtual Include virtual events (optional)
+     * @param array  $query   Additional parameters to query storage
      *
      * @return array A list of event records
      */
-    public function list_events($start, $end, $search = null, $virtual = 1, $query = [])
+    public function list_events($start, $end, $search = null, $virtual = true, $query = [])
     {
         // get email addresses of the current user
         $user_emails = $this->cal->get_user_emails();
@@ -267,8 +267,8 @@ class kolab_invitation_calendar
                 if (!empty($event['attendees'])) {
                     foreach ($event['attendees'] as $attendee) {
                         if (
-                            in_array($attendee['email'], $user_emails)
-                            && in_array($attendee['status'], $this->partstats)
+                            !empty($attendee['email']) && in_array_nocase($attendee['email'], $user_emails)
+                            && !empty($attendee['status']) && in_array($attendee['status'], $this->partstats)
                         ) {
                             $match = true;
                             break;
@@ -292,9 +292,9 @@ class kolab_invitation_calendar
     /**
      * Get number of events in the given calendar
      *
-     * @param int   Date range start (unix timestamp)
-     * @param int   Date range end (unix timestamp)
-     * @param array Additional query to filter events
+     * @param int   $start  Date range start (unix timestamp)
+     * @param int   $end    Date range end (unix timestamp)
+     * @param array $filter Additional query to filter events
      *
      * @return int Count
      */
@@ -312,7 +312,7 @@ class kolab_invitation_calendar
 
         $filter = [
             ['tags', '!=', 'x-status:cancelled'],
-            [$subquery, 'OR']
+            [$subquery, 'OR'],
         ];
 
         // aggregate counts from all calendar folders
@@ -341,12 +341,12 @@ class kolab_invitation_calendar
     /**
      * Helper method to modify some event properties
      */
-    private function _mod_event($event, $calendar_id = null)
+    protected function _mod_event($event, $calendar_id = null)
     {
         // set classes according to PARTSTAT
         $event = kolab_driver::add_partstat_class($event, $this->partstats);
 
-        if (strpos($event['className'], 'fc-invitation-') !== false) {
+        if (!empty($event['className']) && strpos($event['className'], 'fc-invitation-') !== false) {
             $event['calendar'] = $this->id;
         }
 

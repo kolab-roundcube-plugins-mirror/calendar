@@ -1,4 +1,5 @@
 <?php
+
 /*
  +-------------------------------------------------------------------------+
  | Configuration for the Calendar plugin                                   |
@@ -25,8 +26,11 @@
  +-------------------------------------------------------------------------+
 */
 
-// backend type (database, kolab)
+// backend type (database, kolab, caldav)
 $config['calendar_driver'] = "database";
+
+// CalDAV server location (required when calendar_driver = caldav)
+$config['calendar_caldav_server'] = "http://localhost";
 
 // default calendar view (agendaDay, agendaWeek, month)
 $config['calendar_default_view'] = "agendaWeek";
@@ -78,12 +82,12 @@ $config['calendar_default_alarm_offset'] = '-15M';
 $config['calendar_event_coloring'] = 0;
 
 // event categories
-$config['calendar_categories'] = array(
+$config['calendar_categories'] = [
   'Personal' => 'c0c0c0',
       'Work' => 'ff0000',
     'Family' => '00ff00',
    'Holiday' => 'ff6600',
-);
+];
 
 // enable users to invite/edit attendees for shared events organized by others
 $config['calendar_allow_invite_shared'] = false;
@@ -151,4 +155,5 @@ $config['kolab_invitation_calendars'] = false;
 // See freebusy_session_auth in configuration of kolab_auth plugin.
 $config['calendar_freebusy_session_auth_url'] = null;
 
-?>
+// Nextcloud installation URL (for Talk integration).
+$config['calendar_nextcloud_url'] = null;

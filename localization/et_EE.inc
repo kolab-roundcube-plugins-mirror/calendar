@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Localizations for Kolab Calendar plugin
  *
@@ -160,4 +161,3 @@ $labels['arialabelcalendarview'] = 'Kalendri vaade';
 $labels['calendaractions'] = 'Kalendri toimingud';
 $labels['calendarprops'] = 'Kalendri omadused';
 $labels['arialabelresourceselection'] = 'Saadaolevad ressursid';
-?>

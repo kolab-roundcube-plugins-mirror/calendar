@@ -9,8 +9,7 @@
  * @licence GNU AGPL
  * @copyright (c) 2010 Lazlo Westerhof - Netherlands
  * @copyright (c) 2014 Kolab Systems AG
- *
- **/
+ */
 
 CREATE TABLE calendars (
   calendar_id integer NOT NULL PRIMARY KEY,
@@ -76,4 +75,4 @@ CREATE TABLE itipinvitations (
 
 CREATE INDEX ix_itipinvitations_uid ON itipinvitations(user_id, event_uid);
 
-INSERT INTO system (name, value) VALUES ('calendar-database-version', '2015022700');
+INSERT INTO system (name, value) VALUES ('calendar-database-version', '2021102600');

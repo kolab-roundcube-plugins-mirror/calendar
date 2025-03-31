@@ -9,9 +9,7 @@
  * @licence GNU AGPL
  * @copyright (c) 2010 Lazlo Westerhof - Netherlands
  * @copyright (c) 2014 Kolab Systems AG
- *
- **/
-
+ */
 
 CREATE SEQUENCE calendars_seq
     INCREMENT BY 1
@@ -106,4 +104,4 @@ CREATE TABLE itipinvitations (
 
 CREATE INDEX itipinvitations_user_id_event_uid_idx ON itipinvitations (user_id, event_uid);
 
-INSERT INTO system (name, value) VALUES ('calendar-database-version', '2015022700');
+INSERT INTO system (name, value) VALUES ('calendar-database-version', '2021102600');

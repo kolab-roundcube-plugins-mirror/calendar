@@ -8,8 +8,7 @@
  * @licence GNU AGPL
  * @copyright (c) 2010 Lazlo Westerhof - Netherlands
  * @copyright (c) 2014 Kolab Systems AG
- *
- **/
+ */
 
 CREATE TABLE IF NOT EXISTS `calendars` (
   `calendar_id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -21,7 +20,7 @@ CREATE TABLE IF NOT EXISTS `calendars` (
   INDEX `user_name_idx` (`user_id`, `name`),
   CONSTRAINT `fk_calendars_user_id` FOREIGN KEY (`user_id`)
     REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) /*!40000 ENGINE=INNODB */ /*!40101 CHARACTER SET utf8 COLLATE utf8_general_ci */;
+) ROW_FORMAT=DYNAMIC ENGINE=INNODB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `events` (
   `event_id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -55,7 +54,7 @@ CREATE TABLE IF NOT EXISTS `events` (
   INDEX `calendar_notify_idx` (`calendar_id`,`notifyat`),
   CONSTRAINT `fk_events_calendar_id` FOREIGN KEY (`calendar_id`)
     REFERENCES `calendars`(`calendar_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) /*!40000 ENGINE=INNODB */ /*!40101 CHARACTER SET utf8 COLLATE utf8_general_ci */;
+) ROW_FORMAT=DYNAMIC ENGINE=INNODB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `attachments` (
   `attachment_id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -67,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `attachments` (
   PRIMARY KEY(`attachment_id`),
   CONSTRAINT `fk_attachments_event_id` FOREIGN KEY (`event_id`)
     REFERENCES `events`(`event_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) /*!40000 ENGINE=INNODB */ /*!40101 CHARACTER SET utf8 COLLATE utf8_general_ci */;
+) ROW_FORMAT=DYNAMIC ENGINE=INNODB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `itipinvitations` (
   `token` VARCHAR(64) NOT NULL,
@@ -80,6 +79,6 @@ CREATE TABLE IF NOT EXISTS `itipinvitations` (
   INDEX `uid_idx` (`user_id`,`event_uid`),
   CONSTRAINT `fk_itipinvitations_user_id` FOREIGN KEY (`user_id`)
     REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) /*!40000 ENGINE=INNODB */ /*!40101 CHARACTER SET utf8 COLLATE utf8_general_ci */;
+) ROW_FORMAT=DYNAMIC ENGINE=INNODB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-REPLACE INTO system (name, value) VALUES ('calendar-database-version', '2015022700');
+REPLACE INTO `system` (`name`, `value`) VALUES ('calendar-database-version', '2021102600');

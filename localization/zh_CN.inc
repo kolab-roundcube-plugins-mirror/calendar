@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Localizations for Kolab Calendar plugin
  *
@@ -120,4 +121,3 @@ $labels['tabsharing'] = '分享';
 $labels['savingdata'] = '保存数据...';
 $labels['futurevents'] = '未来';
 $labels['allevents'] = '全部';
-?>

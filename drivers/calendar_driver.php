@@ -94,15 +94,15 @@
  */
 abstract class calendar_driver
 {
-    const FILTER_ALL           = 0;
-    const FILTER_WRITEABLE     = 1;
-    const FILTER_INSERTABLE    = 2;
-    const FILTER_ACTIVE        = 4;
-    const FILTER_PERSONAL      = 8;
-    const FILTER_PRIVATE       = 16;
-    const FILTER_CONFIDENTIAL  = 32;
-    const FILTER_SHARED        = 64;
-    const BIRTHDAY_CALENDAR_ID = '__bdays__';
+    public const FILTER_ALL           = 0;
+    public const FILTER_WRITEABLE     = 1;
+    public const FILTER_INSERTABLE    = 2;
+    public const FILTER_ACTIVE        = 4;
+    public const FILTER_PERSONAL      = 8;
+    public const FILTER_PRIVATE       = 16;
+    public const FILTER_CONFIDENTIAL  = 32;
+    public const FILTER_SHARED        = 64;
+    public const BIRTHDAY_CALENDAR_ID = '__bdays__';
 
     // features supported by backend
     public $alarms      = false;
@@ -128,10 +128,11 @@ abstract class calendar_driver
      *
      * @param int $filter Bitmask defining filter criterias.
      *                    See FILTER_* constants for possible values.
+     * @param ?kolab_storage_folder_virtual $tree Reference to hierarchical folder tree object
      *
      * @return array List of calendars
      */
-    abstract function list_calendars($filter = 0);
+    abstract public function list_calendars($filter = 0, &$tree = null);
 
     /**
      * Create a new calendar assigned to the current user
@@ -143,7 +144,7 @@ abstract class calendar_driver
      *
      * @return mixed ID of the calendar on success, False on error
      */
-    abstract function create_calendar($prop);
+    abstract public function create_calendar($prop);
 
     /**
      * Update properties of an existing calendar
@@ -156,7 +157,16 @@ abstract class calendar_driver
      *
      * @return bool True on success, Fales on failure
      */
-    abstract function edit_calendar($prop);
+    abstract public function edit_calendar($prop);
+
+    /**
+     * Get a calendar name for the given calendar ID
+     *
+     * @param string $id Calendar identifier
+     *
+     * @return string|null Calendar name if found
+     */
+    abstract public function get_calendar_name($id);
 
     /**
      * Set active/subscribed state of a calendar
@@ -167,7 +177,7 @@ abstract class calendar_driver
      *
      * @return bool True on success, Fales on failure
      */
-    abstract function subscribe_calendar($prop);
+    abstract public function subscribe_calendar($prop);
 
     /**
      * Delete the given calendar with all its contents
@@ -177,7 +187,7 @@ abstract class calendar_driver
      *
      * @return bool True on success, Fales on failure
      */
-    abstract function delete_calendar($prop);
+    abstract public function delete_calendar($prop);
 
     /**
      * Search for shared or otherwise not listed calendars the user has access
@@ -187,7 +197,7 @@ abstract class calendar_driver
      *
      * @return array List of calendars
      */
-    abstract function search_calendars($query, $source);
+    abstract public function search_calendars($query, $source);
 
     /**
      * Add a single event to the database
@@ -196,7 +206,7 @@ abstract class calendar_driver
      *
      * @return mixed New event ID on success, False on error
      */
-    abstract function new_event($event);
+    abstract public function new_event($event);
 
     /**
      * Update an event entry with the given data
@@ -205,7 +215,7 @@ abstract class calendar_driver
      *
      * @return bool True on success, False on error
      */
-    abstract function edit_event($event);
+    abstract public function edit_event($event);
 
     /**
      * Extended event editing with possible changes to the argument
@@ -245,7 +255,7 @@ abstract class calendar_driver
      *
      * @return bool True on success, False on error
      */
-    abstract function move_event($event);
+    abstract public function move_event($event);
 
     /**
      * Resize a single event
@@ -257,7 +267,7 @@ abstract class calendar_driver
      *
      * @return bool True on success, False on error
      */
-    abstract function resize_event($event);
+    abstract public function resize_event($event);
 
     /**
      * Remove a single event from the database
@@ -269,7 +279,7 @@ abstract class calendar_driver
      *
      * @return bool True on success, False on error
      */
-    abstract function remove_event($event, $force = true);
+    abstract public function remove_event($event, $force = true);
 
     /**
      * Restores a single deleted event (if supported)
@@ -296,9 +306,9 @@ abstract class calendar_driver
      *                     See FILTER_* constants for possible values.
      * @param bool  $full  If true, recurrence exceptions shall be added
      *
-     * @return array Event object as hash array
+     * @return ?array Event object as hash array
      */
-    abstract function get_event($event, $scope = 0, $full = false);
+    abstract public function get_event($event, $scope = 0, $full = false);
 
     /**
      * Get events from source.
@@ -312,7 +322,7 @@ abstract class calendar_driver
      *
      * @return array A list of event objects (see header of this file for struct of an event)
      */
-    abstract function load_events($start, $end, $query = null, $calendars = null, $virtual = 1, $modifiedsince = null);
+    abstract public function load_events($start, $end, $query = null, $calendars = null, $virtual = true, $modifiedsince = null);
 
     /**
      * Get number of events in the given calendar
@@ -323,7 +333,7 @@ abstract class calendar_driver
      *
      * @return array   Hash array with counts grouped by calendar ID
      */
-    abstract function count_events($calendars, $start, $end = null);
+    abstract public function count_events($calendars, $start, $end = null);
 
     /**
      * Get a list of pending alarms to be displayed to the user
@@ -340,7 +350,7 @@ abstract class calendar_driver
      *      title: Event title/summary
      *   location: Location string
      */
-    abstract function pending_alarms($time, $calendars = null);
+    abstract public function pending_alarms($time, $calendars = null);
 
     /**
      * (User) feedback after showing an alarm notification
@@ -349,7 +359,7 @@ abstract class calendar_driver
      * @param string $event_id Event identifier
      * @param int    $snooze   Suspend the alarm for this number of seconds
      */
-    abstract function dismiss_alarm($event_id, $snooze = 0);
+    abstract public function dismiss_alarm($event_id, $snooze = 0);
 
     /**
      * Check the given event object for validity
@@ -362,11 +372,11 @@ abstract class calendar_driver
     {
         $valid = true;
 
-        if (empty($event['start']) || !is_object($event['start']) || !is_a($event['start'], 'DateTime')) {
+        if (empty($event['start']) || !is_object($event['start']) || !($event['start'] instanceof DateTimeInterface)) {
             $valid = false;
         }
 
-        if (empty($event['end']) || !is_object($event['end']) || !is_a($event['end'], 'DateTime')) {
+        if (empty($event['end']) || !is_object($event['end']) || !($event['end'] instanceof DateTimeInterface)) {
             $valid = false;
         }
 
@@ -388,7 +398,10 @@ abstract class calendar_driver
      *   mimetype: MIME content type of the attachment
      *       size: Attachment size
      */
-    public function list_attachments($event) { }
+    public function list_attachments($event)
+    {
+        return [];
+    }
 
     /**
      * Get attachment properties
@@ -398,13 +411,16 @@ abstract class calendar_driver
      *         id: Event identifier
      *   calendar: Calendar identifier
      *
-     * @return array Hash array with attachment properties:
+     * @return array|false Hash array with attachment properties:
      *         id: Attachment identifier
      *       name: Attachment name
      *   mimetype: MIME content type of the attachment
      *       size: Attachment size
      */
-    public function get_attachment($id, $event) { }
+    public function get_attachment($id, $event)
+    {
+        return false;
+    }
 
     /**
      * Get attachment body
@@ -414,18 +430,21 @@ abstract class calendar_driver
      *         id: Event identifier
      *   calendar: Calendar identifier
      *
-     * @return string Attachment body
+     * @return string|false Attachment body
      */
-    public function get_attachment_body($id, $event) { }
+    public function get_attachment_body($id, $event)
+    {
+        return false;
+    }
 
     /**
      * Build a struct representing the given message reference
      *
-     * @param object|string $uri_or_headers rcube_message_header instance holding the message headers
-     *                         or an URI from a stored link referencing a mail message.
-     * @param string $folder  IMAP folder the message resides in
+     * @param rcube_message_header|string $uri_or_headers An object holding the message headers
+     *                                                    or an URI from a stored link referencing a mail message.
+     * @param string                      $folder         IMAP folder the message resides in
      *
-     * @return array An struct referencing the given IMAP message
+     * @return array|false An struct referencing the given IMAP message
      */
     public function get_message_reference($uri_or_headers, $folder = null)
     {
@@ -446,17 +465,23 @@ abstract class calendar_driver
     /**
      * Create a new category
      */
-    public function add_category($name, $color) { }
+    public function add_category($name, $color)
+    {
+    }
 
     /**
      * Remove the given category
      */
-    public function remove_category($name) { }
+    public function remove_category($name)
+    {
+    }
 
     /**
      * Update/replace a category
      */
-    public function replace_category($oldname, $name, $color) { }
+    public function replace_category($oldname, $name, $color)
+    {
+    }
 
     /**
      * Fetch free/busy information from a person within the given range
@@ -465,7 +490,7 @@ abstract class calendar_driver
      * @param int    $start Requested period start date/time as unix timestamp
      * @param int    $end   Requested period end date/time as unix timestamp
      *
-     * @return array List of busy timeslots within the requested range
+     * @return array|false List of busy timeslots within the requested range
      */
     public function get_freebusy_list($email, $start, $end)
     {
@@ -486,19 +511,21 @@ abstract class calendar_driver
         $events = [];
 
         if (!empty($event['recurrence'])) {
-            // include library class
-            require_once(dirname(__FILE__) . '/../lib/calendar_recurrence.php');
-
             $rcmail = rcmail::get_instance();
-            $recurrence = new calendar_recurrence($rcmail->plugins->get_plugin('calendar'), $event);
+            /** @var calendar $plugin */
+            $plugin = $rcmail->plugins->get_plugin('calendar');
+            $recurrence = new libcalendaring_recurrence($plugin->lib, $event);
             $recurrence_id_format = libcalendaring::recurrence_id_format($event);
 
             // determine a reasonable end date if none given
             if (!$end) {
                 switch ($event['recurrence']['FREQ']) {
-                case 'YEARLY':  $intvl = 'P100Y'; break;
-                case 'MONTHLY': $intvl = 'P20Y';  break;
-                default:        $intvl = 'P10Y';  break;
+                    case 'YEARLY':  $intvl = 'P100Y';
+                        break;
+                    case 'MONTHLY': $intvl = 'P20Y';
+                        break;
+                    default:        $intvl = 'P10Y';
+                        break;
                 }
 
                 $end = clone $event['start'];
@@ -510,11 +537,10 @@ abstract class calendar_driver
                 // add to output if in range
                 if (($next_event['start'] <= $end && $next_event['end'] >= $start)) {
                     $next_event['_instance'] = $next_event['start']->format($recurrence_id_format);
-                    $next_event['id'] = $next_event['uid'] . '-' . $exception['_instance'];
+                    $next_event['id'] = $next_event['uid'] . '-' . $next_event['_instance'];
                     $next_event['recurrence_id'] = $event['uid'];
                     $events[] = $next_event;
-                }
-                else if ($next_event['start'] > $end) {  // stop loop if out of range
+                } elseif ($next_event['start'] > $end) {  // stop loop if out of range
                     break;
                 }
 
@@ -535,7 +561,7 @@ abstract class calendar_driver
      *         id: Event identifier
      *   calendar: Calendar identifier
      *
-     * @return array List of changes, each as a hash array:
+     * @return array|false List of changes, each as a hash array:
      *         rev: Revision number
      *        type: Type of the change (create, update, move, delete)
      *        date: Change date
@@ -557,7 +583,7 @@ abstract class calendar_driver
      * @param mixed $rev1 Old Revision
      * @param mixed $rev2 New Revision
      *
-     * @return array List of property changes, each as a hash array:
+     * @return array|false List of property changes, each as a hash array:
      *    property: Revision number
      *         old: Old property value
      *         new: Updated property value
@@ -575,7 +601,7 @@ abstract class calendar_driver
      *  calendar: Calendar identifier
      * @param mixed  $rev Revision number
      *
-     * @return array Event object as hash array
+     * @return array|false Event object as hash array
      * @see self::get_event()
      */
     public function get_event_revison($event, $rev)
@@ -592,7 +618,7 @@ abstract class calendar_driver
      *  calendar: Calendar identifier
      * @param mixed  $rev Revision number
      *
-     * @return boolean True on success, False on failure
+     * @return bool True on success, False on failure
      */
     public function restore_event_revision($event, $rev)
     {
@@ -610,10 +636,11 @@ abstract class calendar_driver
      */
     public function calendar_form($action, $calendar, $formfields)
     {
+        $rcmail = rcmail::get_instance();
         $table = new html_table(['cols' => 2, 'class' => 'propform']);
 
         foreach ($formfields as $col => $colprop) {
-            $label = !empty($colprop['label']) ? $colprop['label'] : $rcmail->gettext("$domain.$col");
+            $label = !empty($colprop['label']) ? $colprop['label'] : $rcmail->gettext("calendar.$col");
 
             $table->add('title', html::label($colprop['id'], rcube::Q($label)));
             $table->add(null, $colprop['value']);
@@ -643,14 +670,14 @@ abstract class calendar_driver
         }
 
         // convert to DateTime for comparisons
-        $start  = new DateTime('@'.$start);
-        $end    = new DateTime('@'.$end);
+        $start  = new DateTime('@' . $start);
+        $end    = new DateTime('@' . $end);
         // extract the current year
         $year   = $start->format('Y');
         $year2  = $end->format('Y');
 
         $events = [];
-        $search = mb_strtolower($search);
+        $search = mb_strtolower((string) $search);
         $rcmail = rcmail::get_instance();
         $cache  = $rcmail->get_cache('calendar.birthdays', 'db', 3600);
         $cache->expunge();
@@ -755,7 +782,7 @@ abstract class calendar_driver
     public function get_birthday_event($id)
     {
         // decode $id
-        list(, $source, $contact_id, $year) = explode(':', rcube_ldap::dn_decode($id));
+        [, $source, $contact_id, $year] = explode(':', rcube_ldap::dn_decode($id));
 
         $rcmail = rcmail::get_instance();
 
@@ -777,7 +804,7 @@ abstract class calendar_driver
     public static function parse_contact($contact, $source)
     {
         if (!is_array($contact)) {
-            return;
+            return null;
         }
 
         if (!empty($contact['birthday']) && is_array($contact['birthday'])) {
@@ -785,26 +812,23 @@ abstract class calendar_driver
         }
 
         if (empty($contact['birthday'])) {
-            return;
+            return null;
         }
 
         try {
-            $bday = $contact['birthday'];
-            if (!$bday instanceof DateTime) {
-                $bday = new DateTime($bday, new DateTimezone('UTC'));
-            }
-            $bday->_dateonly = true;
-        }
-        catch (Exception $e) {
-            rcube::raise_error([
+            $bday = libcalendaring_datetime::createFromAny($contact['birthday'], true);
+        } catch (Exception $e) {
+            rcube::raise_error(
+                [
                     'code' => 600,
                     'file' => __FILE__,
                     'line' => __LINE__,
-                    'message' => 'BIRTHDAY PARSE ERROR: ' . $e->getMessage()
+                    'message' => 'Failed to parse contact birthday: ' . $e->getMessage(),
                 ],
-                true, false
+                true,
+                false
             );
-            return;
+            return null;
         }
 
         $rcmail       = rcmail::get_instance();
@@ -846,6 +870,18 @@ abstract class calendar_driver
         $cache->set($event_id, ['snooze' => $snooze, 'notifyat' => $notifyat]);
 
         return true;
+    }
+
+    /**
+     * Accept an invitation to a shared folder
+     *
+     * @param string $href Invitation location href
+     *
+     * @return array|false
+     */
+    public function accept_share_invitation($href)
+    {
+        return false;
     }
 
     /**

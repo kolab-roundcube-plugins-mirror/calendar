@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Localizations for Kolab Calendar plugin
  *
@@ -257,4 +258,3 @@ $labels['arialabeleventattendees'] = 'Händelse deltagarlista';
 $labels['arialabeleventresources'] = 'Händelse resurslista';
 $labels['arialabelresourcesearchform'] = 'Resurser sökformulär';
 $labels['arialabelresourceselection'] = 'Tillgängliga resurser';
-?>

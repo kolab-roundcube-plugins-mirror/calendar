@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Localizations for Kolab Calendar plugin
  *
@@ -92,4 +93,3 @@ $labels['availoutofoffice'] = 'Εκτός γραφείου';
 $labels['tabsummary'] = 'Περίληψη';
 $labels['savingdata'] = 'Αποθήκευση δεδομένων...';
 $labels['objectchangelog'] = 'Αλλαγή ιστορικού';
-?>

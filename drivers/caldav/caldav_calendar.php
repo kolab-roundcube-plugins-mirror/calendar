@@ -1,13 +1,11 @@
 <?php
 
 /**
- * Kolab calendar storage class
+ * CalDAV calendar storage class
  *
- * @version @package_version@
- * @author Thomas Bruederli <bruederli@kolabsys.com>
- * @author Aleksander Machniak <machniak@kolabsys.com>
+ * @author Aleksander Machniak <machniak@apheleia-it.ch>
  *
- * Copyright (C) 2012-2015, Kolab Systems AG <contact@kolabsys.com>
+ * Copyright (C) 2012-2022, Apheleia IT AG <contact@apheleia-it.ch>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -23,8 +21,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-class kolab_calendar extends kolab_storage_folder_api
+class caldav_calendar extends kolab_storage_dav_folder
 {
     public $ready         = false;
     public $rights        = 'lrs';
@@ -32,7 +29,8 @@ class kolab_calendar extends kolab_storage_folder_api
     public $attachments   = true;
     public $alarms        = false;
     public $history       = false;
-    public $subscriptions = true;
+    public $subscriptions = false;
+    public $share_invitation = null;
     public $categories    = [];
     public $storage;
 
@@ -43,93 +41,62 @@ class kolab_calendar extends kolab_storage_folder_api
     protected $search_fields = ['title', 'description', 'location', 'attendees', 'categories'];
 
     /**
-     * Factory method to instantiate a kolab_calendar object
+     * Factory method to instantiate a caldav_calendar object
      *
      * @param string   $id       Calendar ID (encoded IMAP folder name)
      * @param calendar $calendar Calendar plugin object
      *
-     * @return kolab_calendar Self instance
+     * @return caldav_calendar Self instance
      */
     public static function factory($id, $calendar)
     {
-        $imap = $calendar->rc->get_storage();
-        $imap_folder = kolab_storage::id_decode($id);
-        $info = $imap->folder_info($imap_folder);
-
-        if (
-            empty($info)
-            || !empty($info['noselect'])
-            || strpos(kolab_storage::folder_type($imap_folder), 'event') !== 0
-        ) {
-            return new kolab_user_calendar($imap_folder, $calendar);
-        }
-
-        return new kolab_calendar($imap_folder, $calendar);
+        return new caldav_calendar($id, $calendar);
     }
 
     /**
      * Default constructor
      */
-    public function __construct($imap_folder, $calendar)
+    public function __construct($folder_or_id, $calendar)
     {
-        $this->cal  = $calendar;
-        $this->imap = $calendar->rc->get_storage();
-        $this->name = $imap_folder;
+        if ($folder_or_id instanceof kolab_storage_dav_folder) {
+            $this->storage = $folder_or_id;
+        } else {
+            // $this->storage = kolab_storage_dav::get_folder($folder_or_id, 'event');
+        }
 
-        // ID is derrived from folder name
-        $this->id = kolab_storage::folder_id($this->name, true);
-        $old_id   = kolab_storage::folder_id($this->name, false);
-
-        // fetch objects from the given IMAP folder
-        $this->storage = kolab_storage::get_folder($this->name);
-        $this->ready   = $this->storage && $this->storage->valid;
+        $this->cal   = $calendar;
+        $this->ready = !empty($this->storage);
 
         // Set writeable and alarms flags according to folder permissions
         if ($this->ready) {
+            $this->id         = $this->storage->id;
+            $this->attributes = $this->storage->attributes;
+            $this->default    = $this->storage->default;
+            $this->subtype    = $this->storage->subtype;
+            $this->alarms     = !isset($this->attributes['alarms']) || $this->attributes['alarms'];
+
             if ($this->storage->get_namespace() == 'personal') {
-                $this->editable = true;
                 $this->rights = 'lrswikxteav';
-                $this->alarms = true;
             } else {
-                $rights = $this->storage->get_myrights();
-                if ($rights && !PEAR::isError($rights)) {
-                    $this->rights = $rights;
-                    if (strpos($rights, 't') !== false || strpos($rights, 'd') !== false) {
-                        $this->editable = strpos($rights, 'i');
-                        ;
-                    }
-                }
+                $this->rights = $this->storage->get_myrights();
             }
 
-            // user-specific alarms settings win
-            $prefs = $this->cal->rc->config->get('kolab_calendars', []);
-            if (isset($prefs[$this->id]['showalarms'])) {
-                $this->alarms = $prefs[$this->id]['showalarms'];
-            } elseif (isset($prefs[$old_id]['showalarms'])) {
-                $this->alarms = $prefs[$old_id]['showalarms'];
+            $this->editable = strpos($this->rights, 'i') !== false;
+
+            if (!empty($this->attributes['invitation'])) {
+                $this->share_invitation = $this->attributes['invitation'];
             }
         }
-
-        $this->default = $this->storage->default;
-        $this->subtype = $this->storage->subtype;
     }
 
     /**
-     * Getter for the IMAP folder name
+     * Getter for the folder name
      *
-     * @return string Name of the IMAP folder
+     * @return string Name of the folder
      */
     public function get_realname()
     {
-        return $this->name;
-    }
-
-    /**
-     *
-     */
-    public function get_title()
-    {
-        return null;
+        return $this->get_name();
     }
 
     /**
@@ -137,16 +104,8 @@ class kolab_calendar extends kolab_storage_folder_api
      */
     public function get_color($default = null)
     {
-        // color is defined in folder METADATA
         if ($color = $this->storage->get_color()) {
             return $color;
-        }
-
-        // calendar color is stored in user prefs (temporary solution)
-        $prefs = $this->cal->rc->config->get('kolab_calendars', []);
-
-        if (!empty($prefs[$this->id]) && !empty($prefs[$this->id]['color'])) {
-            return $prefs[$this->id]['color'];
         }
 
         return $default ?: 'cc0000';
@@ -157,35 +116,27 @@ class kolab_calendar extends kolab_storage_folder_api
      */
     public function get_caldav_url()
     {
-        if ($template = $this->cal->rc->config->get('calendar_caldav_url', null)) {
-            return strtr($template, [
-                    '%h' => $_SERVER['HTTP_HOST'],
-                    '%u' => urlencode($this->cal->rc->get_user_name()),
-                    '%i' => urlencode($this->storage->get_uid()),
-                    '%n' => urlencode($this->name),
-            ]);
-        }
-
+        /*
+                if ($template = $this->cal->rc->config->get('calendar_caldav_url', null)) {
+                    return strtr($template, [
+                            '%h' => $_SERVER['HTTP_HOST'],
+                            '%u' => urlencode($this->cal->rc->get_user_name()),
+                            '%i' => urlencode($this->storage->get_uid()),
+                            '%n' => urlencode($this->name),
+                    ]);
+                }
+        */
         return false;
     }
 
     /**
      * Update properties of this calendar folder
      *
-     * @see calendar_driver::edit_calendar()
+     * @see caldav_driver::edit_calendar()
      */
     public function update(&$prop)
     {
-        $prop['oldname'] = $this->get_realname();
-        $newfolder = kolab_storage::folder_update($prop);
-
-        if ($newfolder === false) {
-            $this->cal->last_error = $this->cal->gettext(kolab_storage::$last_error);
-            return false;
-        }
-
-        // create ID
-        return kolab_storage::folder_id($newfolder);
+        return false; // NOP
     }
 
     /**
@@ -198,7 +149,7 @@ class kolab_calendar extends kolab_storage_folder_api
 
         // directly access storage object
         if (empty($this->events[$id]) && $master_id == $id && ($record = $this->storage->get_object($id))) {
-            $this->events[$id] = $this->_to_driver_event($record, true);
+            $this->events[$id] = $record = $this->_to_driver_event($record, true);
         }
 
         // maybe a recurring instance is requested
@@ -206,16 +157,12 @@ class kolab_calendar extends kolab_storage_folder_api
             $instance_id = substr($id, strlen($master_id) + 1);
 
             if ($record = $this->storage->get_object($master_id)) {
-                $master = $this->_to_driver_event($record);
+                $master = $record = $this->_to_driver_event($record);
             }
 
             if (!empty($master)) {
-                // check for match in top-level exceptions (aka loose single occurrences)
-                if (!empty($master['_formatobj']) && ($instance = $master['_formatobj']->get_instance($instance_id))) {
-                    $this->events[$id] = $this->_to_driver_event($instance, false, true, $master);
-                }
                 // check for match on the first instance already
-                elseif (!empty($master['_instance']) && $master['_instance'] == $instance_id) {
+                if (!empty($master['_instance']) && $master['_instance'] == $instance_id) {
                     $this->events[$id] = $master;
                 } elseif (!empty($master['recurrence'])) {
                     $start_date = $master['start'];
@@ -238,20 +185,17 @@ class kolab_calendar extends kolab_storage_folder_api
      */
     public function get_attachment_body($id, $event)
     {
-        if (!$this->ready) {
-            return false;
-        }
-
-        $data = $this->storage->get_attachment($event['id'], $id);
-
-        if ($data == null) {
-            // try again with master UID
-            $uid = preg_replace('/-\d+(T\d{6})?$/', '', $event['id']);
-            if ($uid != $event['id']) {
-                $data = $this->storage->get_attachment($uid, $id);
-            }
-        }
-
+        $event = $this->get_event($event['id']);
+        $data = $this->storage->get_attachment($id, $event);
+        /*
+                if ($data === false) {
+                    // try again with master UID
+                    $uid = preg_replace('/-\d+(T\d{6})?$/', '', $event['id']);
+                    if ($uid != $event['id']) {
+                        $data = $this->storage->get_attachment($uid, $id); // TODO
+                    }
+                }
+        */
         return $data;
     }
 
@@ -313,12 +257,16 @@ class kolab_calendar extends kolab_storage_folder_api
         }
 
         foreach ($this->storage->select($query) as $record) {
+            if (empty($record)) {
+                continue;
+            }
+
             $event = $this->_to_driver_event($record, !$virtual, false);
 
             // remember seen categories
             if (!empty($event['categories'])) {
                 $cat = is_array($event['categories']) ? $event['categories'][0] : $event['categories'];
-                $this->categories[$cat] = ($this->categories[$cat] ?? 0) + 1;
+                $this->categories[$cat]++;
             }
 
             // list events in requested time window
@@ -345,7 +293,7 @@ class kolab_calendar extends kolab_storage_folder_api
                 // find and merge exception for the first instance
                 if ($virtual && !empty($event['recurrence']) && !empty($event['recurrence']['EXCEPTIONS'])) {
                     foreach ($event['recurrence']['EXCEPTIONS'] as $exception) {
-                        if ($event['_instance'] == $exception['_instance']) {
+                        if (libcalendaring::is_recurrence_exception($event, $exception)) {
                             unset($exception['calendar'], $exception['className'], $exception['_folder_id']);
                             // clone date objects from main event before adjusting them with exception data
                             if (is_object($event['start'])) {
@@ -354,6 +302,7 @@ class kolab_calendar extends kolab_storage_folder_api
                             if (is_object($event['end'])) {
                                 $event['end'] = clone $record['end'];
                             }
+
                             kolab_driver::merge_exception_data($event, $exception);
                         }
                     }
@@ -365,8 +314,8 @@ class kolab_calendar extends kolab_storage_folder_api
             }
 
             // resolve recurring events
-            if (!empty($record['recurrence']) && $virtual == 1) {
-                $events = array_merge($events, $this->get_recurring_events($record, $start, $end));
+            if (!empty($event['recurrence']) && $virtual == 1) {
+                $events = array_merge($events, $this->get_recurring_events($event, $start, $end));
             }
             // add top-level exceptions (aka loose single occurrences)
             elseif (!empty($record['exceptions'])) {
@@ -397,8 +346,8 @@ class kolab_calendar extends kolab_storage_folder_api
             if (count($partstat_exclude) && !empty($event['attendees'])) {
                 foreach ($event['attendees'] as $attendee) {
                     if (
-                        !empty($attendee['email']) && in_array_nocase($attendee['email'], $user_emails)
-                        && !empty($attendee['status']) && in_array($attendee['status'], $partstat_exclude)
+                        in_array($attendee['email'], $user_emails)
+                        && in_array($attendee['status'], $partstat_exclude)
                     ) {
                         return false;
                     }
@@ -409,11 +358,8 @@ class kolab_calendar extends kolab_storage_folder_api
         });
 
         // Apply event-to-mail relations
-        $config = kolab_storage_config::get_instance();
-        $config->apply_links($events);
-
-        // avoid session race conditions that will loose temporary subscriptions
-        $this->cal->rc->session->nowrite = true;
+        // $config = kolab_storage_config::get_instance();
+        // $config->apply_links($events);
 
         return $events;
     }
@@ -425,7 +371,7 @@ class kolab_calendar extends kolab_storage_folder_api
      * @param int   $end          Date range end (unix timestamp)
      * @param array $filter_query Additional query to filter events
      *
-     * @return int Count
+     * @return int Number of events
      */
     public function count_events($start, $end = null, $filter_query = null)
     {
@@ -460,7 +406,6 @@ class kolab_calendar extends kolab_storage_folder_api
             $query = array_merge($query, $filter_query);
         }
 
-        // we rely the Kolab storage query (no post-filtering)
         return $this->storage->count($query);
     }
 
@@ -478,10 +423,10 @@ class kolab_calendar extends kolab_storage_folder_api
         }
 
         // email links are stored separately
-        $links = !empty($event['links']) ? $event['links'] : [];
-        unset($event['links']);
+        // $links = !empty($event['links']) ? $event['links'] : [];
+        // unset($event['links']);
 
-        //generate new event from RC input
+        // generate new event from RC input
         $object = $this->_from_driver_event($event);
         $saved  = $this->storage->save($object, 'event');
 
@@ -489,28 +434,26 @@ class kolab_calendar extends kolab_storage_folder_api
             rcube::raise_error(
                 [
                     'code' => 600, 'file' => __FILE__, 'line' => __LINE__,
-                    'message' => "Error saving event object to Kolab server",
+                    'message' => "Error saving event object to DAV server",
                 ],
                 true,
                 false
             );
-            $saved = false;
-        } else {
-            // save links in configuration.relation object
-            if ($this->save_links($event['uid'], $links)) {
-                $object['links'] = $links;
-            }
-
-            $this->events = [$event['uid'] => $this->_to_driver_event($object, true)];
+            return false;
         }
+
+        // save links in configuration.relation object
+        // if ($this->save_links($event['uid'], $links)) {
+        //    $object['links'] = $links;
+        // }
+
+        $this->events = [$event['uid'] => $this->_to_driver_event($object, true)];
 
         return $saved;
     }
 
     /**
      * Update a specific event record
-     *
-     * @see calendar_driver::new_event()
      *
      * @return bool True on success, False on error
      */
@@ -523,32 +466,30 @@ class kolab_calendar extends kolab_storage_folder_api
             return false;
         }
 
-        // When updating an event (e.g. when restoring an event occurrence)
-        // the message UID might be outdated. Use the updated UID from database.
-        // See kolab_driver::restore_event().
-        $event['_msguid'] = $old['_msguid'];
-
         // email links are stored separately
-        $links = !empty($event['links']) ? $event['links'] : [];
-        unset($event['links']);
+        // $links = !empty($event['links']) ? $event['links'] : [];
+        // unset($event['links']);
 
         $object = $this->_from_driver_event($event, $old);
-        $saved  = $this->storage->save($object, 'event', $old['uid']);
+
+        $object['created'] = $old['created'] ?? null;
+
+        $saved = $this->storage->save($object, 'event', $old['uid']);
 
         if (!$saved) {
             rcube::raise_error(
                 [
                     'code' => 600, 'file' => __FILE__, 'line' => __LINE__,
-                    'message' => "Error saving event object to Kolab server",
+                    'message' => "Error saving event object to CalDAV server",
                 ],
                 true,
                 false
             );
         } else {
             // save links in configuration.relation object
-            if ($this->save_links($event['uid'], $links)) {
-                $object['links'] = $links;
-            }
+            // if ($this->save_links($event['uid'], $links)) {
+            //     $object['links'] = $links;
+            // }
 
             $updated = true;
             $this->events = [$event['uid'] => $this->_to_driver_event($object, true)];
@@ -571,13 +512,14 @@ class kolab_calendar extends kolab_storage_folder_api
      */
     public function delete_event($event, $force = true)
     {
-        $deleted = $this->storage->delete(!empty($event['uid']) ? $event['uid'] : $event['id'], $force);
+        $uid = !empty($event['uid']) ? $event['uid'] : $event['id'];
+        $deleted = $this->storage->delete($uid, $force);
 
         if (!$deleted) {
             rcube::raise_error(
                 [
                     'code' => 600, 'file' => __FILE__, 'line' => __LINE__,
-                    'message' => sprintf("Error deleting event object '%s' from Kolab server", $event['id']),
+                    'message' => "Error deleting event '{$uid}' from CalDAV server",
                 ],
                 true,
                 false
@@ -596,22 +538,7 @@ class kolab_calendar extends kolab_storage_folder_api
      */
     public function restore_event($event)
     {
-        // Make sure this is not an instance identifier
-        $uid = preg_replace('/-\d{8}(T\d{6})?$/', '', $event['id']);
-
-        if ($this->storage->undelete($uid)) {
-            return true;
-        }
-
-        rcube::raise_error(
-            [
-                'code' => 600, 'file' => __FILE__, 'line' => __LINE__,
-                'message' => sprintf("Error undeleting the event object '%s' from the Kolab server", $event['id']),
-            ],
-            true,
-            false
-        );
-
+        // TODO
         return false;
     }
 
@@ -620,43 +547,38 @@ class kolab_calendar extends kolab_storage_folder_api
      */
     protected function get_links($uid)
     {
+        return []; // TODO
+        /*
         $storage = kolab_storage_config::get_instance();
         return $storage->get_object_links($uid);
+        */
     }
 
     /**
-     *
+     * Save message references (links) to an event
      */
     protected function save_links($uid, $links)
     {
+        return false; // TODO
+        /*
         $storage = kolab_storage_config::get_instance();
         return $storage->save_object_links($uid, (array) $links);
+        */
     }
 
     /**
      * Create instances of a recurring event
      *
-     * @param array    $event    Hash array with event properties
-     * @param DateTime $start    Start date of the recurrence window
-     * @param DateTime $end      End date of the recurrence window
-     * @param string   $event_id ID of a specific recurring event instance
-     * @param int      $limit    Max. number of instances to return
+     * @param array     $event    Hash array with event properties
+     * @param DateTime  $start    Start date of the recurrence window
+     * @param ?DateTime $end      End date of the recurrence window
+     * @param string    $event_id ID of a specific recurring event instance
+     * @param int       $limit    Max. number of instances to return
      *
      * @return array List of recurring event instances
      */
     public function get_recurring_events($event, $start, $end = null, $event_id = null, $limit = null)
     {
-        if (empty($event['_formatobj'])) {
-            $rec    = $this->storage->get_object(!empty($event['uid']) ? $event['uid'] : $event['id']);
-            $object = $rec['_formatobj'];
-        } else {
-            $object = $event['_formatobj'];
-        }
-
-        if (!is_object($object)) {
-            return [];
-        }
-
         // determine a reasonable end date if none given
         if (!$end) {
             $end = clone $event['start'];
@@ -727,8 +649,8 @@ class kolab_calendar extends kolab_storage_folder_api
             return $events;
         }
 
-        // use libkolab to compute recurring events
-        $recurrence = new kolab_date_recurrence($object);
+        // use libcalendaring to compute recurring events
+        $recurrence = libcalendaring::get_recurrence($event);
 
         $i = 0;
         while ($next_event = $recurrence->next_instance()) {
@@ -746,7 +668,7 @@ class kolab_calendar extends kolab_storage_folder_api
             // copy some event from exception to get proper start/end dates
             if ($exception) {
                 $event_copy = $next_event;
-                kolab_driver::merge_exception_dates($event_copy, $exception);
+                caldav_driver::merge_exception_dates($event_copy, $exception);
                 $event_start = $event_copy['start'];
                 $event_end   = $event_copy['end'];
             }
@@ -759,7 +681,7 @@ class kolab_calendar extends kolab_storage_folder_api
 
                 if ($exception) {
                     // copy data from exception
-                    kolab_driver::merge_exception_data($rec_event, $exception);
+                    caldav_driver::merge_exception_data($rec_event, $exception);
                 }
 
                 $rec_event['id'] = $rec_id;
@@ -791,7 +713,7 @@ class kolab_calendar extends kolab_storage_folder_api
     }
 
     /**
-     * Convert from Kolab_Format to internal representation
+     * Convert from storage format to internal representation
      */
     private function _to_driver_event($record, $noinst = false, $links = true, $master_event = null)
     {
@@ -800,9 +722,9 @@ class kolab_calendar extends kolab_storage_folder_api
         // remove (possibly outdated) cached parameters
         unset($record['_folder_id'], $record['className']);
 
-        if ($links && !array_key_exists('links', $record)) {
-            $record['links'] = $this->get_links($record['uid']);
-        }
+        // if ($links && !array_key_exists('links', $record)) {
+        //    $record['links'] = $this->get_links($record['uid']);
+        // }
 
         $ns = $this->get_namespace();
 
@@ -811,16 +733,18 @@ class kolab_calendar extends kolab_storage_folder_api
         }
 
         if ($ns == 'other' || !$this->cal->rc->config->get('kolab_invitation_calendars')) {
-            $record = kolab_driver::add_partstat_class($record, ['NEEDS-ACTION', 'DECLINED'], $this->get_owner());
+            $record = caldav_driver::add_partstat_class($record, ['NEEDS-ACTION', 'DECLINED'], $this->get_owner());
 
             // Modify invitation status class name, when invitation calendars are disabled
             // we'll use opacity only for declined/needs-action events
-            $record['className'] = str_replace('-invitation', '', $record['className'] ?? '');
+            $record['className'] = !empty($record['className']) ? str_replace('-invitation', '', $record['className']) : '';
         }
 
         // add instance identifier to first occurrence (master event)
         $recurrence_id_format = libcalendaring::recurrence_id_format($master_event ? $master_event : $record);
-        if (!$noinst && !empty($record['recurrence']) && empty($record['recurrence_id']) && empty($record['_instance'])) {
+        if (!$noinst && !empty($record['recurrence']) && !empty($record['start'])
+            && empty($record['recurrence_id']) && empty($record['_instance'])
+        ) {
             $record['_instance'] = $record['start']->format($recurrence_id_format);
         } elseif (isset($record['recurrence_date']) && $record['recurrence_date'] instanceof DateTimeInterface) {
             $record['_instance'] = $record['recurrence_date']->format($recurrence_id_format);
@@ -829,7 +753,7 @@ class kolab_calendar extends kolab_storage_folder_api
         // clean up exception data
         if (!empty($record['recurrence']) && !empty($record['recurrence']['EXCEPTIONS'])) {
             array_walk($record['recurrence']['EXCEPTIONS'], function (&$exception) {
-                unset($exception['_mailbox'], $exception['_msguid'], $exception['_formatobj'], $exception['_attachments']);
+                unset($exception['_attachments']);
             });
         }
 
@@ -837,7 +761,7 @@ class kolab_calendar extends kolab_storage_folder_api
     }
 
     /**
-     * Convert the given event record into a data structure that can be passed to Kolab_Storage backend for saving
+     * Convert the given event record into a data structure that can be passed to the storage backend for saving
      * (opposite of self::_to_driver_event())
      */
     private function _from_driver_event($event, $old = [])
@@ -889,10 +813,7 @@ class kolab_calendar extends kolab_storage_folder_api
 
         // clean up exception data
         if (!empty($event['exceptions'])) {
-            array_walk($event['exceptions'], function (&$exception) use ($cleanup_fn) {
-                unset($exception['_mailbox'], $exception['_msguid'], $exception['_formatobj']);
-                $cleanup_fn($exception);
-            });
+            array_walk($event['exceptions'], $cleanup_fn);
         }
 
         // copy meta data (starting with _) from old object
@@ -942,7 +863,7 @@ class kolab_calendar extends kolab_storage_folder_api
         $out = '';
         if (is_array($prop)) {
             foreach ($prop as $key => $val) {
-                if (is_numeric($key) || is_array($val)) {
+                if (is_numeric($key)) {
                     $out .= self::_complex2string($val);
                 } elseif (!in_array($key, $ignorekeys)) {
                     $out .= $val . ' ';

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Localizations for Kolab Calendar plugin
  *
@@ -279,4 +280,3 @@ $labels['arialabeleventresources'] = 'Seznam zdrojů události';
 $labels['arialabelresourcesearchform'] = 'Hledání zdrojů';
 $labels['arialabelresourceselection'] = 'Dostupné zdroje';
 $labels['arialabeleventform'] = 'Úprava události';
-?>

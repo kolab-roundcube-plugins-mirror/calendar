@@ -147,7 +147,9 @@
 		<roundcube:if condition="env:calendar_driver == 'kolab'" />
 			<roundcube:button type="link-menuitem" command="calendar-remove" label="calendar.removelist" class="remove disabled" classAct="remove active" />
 		<roundcube:endif />
-		<roundcube:button type="link-menuitem" command="calendar-showurl" label="calendar.showurl" class="showurl disabled" classAct="showurl active" />
+		<roundcube:if condition="env:calendar_driver != 'caldav'" />
+			<roundcube:button type="link-menuitem" command="calendar-showurl" label="calendar.showurl" class="showurl disabled" classAct="showurl active" />
+		<roundcube:endif />
 		<roundcube:if condition="!empty(env:calendar_settings['freebusy_url'])" />
 			<roundcube:button type="link-menuitem" command="calendar-showfburl" label="calendar.showfburl" class="showurl disabled" classAct="showurl active" />
 		<roundcube:endif />
@@ -362,11 +364,6 @@
 	</div>
 	<div class="event-line event-priority">
 		<label><roundcube:label name="calendar.priority" /></label>
-		<span class="event-text-old"></span> &#8674;
-		<span class="event-text-new"></span>
-	</div>
-	<div class="event-line event-sensitivity">
-		<label><roundcube:label name="calendar.sensitivity" /></label>
 		<span class="event-text-old"></span> &#8674;
 		<span class="event-text-new"></span>
 	</div>
