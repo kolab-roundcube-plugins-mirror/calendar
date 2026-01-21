@@ -3837,6 +3837,278 @@ function rcube_calendar_ui(settings)
         }
       }
     }));
+        
+// Enable swipe left/right on touch devices to navigate calendar
+(function() {
+  var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+  if (!isTouch) return;
+
+  var startX = 0, startY = 0, startTime = 0;
+  var ignore = false, cancelled = false;
+  var tracking = false;
+
+  var thresholdX = 60;    // min horizontal distance to trigger (px)
+  var restraintY = 40;    // max vertical movement (px)
+  var allowedTime = 700;  // max gesture time (ms)
+  var edgeHintThreshold = 20; // distance before showing edge hint
+
+  var $viewContainer = $('#calendar');
+  var $fcView = null;     // will hold the .fc-view element
+
+  // Create edge hint elements (arrows that appear at screen edge)
+  function createEdgeHints() {
+    if ($('#swipe-hint-left').length) return;
+
+    var css = {
+      position: 'fixed',
+      top: '50%',
+      transform: 'translateY(-50%)',
+      width: '40px',
+      height: '80px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '24px',
+      color: '#fff',
+      background: 'rgba(0,0,0,0.3)',
+      borderRadius: '4px',
+      opacity: '0',
+      transition: 'opacity 0.15s ease',
+      pointerEvents: 'none',
+      zIndex: '9999'
+    };
+
+    $('<div id="swipe-hint-left">').css($.extend({}, css, {left: '5px'}))
+      .html('&#9664;') // left arrow
+      .appendTo('body');
+
+    $('<div id="swipe-hint-right">').css($.extend({}, css, {right: '5px'}))
+      .html('&#9654;') // right arrow
+      .appendTo('body');
+  }
+
+  function showEdgeHint(direction, intensity) {
+    var id = direction < 0 ? '#swipe-hint-right' : '#swipe-hint-left';
+    var opacity = Math.min(1, intensity / thresholdX);
+    $(id).css('opacity', opacity);
+  }
+
+  function hideEdgeHints() {
+    $('#swipe-hint-left, #swipe-hint-right').css('opacity', 0);
+  }
+
+  function isInteractiveTarget(target) {
+    return $(target).closest(
+      '.fc-event,' +
+      '.fc-helper,' +
+      '.ui-resizable-handle,' +
+      'a,button,input,textarea,select,' +
+      '.ui-dialog,.popupmenu'
+    ).length > 0;
+  }
+
+  function doPrevNext(dir) {
+    var view = fc.fullCalendar('getView');
+    var viewName = view.name;
+
+    if (viewName === 'list') {
+      // match the custom prev/next behavior in viewRender
+      var d = moment(fc.fullCalendar('getDate'));
+      d.add(dir * settings.agenda_range, 'days');
+      fc.fullCalendar('gotoDate', d);
+    }
+    else {
+      fc.fullCalendar(dir > 0 ? 'next' : 'prev');
+    }
+  }
+
+  // Animate the view transition
+  function animateTransition(direction) {
+    $fcView = $viewContainer.find('.fc-view');
+    if (!$fcView.length) return;
+
+    var slideDistance = 30;
+    var endOffset = direction * slideDistance * -1;
+
+    // Animate out
+    $fcView.css({
+      transition: 'none',
+      transform: 'translateX(0)',
+      opacity: 1
+    });
+
+    // Force reflow
+    $fcView[0].offsetHeight;
+
+    $fcView.css({
+      transition: 'transform 0.15s ease-out, opacity 0.15s ease-out',
+      transform: 'translateX(' + endOffset + 'px)',
+      opacity: 0.3
+    });
+
+    // After navigation completes, animate the new view in
+    setTimeout(function() {
+      $fcView = $viewContainer.find('.fc-view');
+      if (!$fcView.length) return;
+
+      // Start from opposite side
+      $fcView.css({
+        transition: 'none',
+        transform: 'translateX(' + (direction * slideDistance) + 'px)',
+        opacity: 0.3
+      });
+
+      // Force reflow
+      $fcView[0].offsetHeight;
+
+      // Animate in
+      $fcView.css({
+        transition: 'transform 0.2s ease-out, opacity 0.2s ease-out',
+        transform: 'translateX(0)',
+        opacity: 1
+      });
+
+      // Cleanup
+      setTimeout(function() {
+        $fcView.css({
+          transition: '',
+          transform: '',
+          opacity: ''
+        });
+      }, 250);
+    }, 150);
+  }
+
+  // Real-time drag feedback with rubber-band effect
+  function applyDragOffset(dx) {
+    $fcView = $viewContainer.find('.fc-view');
+    if (!$fcView.length) return;
+
+    var maxDrag = 100;
+    var dampened = dx / (1 + Math.abs(dx) / maxDrag);
+    var opacity = 1 - (Math.abs(dampened) / maxDrag) * 0.3;
+
+    $fcView.css({
+      transition: 'none',
+      transform: 'translateX(' + dampened + 'px)',
+      opacity: opacity
+    });
+  }
+
+  function resetDragOffset() {
+    $fcView = $viewContainer.find('.fc-view');
+    if (!$fcView.length) return;
+
+    $fcView.css({
+      transition: 'transform 0.2s ease-out, opacity 0.2s ease-out',
+      transform: 'translateX(0)',
+      opacity: 1
+    });
+
+    setTimeout(function() {
+      $fcView.css({
+        transition: '',
+        transform: '',
+        opacity: ''
+      });
+    }, 200);
+  }
+
+  // Initialize
+  createEdgeHints();
+
+  $viewContainer.on('touchstart', function(e) {
+    var oe = e.originalEvent;
+    var touch = oe && oe.changedTouches ? oe.changedTouches[0] : null;
+    if (!touch) return;
+
+    startX = touch.pageX;
+    startY = touch.pageY;
+    startTime = Date.now();
+
+    cancelled = false;
+    tracking = false;
+    ignore = isInteractiveTarget(e.target);
+
+    $fcView = $viewContainer.find('.fc-view');
+  });
+
+  $viewContainer.on('touchmove', function(e) {
+    if (ignore || cancelled) return;
+
+    var oe = e.originalEvent;
+    var touch = oe && oe.changedTouches ? oe.changedTouches[0] : null;
+    if (!touch) return;
+
+    var dx = touch.pageX - startX;
+    var dy = touch.pageY - startY;
+
+    // If user is scrolling vertically, cancel swipe detection
+    if (!tracking && Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 10) {
+      cancelled = true;
+      hideEdgeHints();
+      resetDragOffset();
+      return;
+    }
+
+    // Start tracking horizontal movement
+    if (!tracking && Math.abs(dx) > edgeHintThreshold) {
+      tracking = true;
+    }
+
+    if (tracking) {
+      showEdgeHint(dx, Math.abs(dx));
+      applyDragOffset(dx);
+    }
+  });
+
+  $viewContainer.on('touchend', function(e) {
+    hideEdgeHints();
+
+    if (ignore || cancelled) {
+      resetDragOffset();
+      tracking = false;
+      return;
+    }
+
+    var oe = e.originalEvent;
+    var touch = oe && oe.changedTouches ? oe.changedTouches[0] : null;
+    if (!touch) {
+      resetDragOffset();
+      tracking = false;
+      return;
+    }
+
+    var distX = touch.pageX - startX;
+    var distY = Math.abs(touch.pageY - startY);
+    var elapsed = Date.now() - startTime;
+
+    // Check if swipe meets criteria
+    var validSwipe = (
+      elapsed <= allowedTime &&
+      Math.abs(distX) >= thresholdX &&
+      distY <= restraintY
+    );
+
+    if (validSwipe) {
+      var direction = distX < 0 ? +1 : -1;
+      animateTransition(direction);
+      doPrevNext(direction);
+    }
+    else {
+      resetDragOffset();
+    }
+
+    tracking = false;
+  });
+
+  $viewContainer.on('touchcancel', function() {
+    hideEdgeHints();
+    resetDragOffset();
+    cancelled = true;
+    tracking = false;
+  });
+})();
 
     // if start date is changed, shift end date according to initial duration
     var shift_enddate = function(dateText) {
