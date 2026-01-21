@@ -3837,7 +3837,95 @@ function rcube_calendar_ui(settings)
         }
       }
     }));
+        
+    // Enable swipe left/right on touch devices to navigate calendar
+    (function() {
+      var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+      if (!isTouch) return;
 
+      var startX = 0, startY = 0, startTime = 0;
+      var ignore = false, cancelled = false;
+
+      var thresholdX = 60;    // min horizontal distance (px)
+      var restraintY = 40;    // max vertical movement (px)
+      var allowedTime = 700;  // max gesture time (ms)
+
+      var $viewContainer = $('#calendar');
+
+      function isInteractiveTarget(target) {
+        return $(target).closest(
+          '.fc-event,' +
+          '.fc-helper,' +
+          '.ui-resizable-handle,' +
+          'a,button,input,textarea,select,' +
+          '.ui-dialog,.popupmenu'
+        ).length > 0;
+      }
+
+      function doPrevNext(dir) {
+        var view = fc.fullCalendar('getView');
+        var viewName = view.name;
+
+        if (viewName == 'list') {
+          // match the custom prev/next behavior in viewRender
+          var d = moment(fc.fullCalendar('getDate'));
+          d.add(dir * settings.agenda_range, 'days');
+          fc.fullCalendar('gotoDate', d);
+        }
+        else {
+          fc.fullCalendar(dir > 0 ? 'next' : 'prev');
+        }
+      }
+
+      $viewContainer.on('touchstart', function(e) {
+        var oe = e.originalEvent;
+        var touch = oe && oe.changedTouches ? oe.changedTouches[0] : null;
+        if (!touch) return;
+
+        startX = touch.pageX;
+        startY = touch.pageY;
+        startTime = Date.now();
+
+        cancelled = false;
+        ignore = isInteractiveTarget(e.target);
+      });
+
+      $viewContainer.on('touchmove', function(e) {
+        if (ignore || cancelled) return;
+
+        var oe = e.originalEvent;
+        var touch = oe && oe.changedTouches ? oe.changedTouches[0] : null;
+        if (!touch) return;
+
+        var dx = touch.pageX - startX;
+        var dy = touch.pageY - startY;
+
+        // If user is scrolling vertically, cancel swipe detection
+        if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 10) {
+          cancelled = true;
+        }
+      });
+
+      $viewContainer.on('touchend', function(e) {
+        if (ignore || cancelled) return;
+
+        var oe = e.originalEvent;
+        var touch = oe && oe.changedTouches ? oe.changedTouches[0] : null;
+        if (!touch) return;
+
+        var distX = touch.pageX - startX;
+        var distY = Math.abs(touch.pageY - startY);
+        var elapsed = Date.now() - startTime;
+
+        if (elapsed > allowedTime) return;
+        if (Math.abs(distX) < thresholdX) return;
+        if (distY > restraintY) return;
+
+        // left swipe -> next, right swipe -> prev
+        doPrevNext(distX < 0 ? +1 : -1);
+      });
+    })();
+    
     // if start date is changed, shift end date according to initial duration
     var shift_enddate = function(dateText) {
       var newstart = me.parse_datetime('0', dateText);
