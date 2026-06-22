@@ -674,7 +674,7 @@ class database_driver extends calendar_driver
         $free_busy   = isset($event['free_busy']) ? strtolower($event['free_busy']) : '';
 
         $event['_recurrence'] = rtrim($rrule, ';');
-        $event['free_busy']   = $this->free_busy_map[$free_busy] ?? null;
+        $event['free_busy']   = $this->free_busy_map[$free_busy] ?? $this->free_busy_map['busy'];
         $event['sensitivity'] = $this->sensitivity_map[$sensitivity] ?? 0;
         $event['all_day']     = !empty($event['allday']) ? 1 : 0;
 
