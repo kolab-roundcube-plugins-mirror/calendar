@@ -70,6 +70,7 @@ class calendar extends rcube_plugin
         'calendar_event_coloring'      => 0,
         'calendar_time_indicator'      => true,
         'calendar_allow_invite_shared' => false,
+        'calendar_itip_autoimport_pending' => false,
         'calendar_itip_send_option'    => 3,
         'calendar_itip_after_action'   => 0,
     ];
@@ -2170,6 +2171,12 @@ $("#rcmfd_new_category").keypress(function(event) {
 
         $event['className'] = !empty($event['className']) ? explode(' ', $event['className']) : [];
 
+        if ($partstat = $this->event_partstat($event)) {
+            $event['className'][] = 'fc-invitation-' . $partstat;
+            $event['className'][] = 'fc-' . $partstat;
+            $event['className'] = array_values(array_unique($event['className']));
+        }
+
         if ($event['allDay']) {
             $event['end'] = $event['end']->add(new DateInterval('P1D'));
         }
@@ -2946,6 +2953,143 @@ $("#rcmfd_new_category").keypress(function(event) {
     }
 
     /**
+     * Find the current user's participant status in an event attendee list.
+     */
+    protected function event_partstat($event)
+    {
+        if (empty($event['attendees']) || !is_array($event['attendees'])) {
+            return null;
+        }
+
+        $emails = $this->get_user_emails();
+
+        foreach ($event['attendees'] as $attendee) {
+            $email  = isset($attendee['email']) ? strtolower($attendee['email']) : null;
+            $status = isset($attendee['status']) ? strtolower($attendee['status']) : null;
+
+            if ($email && $status && in_array($email, $emails)) {
+                return in_array($status, ['needs-action', 'tentative', 'declined']) ? $status : null;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Compare two iTip event copies for auto-import idempotency.
+     */
+    protected function itip_event_is_newer($event, $existing)
+    {
+        $event_sequence    = intval($event['sequence'] ?? 0);
+        $existing_sequence = intval($existing['sequence'] ?? 0);
+
+        if ($event_sequence != $existing_sequence) {
+            return $event_sequence > $existing_sequence;
+        }
+
+        return $this->event_changed_timestamp($event) > $this->event_changed_timestamp($existing);
+    }
+
+    /**
+     * Normalize an event change timestamp for comparisons.
+     */
+    protected function event_changed_timestamp($event)
+    {
+        $changed = $event['changed'] ?? null;
+
+        if ($changed instanceof DateTimeInterface) {
+            return intval($changed->format('U'));
+        }
+
+        return $changed ? intval($changed) : 0;
+    }
+
+    /**
+     * Automatically add incoming iTip REQUESTs to the default calendar as pending.
+     */
+    protected function mail_autoimport_pending_itip($event)
+    {
+        if (!$this->rc->config->get('calendar_itip_autoimport_pending', $this->defaults['calendar_itip_autoimport_pending'])
+            || empty($event['uid'])
+            || ($event['_method'] ?? null) != 'REQUEST'
+        ) {
+            return false;
+        }
+
+        $mode     = 0;
+        $existing = $this->find_event($event, $mode);
+
+        $calendars = $this->driver->list_calendars($mode);
+        $calendar  = $existing ? ($calendars[$existing['calendar']] ?? null) : $this->get_default_calendar($calendars);
+
+        if (empty($calendar) || empty($calendar['editable'])) {
+            return false;
+        }
+
+        $event['calendar']  = $calendar['id'];
+        $event['free_busy'] = 'tentative';
+
+        if (!$this->set_pending_partstat($event)) {
+            return false;
+        }
+
+        if ($existing) {
+            if (!$this->itip_event_is_newer($event, $existing)) {
+                return false;
+            }
+
+            $event['id']       = $existing['id'];
+            $event['calendar'] = $existing['calendar'];
+            $this->lib->merge_attendees($event, $existing, '');
+
+            return $this->driver->edit_event($event);
+        }
+
+        return $this->driver->new_event($event);
+    }
+
+    /**
+     * Set this user's attendee PARTSTAT to NEEDS-ACTION without sending an RSVP.
+     */
+    protected function set_pending_partstat(&$event)
+    {
+        $emails = $this->get_user_emails();
+        $found  = false;
+
+        foreach ((array) ($event['attendees'] ?? []) as $i => $attendee) {
+            $role  = $attendee['role'] ?? null;
+            $email = isset($attendee['email']) ? strtolower($attendee['email']) : null;
+
+            if ($role == 'ORGANIZER' || !$email || !in_array($email, $emails)) {
+                continue;
+            }
+
+            $event['attendees'][$i]['status'] = 'NEEDS-ACTION';
+
+            if ($role != 'NON-PARTICIPANT') {
+                $event['attendees'][$i]['rsvp'] = true;
+            }
+
+            $found = true;
+        }
+
+        if (!$found && $this->rc->config->get('calendar_allow_itip_uninvited', true)) {
+            $sender_identity = $this->rc->user->list_emails(true);
+            $event['attendees'][] = [
+                'name'   => $sender_identity['name'],
+                'email'  => $sender_identity['email'],
+                'role'   => 'OPT-PARTICIPANT',
+                'status' => 'NEEDS-ACTION',
+                'rsvp'   => true,
+            ];
+
+            return true;
+        }
+
+        return $found;
+    }
+
+    /**
      * Handler for calendar/itip-status requests
      */
     public function event_itip_status()
@@ -3279,6 +3423,8 @@ $("#rcmfd_new_category").keypress(function(event) {
 
                 // prepare a small agenda preview to be filled with actual event data on async request
                 if ($ical_objects->method == 'REQUEST') {
+                    $this->mail_autoimport_pending_itip($event);
+
                     $append = html::div(
                         'calendar-agenda-preview',
                         html::tag('h3', 'preview-title', $this->gettext('agenda') . ' ' . html::span('date', $date_str))
