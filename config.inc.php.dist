@@ -96,6 +96,10 @@ $config['calendar_allow_invite_shared'] = false;
 // this can be the case if invitations are sent to mailing lists or alias email addresses.
 $config['calendar_allow_itip_uninvited'] = true;
 
+// Automatically add incoming iTip REQUESTs to the user's default calendar as
+// pending when the mail message is opened or previewed. No RSVP is sent.
+$config['calendar_itip_autoimport_pending'] = false;
+
 // controls the visibility/default of the checkbox controlling the sending of iTip invitations
 // 0 = hidden  + disabled
 // 1 = hidden  + active
