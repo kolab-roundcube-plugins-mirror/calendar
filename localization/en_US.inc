@@ -36,6 +36,10 @@ $labels['showweekno'] = 'Display week numbers';
 $labels['weeknonone'] = 'never';
 $labels['weeknodatepicker'] = 'in datepicker only';
 $labels['weeknoall'] = 'in datepicker and calendar view';
+$labels['caldavoptions'] = 'CalDAV Server';
+$labels['caldavpassword'] = 'CalDAV password';
+$labels['caldavpasswordempty'] = 'Same as mail password';
+$labels['caldavpasswordhint'] = 'Set this only if your CalDAV server uses a password different from your mail password. Leave the field empty to use the default one.';
 
 // calendar
 $labels['calendar'] = 'Calendar';

@@ -41,6 +41,12 @@ class calendar extends rcube_plugin
 
     public const SESSION_KEY = 'calendar_temp';
 
+    /**
+     * Placeholder shown in the CalDAV password input instead of the stored password.
+     * Submitted back unchanged it means "keep the password we already have".
+     */
+    public const PASSWORD_DUMMY = '********';
+
     public $task = '?(?!logout).*';
 
     /** @var rcmail */
@@ -872,6 +878,37 @@ $("#rcmfd_new_category").keypress(function(event) {
             ];
         }
 
+        // CalDAV server credentials
+        if ($this->rc->config->get('calendar_driver', 'database') == 'caldav'
+            && !isset($no_override[kolab_dav_client::PASSWORD_PREF])
+        ) {
+            $p['blocks']['caldav']['name'] = $this->gettext('caldavoptions');
+
+            if (empty($p['current'])) {
+                $p['blocks']['caldav']['content'] = true;
+                return $p;
+            }
+
+            $field_id = 'rcmfd_caldav_password';
+            $input    = new html_passwordfield([
+                    'name'         => '_caldav_password',
+                    'id'           => $field_id,
+                    'size'         => 30,
+                    // keep browsers from filling in the webmail password here
+                    'autocomplete' => 'new-password',
+                    'placeholder'  => $this->gettext('caldavpasswordempty'),
+            ]);
+
+            // Never send the stored password to the browser, only tell whether there is one.
+            $is_set = strlen((string) $this->rc->config->get(kolab_dav_client::PASSWORD_PREF)) > 0;
+
+            $p['blocks']['caldav']['options']['caldav_password'] = [
+                'title'   => html::label($field_id, rcube::Q($this->gettext('caldavpassword'))),
+                'content' => $input->show($is_set ? self::PASSWORD_DUMMY : '')
+                    . html::div('hint', rcube::Q($this->gettext('caldavpasswordhint'))),
+            ];
+        }
+
         return $p;
     }
 
@@ -920,6 +957,27 @@ $("#rcmfd_new_category").keypress(function(event) {
 
             if ($p['prefs']['calendar_itip_after_action'] == 4) {
                 $p['prefs']['calendar_itip_after_action'] = rcube_utils::get_input_value('_after_action_folder', rcube_utils::INPUT_POST, true);
+            }
+
+            // CalDAV password, stored encrypted with the 'des_key' master key.
+            // The input is missing when the block was not displayed - never clear
+            // the stored password in that case.
+            $no_override = array_flip((array) $this->rc->config->get('dont_override'));
+
+            if (isset($_POST['_caldav_password'])
+                && $this->rc->config->get('calendar_driver', 'database') == 'caldav'
+                && !isset($no_override[kolab_dav_client::PASSWORD_PREF])
+            ) {
+                // note: no HTML stripping, a password may contain any character
+                $password = rcube_utils::get_input_value('_caldav_password', rcube_utils::INPUT_POST, true);
+
+                if (!strlen((string) $password)) {
+                    // cleared by the user, fall back to the configured/IMAP password
+                    $p['prefs'][kolab_dav_client::PASSWORD_PREF] = null;
+                } elseif ($password !== self::PASSWORD_DUMMY) {
+                    $p['prefs'][kolab_dav_client::PASSWORD_PREF] = $this->rc->encrypt($password);
+                }
+                // the untouched placeholder is left out of $p['prefs'], which keeps the stored value
             }
 
             // categories
