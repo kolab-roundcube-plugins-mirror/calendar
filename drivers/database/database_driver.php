@@ -646,7 +646,7 @@ class database_driver extends calendar_driver
             }
 
             // update attendees only if I'm the organizer
-            if ($is_organizer || ($event['organizer'] && in_array(strtolower($event['organizer']['email']), $emails))) {
+            if ($is_organizer || (!empty($event['organizer']) && in_array(strtolower($event['organizer']['email']), $emails))) {
                 $event['attendees'] = $attendees;
             }
         }
